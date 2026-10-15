@@ -1,0 +1,52 @@
+name: Générer le script du live
+
+on:
+  workflow_dispatch:
+    inputs:
+      sujet:
+        description: "Sujet du live"
+        required: true
+      duree:
+        description: "Durée du live en minutes"
+        required: true
+        default: "20"
+      these:
+        description: "Thèse / angle à étayer (optionnel)"
+        required: false
+        default: ""
+      langue:
+        description: "Langue (auto, fr, en, es, de, it, pt, ar)"
+        required: false
+        default: "auto"
+
+jobs:
+  generate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+          cache: pip
+      - run: pip install -r requirements.txt
+      - name: Générer
+        env:
+          GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+          GEMINI_API_KEY_2: ${{ secrets.GEMINI_API_KEY_2 }}
+          GEMINI_API_KEY_3: ${{ secrets.GEMINI_API_KEY_3 }}
+          GEMINI_API_KEY_4: ${{ secrets.GEMINI_API_KEY_4 }}
+          GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
+          YT_API_KEY: ${{ secrets.YT_API_KEY }}
+          X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
+          LLM_RPM: "4"
+          SUJET: ${{ inputs.sujet }}
+          DUREE: ${{ inputs.duree }}
+          THESE: ${{ inputs.these }}
+          LANGUE: ${{ inputs.langue }}
+        run: python -m src.main --sujet "$SUJET" --duree "$DUREE" --these "$THESE" --langue "$LANGUE"
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: live-script
+          path: output/
