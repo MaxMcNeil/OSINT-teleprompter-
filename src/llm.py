@@ -89,6 +89,9 @@ def models():
     return MODELS
 
 
+_strikes = {}
+
+
 def _pick(search: bool):
     """Choisit (clé, modèle) et réserve son créneau. Retourne (clé, modèle, attente) ; (None, None, attente) si tout est
     temporairement bloqué ; (None, None, None) si tout est épuisé pour la journée."""
@@ -159,10 +162,12 @@ def ask(prompt: str, temperature: float = 0.7, json_mode: bool = False,
             _announced.add((i, model))
             print(f"  > clé n°{i + 1} / {model}")
         try:
-            return client(i).models.generate_content(
+            r = client(i).models.generate_content(
                 model=model, contents=prompt,
                 config=types.GenerateContentConfig(**cfg),
             )
+            _strikes.pop((i, model, bool(search)), None)
+            return r
         except Exception as e:  # réseau, quota, surcharge
             last = e
             msg = str(e)
@@ -186,6 +191,15 @@ def ask(prompt: str, temperature: float = 0.7, json_mode: bool = False,
                     _dead.add((i, model, bool(search)))
                     continue
                 m = re.search(r"retry(?:Delay)?\D{0,20}(\d+(?:\.\d+)?)\s*s", msg, re.I)
+                k = (i, model, bool(search))
+                _strikes[k] = _strikes.get(k, 0) + 1
+                if _strikes[k] == 1:
+                    print(f"    (429 brut : {' '.join(msg.split())[:300]})")
+                if _strikes[k] >= (2 if not m else 4):
+                    print(f"  ! quota inutilisable : clé n°{i + 1} / {model}"
+                          + (" (recherche Google)" if search else "") + " : écarté pour ce run")
+                    _dead.add((i, model, bool(search)))
+                    continue
                 pause = float(m.group(1)) + 2 if m else 20
                 print(f"  ! quota par minute : clé n°{i + 1} / {model}, pause {pause:.0f}s sur ce modèle seulement")
                 with _lock:
