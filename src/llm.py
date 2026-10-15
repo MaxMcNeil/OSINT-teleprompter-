@@ -166,6 +166,15 @@ def ask(prompt: str, temperature: float = 0.7, json_mode: bool = False,
         except Exception as e:  # réseau, quota, surcharge
             last = e
             msg = str(e)
+            head = msg[:80]
+            if ("API key" in msg and ("not valid" in msg or "expired" in msg)) or "PERMISSION_DENIED" in head \
+                    or head.startswith("403") or "API_KEY_INVALID" in msg:
+                print(f"  ! clé n°{i + 1} refusée par Google ({head[:50]}) : écartée pour ce run")
+                for m_ in models():
+                    _dead.add((i, m_, False))
+                continue
+            if "INVALID_ARGUMENT" in head or head.startswith("400"):
+                raise RuntimeError(f"requête refusée par Gemini : {msg[:200]}")
             if "NOT_FOUND" in msg or "404" in msg[:40]:
                 print(f"  ! {model} introuvable (clé n°{i + 1}), suivant")
                 _dead.add((i, model, False))

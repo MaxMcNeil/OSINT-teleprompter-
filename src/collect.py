@@ -179,6 +179,43 @@ def youtube(query, hl, n=8):
     return out
 
 
+def _iso_minutes(d):
+    m = re.match(r"PT(?:(\d+)H)?(?:(\d+)M)?(?:(\d+)S)?", d or "")
+    if not m:
+        return 0
+    h, mi, se = (int(x or 0) for x in m.groups())
+    return h * 60 + mi + (1 if se >= 30 else 0)
+
+
+def youtube_top(queries, hl, n=15):
+    """Vidéos candidates triées par AUDIENCE : recherche par nombre de vues + stats complètes. Retourne une liste de dicts."""
+    key = os.getenv("YT_API_KEY")
+    if not key:
+        return []
+    from googleapiclient.discovery import build
+    yt = build("youtube", "v3", developerKey=key, cache_discovery=False)
+    ids = []
+    for q in queries:
+        for order in ("viewCount", "relevance"):
+            try:
+                r = yt.search().list(q=q, part="id", maxResults=n, order=order, type="video",
+                                     relevanceLanguage=hl).execute()
+                ids += [i["id"]["videoId"] for i in r.get("items", [])]
+            except Exception as e:
+                print(f"  ! youtube_top: {str(e)[:80]}")
+    ids = list(dict.fromkeys(ids))[:50]
+    if not ids:
+        return []
+    res = yt.videos().list(id=",".join(ids), part="snippet,statistics,contentDetails").execute()
+    out = []
+    for it in res.get("items", []):
+        sn, st = it["snippet"], it.get("statistics", {})
+        out.append({"id": it["id"], "titre": sn["title"], "chaine": sn["channelTitle"], "date": sn["publishedAt"][:10],
+                    "vues": int(st.get("viewCount", 0)), "duree_min": _iso_minutes(it.get("contentDetails", {}).get("duration")),
+                    "description": sn.get("description", "")[:300], "url": f"https://www.youtube.com/watch?v={it['id']}"})
+    return sorted(out, key=lambda v: -v["vues"])
+
+
 def transcript(video_id, langs):
     try:
         from youtube_transcript_api import YouTubeTranscriptApi as Y

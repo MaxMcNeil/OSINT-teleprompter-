@@ -6,7 +6,7 @@ Tu tapes un sujet et une durée. Le dépôt cherche, vérifie, écrit le script 
 
 1. **Settings → Secrets and variables → Actions** : ajoute `GEMINI_API_KEY` et `YT_API_KEY`. Clés Gemini supplémentaires (comptes/projets distincts) : `GEMINI_API_KEY_2` … `GEMINI_API_KEY_5`. Le script utilise le meilleur modèle sur toutes les clés, puis descend au suivant quand le quota du jour est épuisé. Optionnel : `X_BEARER_TOKEN` (API X payante, 7 derniers jours).
 2. **Actions → Générer le script du live → Run workflow** : sujet, durée en minutes, thèse (optionnelle).
-3. Télécharge l'artefact `live-script`.
+3. Les fichiers sont enregistrés automatiquement dans le dossier `prompter/` de la branche `main` (un sous-dossier par run : `date_sujet`). Plus d'artefact à télécharger. Le nom du dossier se change en un seul endroit : `OUT_DIR` dans `.github/workflows/generate.yml` (deux occurrences).
 
 En local : `pip install -r requirements.txt`, puis
 `python -m src.main --sujet "..." --duree 20 --these "..."`
@@ -21,6 +21,10 @@ Options : `--wpm 145` (mots par minute), `--langue fr|en|…`, `--no-defense`, `
 | `script_annote.md` | Même texte avec chapitres et marqueurs `[F12]` |
 | `commentaire_epingle.txt` | Liste des sources citées, avec vraies adresses, prête à coller en commentaire épinglé |
 | `sources.md` | Chaque affirmation → fait → source, date, lien, fiabilité, + points à vérifier |
+| `titre_miniature.md` | Analyse du top 3 YouTube (titres, miniatures) + titre, composition, prompt image, texte incrusté |
+| `titre.txt` | Titre (3 à 5 mots) |
+| `prompt_miniature.txt` | Prompt Midjourney/Ideogram en anglais |
+| `texte_miniature.txt` | Texte incrusté (≤3 mots), couleur, police, placement |
 | `donnees.json` | Toutes les sources et tous les faits collectés |
 
 ## Comment ça marche
@@ -40,6 +44,10 @@ Options : `--wpm 145` (mots par minute), `--langue fr|en|…`, `--no-defense`, `
 - Reddit et les transcriptions YouTube bloquent souvent les IP GitHub Actions ; ils sont tentés, ignorés en cas d'échec.
 - Les articles payants sont lus en titre seulement.
 - Lis `sources.md` avant de diffuser : c'est lui qui te protège (diffamation, strike YouTube).
+
+## Confidentialité
+
+Les fichiers sont commités sur `main` : si le dépôt est public, scripts, sources et prompts le sont aussi. Passe le dépôt en privé (Settings → General → Danger zone → Change visibility). Settings → Actions → General → Workflow permissions : « Read and write ».
 
 ## Sécurité des clés
 

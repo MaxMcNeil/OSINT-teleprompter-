@@ -19,6 +19,13 @@ on:
         required: false
         default: "auto"
 
+permissions:
+  contents: write
+
+concurrency:
+  group: generate
+  cancel-in-progress: false
+
 jobs:
   generate:
     runs-on: ubuntu-latest
@@ -44,9 +51,21 @@ jobs:
           DUREE: ${{ inputs.duree }}
           THESE: ${{ inputs.these }}
           LANGUE: ${{ inputs.langue }}
+          OUT_DIR: prompter
         run: python -m src.main --sujet "$SUJET" --duree "$DUREE" --these "$THESE" --langue "$LANGUE"
-      - uses: actions/upload-artifact@v4
+      - name: Enregistrer les fichiers dans prompter/ (branche main)
         if: always()
-        with:
-          name: live-script
-          path: output/
+        env:
+          SUJET: ${{ inputs.sujet }}
+          OUT_DIR: prompter
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A "$OUT_DIR"
+          if git diff --cached --quiet; then echo "Rien à enregistrer"; exit 0; fi
+          git commit -m "prompter: $SUJET"
+          for i in 1 2 3; do
+            git pull --rebase origin main && git push origin HEAD:main && exit 0
+            sleep 5
+          done
+          exit 1

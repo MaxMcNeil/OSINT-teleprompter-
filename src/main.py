@@ -9,7 +9,7 @@ import re
 import time
 from dataclasses import asdict
 
-from . import collect, config, facts as F, report, script
+from . import collect, config, facts as F, report, script, thumb
 
 
 def slug(s):
@@ -25,7 +25,7 @@ def main():
     ap.add_argument("--wpm", type=int, default=config.WPM, help="mots par minute")
     ap.add_argument("--no-defense", action="store_true", help="ne pas développer les faits contraires")
     ap.add_argument("--no-interactions", action="store_true", help="pas d'appels au chat")
-    ap.add_argument("--out", default="output")
+    ap.add_argument("--out", default=os.getenv("OUT_DIR", "prompter"))
     a = ap.parse_args()
 
     t0 = time.time()
@@ -90,6 +90,25 @@ def main():
         report.build(titre, secs, facts, sources, ctx, stats))
     json.dump({"sources": [asdict(s) for s in sources], "faits": facts},
               open(os.path.join(d, "donnees.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+
+    print("   Titre + miniature (analyse du top 3 YouTube)…")
+    try:
+        top_facts = sorted(facts, key=script.score, reverse=True)[:5]
+        L, at, am, top3, note = thumb.build(ctx, sources, queries, titre, top_facts)
+        open(os.path.join(d, "titre_miniature.md"), "w", encoding="utf-8").write(
+            thumb.render(a.sujet, titre, L, at, am, top3, note))
+        if L:
+            ts = L.get("texte_miniature") or {}
+            open(os.path.join(d, "titre.txt"), "w", encoding="utf-8").write((L.get("titre") or "") + "\n")
+            open(os.path.join(d, "prompt_miniature.txt"), "w", encoding="utf-8").write((L.get("prompt_image") or "") + "\n")
+            open(os.path.join(d, "texte_miniature.txt"), "w", encoding="utf-8").write(
+                f"{ts.get('texte', '')}\nCouleur : {ts.get('couleur', '')}\nPolice : {ts.get('police', '')}\n"
+                f"Placement : {ts.get('placement', '')}\n")
+        print("   titre :", (L or {}).get("titre"), "|", note or "ok")
+    except BaseException as e:  # ne jamais perdre le script pour la miniature
+        if isinstance(e, KeyboardInterrupt):
+            raise
+        print(f"   ! titre/miniature non générés : {type(e).__name__}: {str(e)[:150]}")
 
     est = final_words / a.wpm
     msg = (f"**{titre}**\n\nScript : {final_words} mots ≈ {est:.1f} min (cible {a.duree}) · "
