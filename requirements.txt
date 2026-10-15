@@ -1,0 +1,6 @@
+google-genai>=1.0.0
+google-api-python-client>=2.100.0
+requests>=2.31.0
+trafilatura>=1.12.0
+googlenewsdecoder>=0.1.7
+youtube-transcript-api>=0.6.2
