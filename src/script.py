@@ -28,7 +28,8 @@ TRUTH = """RÈGLES DE VÉRITÉ (non négociables) :
 3. Statut allégation / signal / opinion, ou fiabilité faible : attribue clairement ("selon", "affirme", "d'après une vidéo virale"). Jamais présenté comme établi.
 4. Humour, indignation, transitions, analyse : pas de marqueur, mais aucun chiffre ni fait nouveau dedans.
 5. Tu peux relier les faits (comparaison, contradiction, conséquence logique) en marquant chaque fait mobilisé.
-6. Faits "contre" la thèse : mentionne-les honnêtement en une ou deux phrases, puis réponds avec les autres faits. C'est ce qui rend le live inattaquable."""
+6. Faits "contre" la thèse : mentionne-les honnêtement en une ou deux phrases, puis réponds avec les autres faits. C'est ce qui rend le live inattaquable.
+7. Présomption d'innocence dans les passages FACTUELS : enquête, perquisition, mise en examen, plainte ou soupçon ne sont PAS une condamnation. Écris « enquête », « soupçonné de », « visé par » et non « coupable » ou « condamné » comme un fait. Les images, métaphores et punchlines d'humour noir restent autorisées, même sur la justice, tant qu'elles sont manifestement figurées et jamais présentées comme un fait établi."""
 
 
 # ------------------------------------------------------------------ utilitaires
@@ -186,8 +187,50 @@ def generate(ctx, facts, words):
     return titre, secs
 
 
+SENT_SPLIT = re.compile(r"(?<=[.!?…])\s+")
+
+
+def _sentence_value(sent, by_id):
+    ids = re.findall(r"\[(F\d+)\]", sent)
+    vals = [score(by_id[i]) for i in ids if i in by_id]
+    return max(vals) if vals else 4        # phrase sans fait (humour, transition) : valeur moyenne
+
+
+def _trim(secs, target, by_id, tol):
+    """Raccourcit SANS appel LLM : retire d'abord les phrases de moindre valeur (jamais l'ouverture ni la conclusion)."""
+    floor = target * (1 - tol)
+    total = sum(wc(s["text"]) for s in secs)
+    cands = []
+    for si, sec in enumerate(secs):
+        if sec["kind"] != "chapter":
+            continue
+        txt = re.sub(r"([.!?…])\s*((?:\[F\d+\])+)", r" \2\1", sec["text"])
+        paras = [[x for x in SENT_SPLIT.split(p.strip()) if x] for p in re.split(r"\n\s*\n", txt) if p.strip()]
+        sec["_paras"] = paras
+        for pi, para in enumerate(paras):
+            for k, sent in enumerate(para):
+                cands.append((_sentence_value(sent, by_id), -wc(sent), si, pi, k))
+    removed = set()
+    for val, negw, si, pi, k in sorted(cands):
+        w = -negw
+        if total - w < floor:
+            continue
+        if total <= target * (1 + tol / 2):
+            break
+        removed.add((si, pi, k))
+        total -= w
+    for si, sec in enumerate(secs):
+        if "_paras" not in sec:
+            continue
+        paras = [[x for k, x in enumerate(para) if (si, pi, k) not in removed] for pi, para in enumerate(sec["_paras"])]
+        sec["text"] = "\n\n".join(" ".join(p) for p in paras if p)
+        del sec["_paras"]
+    return total
+
+
 def fit(ctx, secs, target, by_id, unused, tol=0.04, rounds=3):
-    """Cale le texte sur la durée : coupe l'accessoire d'abord, étoffe par du fond jamais du remplissage."""
+    """Cale le texte sur la durée. Trop long : coupe l'accessoire (sans LLM). Trop court : étoffe par du fond.
+    Une réécriture n'est gardée que si elle rapproche vraiment de la cible."""
     for r in range(rounds):
         total = sum(wc(s["text"]) for s in secs)
         diff = target - total
@@ -196,26 +239,23 @@ def fit(ctx, secs, target, by_id, unused, tol=0.04, rounds=3):
             return
         body = [s for s in secs if s["kind"] == "chapter"] or secs
         if diff < 0:
-            remaining = -diff
-            for s in sorted(body, key=lambda s: s.get("weight", 0)):
-                if remaining <= 0:
-                    break
-                cut = min(remaining, int(wc(s["text"]) * 0.35))
-                if cut < 20:
-                    continue
-                new_b = wc(s["text"]) - cut
-                s["text"] = write_section(ctx, s, new_b, by_id)
-                remaining -= cut
-        else:
-            tw = sum(s.get("weight", 1) for s in body)
-            for s in body:
-                share = round(diff * s.get("weight", 1) / tw)
-                if share < 20:
-                    continue
-                n_extra = min(len(unused), max(0, share // config.WORDS_PER_FACT))
-                extra = [unused.pop(0) for _ in range(n_extra)]
-                for f in extra:
-                    by_id[f["id"]] = f
-                s["text"] = write_section(ctx, s, wc(s["text"]) + share, by_id,
-                                          extra_ids=[f["id"] for f in extra])
+            now = _trim(secs, target, by_id, tol)
+            print(f"   coupe des phrases les moins utiles : {total} -> {sum(wc(s['text']) for s in secs)} mots")
+            return
+        tw = sum(s.get("weight", 1) for s in body)
+        for s in body:
+            share = round(diff * s.get("weight", 1) / tw)
+            if share < 20:
+                continue
+            want = wc(s["text"]) + share
+            n_extra = min(len(unused), max(0, share // config.WORDS_PER_FACT))
+            extra = [unused.pop(0) for _ in range(n_extra)]
+            for f in extra:
+                by_id[f["id"]] = f
+            old = s["text"]
+            new = write_section(ctx, s, want, by_id, extra_ids=[f["id"] for f in extra])
+            if abs(wc(new) - want) < abs(wc(old) - want):
+                s["text"] = new
                 s["fact_ids"] = s["fact_ids"] + [f["id"] for f in extra]
+            else:
+                print("   réécriture écartée (elle s'éloignait de la cible)")

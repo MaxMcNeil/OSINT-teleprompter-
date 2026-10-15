@@ -3,6 +3,7 @@ from __future__ import annotations
 
 import os
 import re
+import threading
 import time
 import urllib.parse
 import xml.etree.ElementTree as ET
@@ -88,6 +89,42 @@ def press_sweep(sujet):
     return _run(jobs, workers=8)
 
 
+# ---------------------------------------------------------------- Bing Actualités (liens directs)
+def bing_news(query, mkt="fr-FR", limit=12):
+    """Flux RSS de Bing Actualités : le lien réel de l'article est dans le paramètre url=, pas de redirection à décoder."""
+    r = _get("https://www.bing.com/news/search",
+             params={"q": query, "format": "rss", "mkt": mkt, "setlang": mkt[:2]})
+    if not r or r.status_code != 200:
+        print(f"  ! bing_news: statut {getattr(r, 'status_code', 'erreur')}")
+        return []
+    try:
+        root = ET.fromstring(r.content)
+    except ET.ParseError:
+        return []
+    out = []
+    for it in root.findall(".//item")[:limit]:
+        title = (it.findtext("title") or "").strip()
+        link = (it.findtext("link") or "").strip()
+        if "apiclick" in link or "bing.com/news" in link:
+            real = urllib.parse.parse_qs(urllib.parse.urlparse(link).query).get("url", [""])[0]
+            link = urllib.parse.unquote(real) if real else ""
+        if not title or not link.startswith("http"):
+            continue
+        publisher = ""
+        for ch in it:                      # <News:Source> : l'espace de noms change à chaque requête
+            if ch.tag.split("}")[-1] == "Source" and ch.text:
+                publisher = ch.text.strip()
+        try:
+            date = parsedate_to_datetime(it.findtext("pubDate")).date().isoformat()
+        except Exception:
+            date = ""
+        host = urllib.parse.urlparse(link).netloc.replace("www.", "")
+        out.append(Source(kind="presse", title=title, url=link, publisher=publisher or host, date=date,
+                          text=re.sub(r"<[^>]+>", " ", it.findtext("description") or "").strip(),
+                          meta={"edition": mkt, "via": "bing"}))
+    return out
+
+
 # ---------------------------------------------------------------- GDELT
 def gdelt(query, limit=40):
     words = [w for w in re.findall(r"\w+", query) if len(w) > 2]
@@ -101,6 +138,7 @@ def gdelt(query, limit=40):
             try:
                 arts = r.json().get("articles", [])
             except Exception:
+                print(f"  ! gdelt: réponse non JSON ({r.text[:60]!r})")
                 return []
             out = []
             for a in arts:
@@ -243,8 +281,12 @@ def collect_all(sujet, queries, lang, deep=False):
         jobs += [(google_news, sujet, h, g, 10) for h, g in editions]
         jobs.append((press_sweep, sujet))
         jobs += [(youtube, sujet, hl), (x_posts, sujet), (reddit, sujet), (hackernews, sujet)]
+    mkts = [f"{hl}-{gl}"] + [m for m in ("en-US", "en-GB") if m != f"{hl}-{gl}"]
+    if not deep:
+        jobs += [(bing_news, sujet, m, 12) for m in mkts]
     for i, q in enumerate(queries):
         jobs.append((google_news, q, hl, gl, 6))
+        jobs.append((bing_news, q, mkts[0], 8))
         if i < config.GROUNDED_MAX:
             jobs.append((grounded, q))
     jobs += [(youtube, q, hl) for q in queries[:2]]
@@ -253,6 +295,11 @@ def collect_all(sujet, queries, lang, deep=False):
     for q in [sujet] + queries[:2]:
         out += gdelt(q)
         time.sleep(5)
+    # liens directs avant liens Google News encodés : à titre égal, on garde l'adresse réelle
+    out.sort(key=lambda x: "news.google.com" in x.url)
+    from collections import Counter
+    cnt = Counter(("bing" if x.meta.get("via") == "bing" else x.kind) for x in out)
+    print("   collecte brute :", ", ".join(f"{k} {v}" for k, v in cnt.most_common()))
     return out
 
 
@@ -281,16 +328,27 @@ def assign_ids(sources, start=1):
     return start + len(sources)
 
 
+_gn_lock = threading.Lock()
+_gn_stats = {"ok": 0, "ko": 0, "err": ""}
+
+
 def resolve_gnews(url):
+    """Décode un lien Google News en adresse réelle. Un appel à la fois (Google bloque les rafales)."""
     if "news.google.com" not in url:
         return url
-    try:
-        from googlenewsdecoder import gnewsdecoder
-        d = gnewsdecoder(url, interval=0.3)
-        if d.get("status"):
-            return d["decoded_url"]
-    except Exception:
-        pass
+    with _gn_lock:
+        if _gn_stats["ko"] >= 8 and _gn_stats["ok"] == 0:      # inutile d'insister si ça ne marche jamais
+            return url
+        try:
+            from googlenewsdecoder import gnewsdecoder
+            d = gnewsdecoder(url, interval=1)
+            if d.get("status"):
+                _gn_stats["ok"] += 1
+                return d["decoded_url"]
+            _gn_stats["err"] = str(d.get("message", d))[:100]
+        except Exception as e:
+            _gn_stats["err"] = str(e)[:100]
+        _gn_stats["ko"] += 1
     return url
 
 
@@ -325,10 +383,15 @@ def _fetch(s, max_chars):
 def enrich(sources, lang, max_fetch=45, max_chars=7000):
     """Récupère le texte intégral des meilleurs articles + transcriptions YouTube."""
     prio = {"presse": 3, "web": 3, "gdelt": 2, "hn": 1, "reddit": 1}
-    cand = [s for s in sources if s.kind in prio and not s.text]
-    cand.sort(key=lambda s: (-(s.meta.get("fiab") == "haute"), -prio[s.kind]))
+    cand = [s for s in sources if s.kind in prio and (not s.text or s.meta.get("via") == "bing")]
+    cand.sort(key=lambda s: (-(reliability(s) == "haute"), "news.google.com" in s.url, -prio[s.kind]))
     with ThreadPoolExecutor(8) as ex:
         list(ex.map(lambda s: _fetch(s, max_chars), cand[:max_fetch]))
+    g = _gn_stats
+    if g["ok"] or g["ko"]:
+        print(f"   liens Google News décodés : {g['ok']} réussis, {g['ko']} échecs" + (f" ({g['err']})" if g["err"] else ""))
+    full = sum(1 for s in sources if len(s.text) > len(s.title) + 80)
+    print(f"   textes complets récupérés : {full}/{len(sources)} sources")
     vids = sorted([s for s in sources if s.kind == "youtube"],
                   key=lambda s: -s.meta.get("vues", 0))[:3]
     for s in vids:

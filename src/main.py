@@ -84,6 +84,8 @@ def main():
     stats = {"duree": a.duree, "mots": final_words, "n_sources": len(sources), "n_faits": len(facts)}
     open(os.path.join(d, "script_teleprompter.txt"), "w", encoding="utf-8").write(clean_txt + "\n")
     open(os.path.join(d, "script_annote.md"), "w", encoding="utf-8").write(annot + "\n")
+    open(os.path.join(d, "commentaire_epingle.txt"), "w", encoding="utf-8").write(
+        report.pinned_comment(titre, secs, facts, sources))
     open(os.path.join(d, "sources.md"), "w", encoding="utf-8").write(
         report.build(titre, secs, facts, sources, ctx, stats))
     json.dump({"sources": [asdict(s) for s in sources], "faits": facts},

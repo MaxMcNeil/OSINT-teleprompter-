@@ -19,6 +19,7 @@ Options : `--wpm 145` (mots par minute), `--langue fr|en|…`, `--no-defense`, `
 |---|---|
 | `script_teleprompter.txt` | Texte propre à lire |
 | `script_annote.md` | Même texte avec chapitres et marqueurs `[F12]` |
+| `commentaire_epingle.txt` | Liste des sources citées, avec vraies adresses, prête à coller en commentaire épinglé |
 | `sources.md` | Chaque affirmation → fait → source, date, lien, fiabilité, + points à vérifier |
 | `donnees.json` | Toutes les sources et tous les faits collectés |
 

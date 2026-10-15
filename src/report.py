@@ -48,6 +48,11 @@ def build(titre, secs, facts, sources, ctx, stats) -> str:
         L.append(f"- Affirmation {k} : chiffre(s) {', '.join(bad)} non retrouvé(s) dans la source citée — à vérifier : « {plain[:140]} »")
     for plain in unsourced:
         L.append(f"- Chiffre sans marqueur de source : « {plain[:140]} »")
+    figur = re.compile(r"casier|condamn|coupable|voleur|criminel|escroc|corrompu|d[ée]tourn|mafi", re.I)
+    for sec in secs:
+        for sent in SENT.split(clean(sec["text"])):
+            if figur.search(sent):
+                L.append(f"- Formulation forte (humour/figuré) : « {sent[:150]} » : OK tant que ça reste clairement une punchline à l'antenne.")
     weak = [r for r in rows if any(f["fiabilite"] == "faible" or f["statut"] in ("allegation", "signal", "opinion") for f in r[3])]
     if weak:
         L.append(f"- {len(weak)} affirmation(s) reposent sur des sources faibles ou des allégations : "
@@ -82,3 +87,33 @@ def build(titre, secs, facts, sources, ctx, stats) -> str:
             s = sb.get(f["source_id"])
             L.append(f"- {f['id']} {f['fact']} — {(s.publisher if s else '')} {s.url if s else ''}")
     return "\n".join(L) + "\n"
+
+
+def pinned_comment(titre, secs, facts, sources, max_chars=9000) -> str:
+    """Commentaire épinglé YouTube : sources citées dans le script, dans l'ordre d'apparition, avec adresse réelle."""
+    fb = {f["id"]: f for f in facts}
+    sb = {s.id: s for s in sources}
+    order, seen = [], set()
+    for sec in secs:
+        for fid in re.findall(r"\[(F\d+)\]", sec["text"]):
+            f = fb.get(fid)
+            s = sb.get(f["source_id"]) if f else None
+            if s and s.id not in seen:
+                seen.add(s.id)
+                order.append(s)
+    real = [s for s in order if "news.google.com" not in s.url]
+    wrapped = [s for s in order if "news.google.com" in s.url]
+    L = [f"📚 SOURCES : {titre}", "Les propos rapportés sont attribués à leurs auteurs.", ""]
+    n, used = 0, sum(len(x) + 1 for x in L)
+    for s in real + wrapped:
+        n += 1
+        label = {"youtube": "vidéo", "x": "X", "reddit": "forum"}.get(s.kind, "")
+        head = f"[{n}] {s.publisher or s.kind}" + (f" ({label})" if label else "") + (f", {s.date}" if s.date else "")
+        title = s.title[:110]
+        block = f"{head} : « {title} »\n{s.url}\n"
+        if used + len(block) > max_chars:
+            L.append(f"… et {len(order) - n + 1} autre(s) source(s) dans le document complet.")
+            break
+        L.append(block)
+        used += len(block) + 1
+    return "\n".join(L).strip() + "\n"

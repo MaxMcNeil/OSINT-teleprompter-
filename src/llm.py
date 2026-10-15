@@ -178,9 +178,10 @@ def ask(prompt: str, temperature: float = 0.7, json_mode: bool = False,
                     continue
                 m = re.search(r"retry(?:Delay)?\D{0,20}(\d+(?:\.\d+)?)\s*s", msg, re.I)
                 pause = float(m.group(1)) + 2 if m else 20
-                print(f"  ! quota par minute : clé n°{i + 1} / {model}, pause {pause:.0f}s sur cette clé")
-                _cooldown(i, pause)
-                attempt += 1
+                print(f"  ! quota par minute : clé n°{i + 1} / {model}, pause {pause:.0f}s sur ce modèle seulement")
+                with _lock:
+                    _soft[(i, model)] = time.monotonic() + pause
+                continue
             elif "503" in msg or "UNAVAILABLE" in msg or "overloaded" in msg.lower():
                 print(f"  ! {model} surchargé (clé n°{i + 1}) : on passe au modèle suivant pendant {SOFT_BLOCK}s")
                 with _lock:  # la surcharge concerne le modèle : on le met en pause pour toutes les clés
