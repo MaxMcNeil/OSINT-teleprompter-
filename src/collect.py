@@ -305,9 +305,47 @@ def expand_queries(sujet, these, lang_nom, avoid=(), n=None):
          "internationale, contradictions et promesses non tenues. "
          f"Évite ces requêtes déjà faites : {list(avoid)[:20]}.\n"
          "Réponds en JSON : une liste de chaînes.")
-    j = llm.ask_json(p, temperature=0.6)
-    qs = [q for q in (j or []) if isinstance(q, str)]
-    return qs[:n] or [sujet]
+    try:
+        j = llm.ask_json(p, temperature=0.6)
+    except RuntimeError as e:      # délai global dépassé, etc. : on continue avec le sujet brut
+        print(f"   ! requêtes non générées ({str(e)[:80]})")
+        j = None
+    if isinstance(j, dict):        # {"requetes": [...]} au lieu d'une liste
+        j = next((v for v in j.values() if isinstance(v, list)), [])
+    qs = [q.strip() for q in (j or []) if isinstance(q, str) and q.strip() and q.strip() not in avoid]
+    return qs[:n] or ([sujet] if not avoid else [])
+
+
+def analyse_requete(sujet, these, lang_nom):
+    """Décompose la requête (souvent une longue phrase) en POINTS distincts, pour qu'aucun ne soit oublié.
+    Retourne {"court": str, "points": [{"id","intitule","requetes":[...]}]}."""
+    p = f"""REQUÊTE DE L'UTILISATEUR : {sujet}
+THÈSE / ANGLE : {these or '(aucune)'}
+
+Décompose cette requête en 2 à 6 POINTS distincts qu'un live complet doit TOUS traiter (chaque affirmation, chaque
+personne, chaque reproche, chaque angle exprimé, même sous forme d'allusion). Ne reformule pas pour adoucir, ne supprime rien.
+Pour chaque point : un intitulé net (une phrase) et 2 requêtes de recherche courtes (2 à 6 mots) : une en {lang_nom},
+une en anglais, pour trouver des FAITS vérifiables (chiffres, dates, décisions, déclarations, documents, enquêtes).
+Donne aussi "court" : 3 à 6 mots (noms propres + thème) pour chercher sur YouTube/presse.
+Réponds en JSON : {{"court": str, "points": [{{"intitule": str, "requetes": [str, str]}}]}}"""
+    out = {"court": sujet if len(sujet.split()) <= 8 else " ".join(sujet.split()[:8]), "points": []}
+    try:
+        j = llm.ask_json(p, temperature=0.2)
+    except RuntimeError as e:
+        print(f"   ! décomposition de la requête indisponible ({str(e)[:80]})")
+        return out
+    if not isinstance(j, dict):
+        return out
+    if isinstance(j.get("court"), str) and j["court"].strip():
+        out["court"] = " ".join(j["court"].split())[:80]
+    for k, pt in enumerate(j.get("points") if isinstance(j.get("points"), list) else [], 1):
+        if not isinstance(pt, dict) or not isinstance(pt.get("intitule"), str) or not pt["intitule"].strip():
+            continue
+        qs = [q.strip() for q in (pt.get("requetes") if isinstance(pt.get("requetes"), list) else [])
+              if isinstance(q, str) and q.strip()][:2]
+        out["points"].append({"id": f"P{k}", "intitule": pt["intitule"].strip()[:220], "requetes": qs})
+    out["points"] = out["points"][:6]
+    return out
 
 
 def collect_all(sujet, queries, lang, deep=False):
@@ -422,8 +460,14 @@ def enrich(sources, lang, max_fetch=45, max_chars=7000):
     prio = {"presse": 3, "web": 3, "gdelt": 2, "hn": 1, "reddit": 1}
     cand = [s for s in sources if s.kind in prio and (not s.text or s.meta.get("via") == "bing")]
     cand.sort(key=lambda s: (-(reliability(s) == "haute"), "news.google.com" in s.url, -prio[s.kind]))
+    def safe_fetch(s):
+        try:
+            _fetch(s, max_chars)
+        except Exception as e:
+            print(f"  ! texte non récupéré ({str(e)[:60]})")
+
     with ThreadPoolExecutor(8) as ex:
-        list(ex.map(lambda s: _fetch(s, max_chars), cand[:max_fetch]))
+        list(ex.map(safe_fetch, cand[:max_fetch]))
     g = _gn_stats
     if g["ok"] or g["ko"]:
         print(f"   liens Google News décodés : {g['ok']} réussis, {g['ko']} échecs" + (f" ({g['err']})" if g["err"] else ""))
@@ -432,7 +476,8 @@ def enrich(sources, lang, max_fetch=45, max_chars=7000):
     vids = sorted([s for s in sources if s.kind == "youtube"],
                   key=lambda s: -s.meta.get("vues", 0))[:3]
     for s in vids:
-        t = transcript(s.meta.get("video_id", ""), [lang["code"], "en"])
+        t = transcript(s.meta.get("video_id", ""), [lang["code"], "en"]) if s.meta.get("video_id") else ""
+        t = t if isinstance(t, str) else ""
         if t:
             s.text = (s.text + " " + t)[:max_chars]
     for s in sources:

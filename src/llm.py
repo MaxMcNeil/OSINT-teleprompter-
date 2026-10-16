@@ -27,6 +27,13 @@ _next = {}           # clé -> instant avant lequel on n'envoie rien (cadence + 
 _dead = set()        # (clé, modèle, recherche?) : quota journalier épuisé ou modèle introuvable
 _soft = {}           # (clé, modèle) -> instant de fin d'exclusion temporaire
 _clients = {}
+_badkeys = set()
+T0 = time.monotonic()
+DEADLINE = float(os.getenv("DEADLINE_MIN", "45")) * 60   # délai global : au-delà, plus aucun appel LLM
+
+
+class Deadline(RuntimeError):
+    pass
 _announced = set()
 _KEYS = None
 MODELS = None
@@ -146,18 +153,23 @@ def ask(prompt: str, temperature: float = 0.7, json_mode: bool = False,
     last, attempt, guard = None, 0, 0
     while attempt < retries and guard < 400:
         guard += 1
+        if time.monotonic() - T0 > DEADLINE:
+            raise Deadline(f"délai global de {DEADLINE / 60:.0f} min atteint : on garde ce qui est déjà produit")
         i, model, wait = _pick(search)
         if i is None and wait is None:
-            msg = ("Quota JOURNALIER épuisé sur tous les modèles et toutes les clés (" + ", ".join(models())
-                   + "). Réessaie après 9h (Paris), ou active la facturation sur une clé.")
+            if len(_badkeys) >= len(keys()):
+                msg = "Toutes les clés Gemini sont refusées par Google (invalides, expirées ou sans droit) : vérifie les secrets."
+            else:
+                msg = ("Quota JOURNALIER épuisé sur tous les modèles et toutes les clés (" + ", ".join(models())
+                       + "). Réessaie après 9h (Paris), ou active la facturation sur une clé.")
             if fatal:
                 raise SystemExit(msg)
             raise RuntimeError(msg)
         if i is None:
-            time.sleep(min(wait, 30))
+            time.sleep(min(wait, 30, max(1.0, DEADLINE - (time.monotonic() - T0))))
             continue
         if wait:
-            time.sleep(wait)
+            time.sleep(min(wait, 30))
         if (i, model) not in _announced:
             _announced.add((i, model))
             print(f"  > clé n°{i + 1} / {model}")
@@ -175,6 +187,7 @@ def ask(prompt: str, temperature: float = 0.7, json_mode: bool = False,
             if ("API key" in msg and ("not valid" in msg or "expired" in msg)) or "PERMISSION_DENIED" in head \
                     or head.startswith("403") or "API_KEY_INVALID" in msg:
                 print(f"  ! clé n°{i + 1} refusée par Google ({head[:50]}) : écartée pour ce run")
+                _badkeys.add(i)
                 for m_ in models():
                     _dead.add((i, m_, False))
                 continue
@@ -212,7 +225,7 @@ def ask(prompt: str, temperature: float = 0.7, json_mode: bool = False,
                         _soft[(k, model)] = time.monotonic() + SOFT_BLOCK
                 continue
             else:
-                pause = 3 * 2 ** attempt
+                pause = min(30, 3 * 2 ** attempt)
                 print(f"  ! LLM: {msg[:120]} -> nouvel essai dans {pause}s")
                 time.sleep(pause)
                 attempt += 1
@@ -229,12 +242,12 @@ def text(resp) -> str:
 def parse_json(s: str):
     s = re.sub(r"^```(?:json)?\s*|\s*```$", "", s.strip())
     try:
-        return json.loads(s)
+        return json.loads(s, strict=False)       # strict=False : tolère les retours à la ligne bruts dans les chaînes
     except Exception:
         m = re.search(r"(\{.*\}|\[.*\])", s, re.S)
         if not m:
             raise
-        return json.loads(m.group(1))
+        return json.loads(m.group(1), strict=False)
 
 
 def ask_json(prompt: str, temperature: float = 0.3):

@@ -6,7 +6,7 @@ Tu tapes un sujet et une durée. Le dépôt cherche, vérifie, écrit le script 
 
 1. **Settings → Secrets and variables → Actions** : ajoute `GEMINI_API_KEY` et `YT_API_KEY`. Clés Gemini supplémentaires (comptes/projets distincts) : `GEMINI_API_KEY_2` … `GEMINI_API_KEY_5`. Le script utilise le meilleur modèle sur toutes les clés, puis descend au suivant quand le quota du jour est épuisé. Optionnel : `X_BEARER_TOKEN` (API X payante, 7 derniers jours).
 2. **Actions → Générer le script du live → Run workflow** : sujet, durée en minutes, thèse (optionnelle).
-3. Les fichiers sont enregistrés automatiquement dans le dossier `prompter/` de la branche `main` (un sous-dossier par run : `date_sujet`). Plus d'artefact à télécharger. Le nom du dossier se change en un seul endroit : `OUT_DIR` dans `.github/workflows/generate.yml` (deux occurrences).
+3. Les fichiers sont enregistrés automatiquement dans le dossier `prompter/` de la branche `main` (un sous-dossier par run : `date_heure_sujet`). Plus d'artefact à télécharger. Le nom du dossier se change en un seul endroit : `OUT_DIR` dans `.github/workflows/generate.yml` (deux occurrences).
 
 En local : `pip install -r requirements.txt`, puis
 `python -m src.main --sujet "..." --duree 20 --these "..."`
@@ -25,6 +25,8 @@ Options : `--wpm 145` (mots par minute), `--langue fr|en|…`, `--no-defense`, `
 | `titre.txt` | Titre (3 à 5 mots) |
 | `prompt_miniature.txt` | Prompt Midjourney/Ideogram en anglais |
 | `texte_miniature.txt` | Texte incrusté (≤3 mots), couleur, police, placement |
+| `couverture.md` | Ta requête décomposée en points : faits trouvés et cités par point (rien n'est oublié en silence) |
+| `STATUT.txt` | Présent seulement s'il y a un souci : point non traité, script trop court/long, miniature manquante |
 | `donnees.json` | Toutes les sources et tous les faits collectés |
 
 ## Comment ça marche
@@ -37,6 +39,9 @@ Options : `--wpm 145` (mots par minute), `--langue fr|en|…`, `--no-defense`, `
    - Long : un chapitre toutes les ~5 min, chacun avec son angle et son procédé de rythme ; si la matière manque, une recherche plus profonde se relance au lieu de remplir.
    - Calage final à ±4 % : coupe de l'accessoire d'abord, ajout de fond (faits en réserve, analyse) jamais de hors-sujet.
 5. **Contrôle** : chaque affirmation porte un marqueur de fait ; `sources.md` signale chiffres non retrouvés, chiffres sans source et sources faibles.
+
+- Si un run échoue, la cause est écrite dans `prompter/…/ERREUR.txt` (ou `prompter/ERREUR_date.txt`) et ce qui a été collecté est quand même enregistré.
+- Délai global : au bout de 45 min le script s'arrête proprement et garde ce qui est déjà écrit (`DEADLINE_MIN`).
 
 ## Limites à connaître
 

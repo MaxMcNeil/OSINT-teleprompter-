@@ -25,8 +25,10 @@ def _block(s) -> str:
     return f"{head} {s.title}\n{s.text[:5000]}"
 
 
-def _extract_batch(batch, sujet, these):
+def _extract_batch(batch, sujet, these, points=()):
     corpus = "\n\n".join(_block(s) for s in batch)
+    pts = ("POINTS DE LA REQUÊTE (chaque fait se rattache au point qu'il documente, sinon \"aucun\") :\n"
+           + "\n".join(f"{x['id']} : {x['intitule']}" for x in points) + "\n") if points else ""
     p = f"""Tu es analyste OSINT. SUJET : {sujet}
 THÈSE À DOCUMENTER : {these or '(aucune, documente le sujet)'}
 
@@ -40,8 +42,9 @@ RÈGLES :
 - Source de fiabilité "faible" (YouTube, X, forums) : statut "signal" ou "allegation", jamais "etabli".
 - Ignore le hors-sujet et les faits sans portée.
 
+{pts}
 Réponds en JSON : liste d'objets
-{{"fact": str, "type": "{TYPES}", "importance": 1-5, "choc": 1-5,
+{{"fact": str, "type": "{TYPES}", "point": "P1|P2|…|aucun", "importance": 1-5, "choc": 1-5,
  "pertinence_these": "pour|contre|neutre", "attribution": str, "statut": "etabli|allegation|opinion|signal",
  "date": str, "source_id": "S12"}}
 
@@ -51,6 +54,15 @@ SOURCES :
     return j if isinstance(j, list) else []
 
 
+def _str(v):
+    return v.strip() if isinstance(v, str) else ""
+
+
+def _enum(v, allowed, default):
+    v = _str(v).lower()
+    return v if v in allowed else default
+
+
 def _int(v, d=3):
     try:
         return max(1, min(5, int(v)))
@@ -58,8 +70,9 @@ def _int(v, d=3):
         return d
 
 
-def extract(sources, sujet, these, start_id=1):
+def extract(sources, sujet, these, start_id=1, points=()):
     by_id = {s.id: s for s in sources}
+    pts_ids = tuple(x["id"].lower() for x in points)
     ordered = sorted(sources, key=lambda s: ({"haute": 0, "moyenne": 1, "faible": 2}[s.meta["fiab"]], -len(s.text)))
     batches, cur, size = [], [], 0
     for s in ordered[:90]:
@@ -72,8 +85,15 @@ def extract(sources, sujet, these, start_id=1):
     if cur:
         batches.append(cur)
 
+    def safe_batch(b):
+        try:
+            return _extract_batch(b, sujet, these, points)
+        except (Exception, SystemExit) as e:      # un lot perdu ne doit pas faire perdre les autres
+            print(f"   ! lot de {len(b)} sources ignoré : {str(e)[:120]}")
+            return []
+
     with ThreadPoolExecutor(4) as ex:
-        results = list(ex.map(lambda b: _extract_batch(b, sujet, these), batches))
+        results = list(ex.map(safe_batch, batches))
 
     facts, seen = [], set()
     n = [start_id]
@@ -84,15 +104,16 @@ def extract(sources, sujet, these, start_id=1):
         if key in seen:
             return
         seen.add(key)
-        statut = f.get("statut", "allegation")
+        statut = _enum(f.get("statut"), ("etabli", "allegation", "opinion", "signal"), "allegation")
         if s.meta["fiab"] == "faible" and statut == "etabli":
             statut = "signal"
         facts.append({
-            "id": f"F{n[0]}", "fact": txt, "type": f.get("type", "contexte"),
+            "id": f"F{n[0]}", "fact": txt, "type": _enum(f.get("type"), TYPES.split("|"), "contexte"),
             "importance": _int(f.get("importance")), "choc": _int(f.get("choc")),
-            "pertinence_these": f.get("pertinence_these", "neutre"),
-            "attribution": f.get("attribution", ""), "statut": statut,
-            "date": f.get("date", s.date), "source_id": s.id, "fiabilite": s.meta["fiab"],
+            "point": _enum(f.get("point"), pts_ids, "").upper(),
+            "pertinence_these": _enum(f.get("pertinence_these"), ("pour", "contre", "neutre"), "neutre"),
+            "attribution": _str(f.get("attribution")), "statut": statut,
+            "date": _str(f.get("date")) or s.date, "source_id": s.id, "fiabilite": s.meta["fiab"],
         })
         n[0] += 1
 
@@ -100,8 +121,8 @@ def extract(sources, sujet, these, start_id=1):
         for f in res:
             if not isinstance(f, dict):
                 continue
-            s = by_id.get(f.get("source_id"))
-            txt = (f.get("fact") or "").strip()
+            s = by_id.get(_str(f.get("source_id")))
+            txt = _str(f.get("fact"))
             if not s or len(txt) < 15:
                 continue
             # Garde-fou : tout nombre du fait doit exister dans la source.
@@ -117,7 +138,7 @@ def extract(sources, sujet, these, start_id=1):
         for t in to_fix:
             groups.setdefault(t[1].id, []).append(t)
         with ThreadPoolExecutor(4) as ex:
-            outs = list(ex.map(lambda g: _repair_group(g[0][1], [t[2] for t in g]), groups.values()))
+            outs = list(ex.map(lambda g: _repair_group(g[0][1], [t[2] for t in g]), list(groups.values())))
         for g, repaired in zip(groups.values(), outs):
             for (f, s, txt), new_txt in zip(g, repaired):
                 if new_txt and nums(new_txt) <= nums(s.text + " " + s.title):
@@ -146,7 +167,10 @@ FAITS À CORRIGER :
 {numbered}
 
 Réponds en JSON : une liste de {len(facts_txt)} éléments (chaîne ou null), dans le même ordre."""
-    j = llm.ask_json(p, temperature=0.0)
+    try:
+        j = llm.ask_json(p, temperature=0.0)
+    except (Exception, SystemExit):
+        return [None] * len(facts_txt)
     if not isinstance(j, list) or len(j) != len(facts_txt):
         return [None] * len(facts_txt)
     return [x if isinstance(x, str) and x.strip() else None for x in j]

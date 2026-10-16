@@ -45,15 +45,20 @@ def score(f) -> int:
     return f["importance"] * 2 + f["choc"] + (1 if f["pertinence_these"] == "pour" else 0)
 
 
+def points_text(ctx) -> str:
+    pts = ctx.get("points") or []
+    return "\n".join(f"- {x['id']} : {x['intitule']}" for x in pts)
+
+
 def facts_text(facts) -> str:
     return "\n".join(
         f"[{f['id']}] ({f['type']}, importance {f['importance']}/5, {f['statut']}, fiabilité {f['fiabilite']}, "
-        f"{f['pertinence_these'].upper()}) {f['fact']}"
+        f"{f['pertinence_these'].upper()}{', point ' + f['point'] if f.get('point') else ''}) {f['fact']}"
         + (f" — affirmé par : {f['attribution']}" if f.get("attribution") else "")
         for f in facts)
 
 
-def select_facts(facts, words):
+def select_facts(facts, words, point_ids=()):
     cap = max(6, int(words / config.WORDS_PER_FACT))
     ranked = sorted(facts, key=score, reverse=True)
     chosen = ranked[:cap]
@@ -62,38 +67,54 @@ def select_facts(facts, words):
     extra = [f for f in ranked[cap:] if f["importance"] == 5][: max(1, cap // 5)]
     chosen += extra
     ids |= {f["id"] for f in extra}
+    for pid in point_ids:        # chaque point de la requête garde au moins ses 3 meilleurs faits
+        mine = [f for f in ranked if f.get("point") == pid]
+        for f in mine[:3]:
+            if f["id"] not in ids:
+                chosen.append(f)
+                ids.add(f["id"])
     unused = [f for f in ranked if f["id"] not in ids]
     return chosen, unused
 
 
 # ------------------------------------------------------------------ plan
 def plan(ctx, chosen, words):
-    n_ch = max(1, min(12, round(words / 700)))
+    n_ch = max(1, min(40, round(words / 700)))
     listing = "\n".join(f"{f['id']} | imp {f['importance']} | choc {f['choc']} | {f['pertinence_these']} | {f['fact'][:180]}"
                         for f in chosen)
     p = f"""Tu es rédacteur en chef d'un live YouTube d'investigation. SUJET : {ctx['sujet']}
 THÈSE : {ctx['these'] or '(aucune)'}
-Construis le conducteur : {n_ch} chapitre(s), chacun avec un ANGLE distinct (pas de redite, pas de hors-sujet),
+{('POINTS DE LA REQUÊTE : ils DOIVENT TOUS être traités. Chaque point a au moins un chapitre qui lui est consacré (ou une partie clairement identifiable), et le titre_live doit refléter la requête sans l\'édulcorer :' + chr(10) + points_text(ctx)) if ctx.get('points') else ''}
+Construis le conducteur : {n_ch} chapitre(s) (davantage si nécessaire pour couvrir tous les points), chacun avec un ANGLE distinct (pas de redite, pas de hors-sujet),
 dans un ordre qui fait monter la tension jusqu'à la chute. Répartis TOUS les faits ci-dessous (chacun dans un seul chapitre),
 en regroupant ceux qui se répondent.
-Réponds en JSON : {{"titre_live": str, "chapitres": [{{"titre": str, "angle": str, "fact_ids": ["F1","F2"]}}]}}
+Réponds en JSON : {{"titre_live": str, "chapitres": [{{"titre": str, "angle": str, "points": ["P1"], "fact_ids": ["F1","F2"]}}]}}
 
 FAITS :
 {listing}"""
-    j = llm.ask_json(p, temperature=0.5) or {}
+    try:
+        j = llm.ask_json(p, temperature=0.5)
+    except RuntimeError as e:
+        print(f"   ! plan indisponible ({str(e)[:80]}) : plan par défaut")
+        j = None
+    j = j if isinstance(j, dict) else {}
     valid = {f["id"] for f in chosen}
     chapters, used = [], set()
-    for c in j.get("chapitres", []):
-        ids = [i for i in c.get("fact_ids", []) if i in valid and i not in used]
+    for c in j.get("chapitres") if isinstance(j.get("chapitres"), list) else []:
+        if not isinstance(c, dict) or not isinstance(c.get("fact_ids"), list):
+            continue
+        ids = [i for i in c["fact_ids"] if isinstance(i, str) and i in valid and i not in used]
         used |= set(ids)
         if ids:
-            chapters.append({"titre": c.get("titre", "Chapitre"), "angle": c.get("angle", ""), "fact_ids": ids})
+            chapters.append({"titre": str(c.get("titre") or "Chapitre"), "angle": str(c.get("angle") or ""), "fact_ids": ids,
+                             "points": [x for x in c.get("points", []) if isinstance(x, str)] if isinstance(c.get("points"), list) else []})
     if not chapters:
         chapters = [{"titre": "Le dossier", "angle": "vue d'ensemble", "fact_ids": []}]
     leftovers = [f["id"] for f in chosen if f["id"] not in used]
     for k, i in enumerate(leftovers):
         chapters[k % len(chapters)]["fact_ids"].append(i)
-    return j.get("titre_live", ctx["sujet"]), chapters
+    titre = j.get("titre_live")
+    return (titre.strip() if isinstance(titre, str) and titre.strip() else ctx["sujet"]), chapters
 
 
 # ------------------------------------------------------------------ écriture
@@ -127,11 +148,16 @@ def write_section(ctx, sec, budget, facts_by_id, prev_tail="", done_titles=(), e
                 "Pour RACCOURCIR : supprime d'abord redites, digressions et faits d'importance ≤3, jamais ceux d'importance 5. "
                 "Pour ALLONGER : ajoute les faits supplémentaires fournis, puis approfondis mécanismes, conséquences et comparaisons "
                 "entre faits existants. Jamais de hors-sujet ni de remplissage.")
+    fil = ""
+    if ctx.get("points"):
+        fil = ("\nFIL DE LA REQUÊTE (le live doit honorer chacun de ces points, sans rien inventer ni édulcorer"
+               + (f" ; ce chapitre porte surtout sur : {', '.join(sec['points'])}" if sec.get("points") else "") + ") :\n"
+               + points_text(ctx) + "\n")
     p = f"""{STYLE}
 
 {TRUTH}
 
-SUJET DU LIVE : {ctx['sujet']}
+SUJET DU LIVE : {ctx['sujet']}{fil}
 THÈSE : {ctx['these'] or '(aucune)'}
 LANGUE : {ctx['lang']['nom']}
 {role}
@@ -146,14 +172,18 @@ FAITS À UTILISER :
 {facts_text(sel) or '(aucun fait spécifique : reprends et mets en perspective ceux déjà cités)'}
 {mode}
 Écris maintenant le texte, rien d'autre."""
-    out = llm.text(llm.ask(p, temperature=0.85))
-    return _tidy(out, set(ids))
+    out = _tidy(llm.text(llm.ask(p, temperature=0.85)), set(ids))
+    if not current and len(out.split()) < max(8, budget * 0.25):      # réponse vide / bloquée / tronquée : un second essai
+        out2 = _tidy(llm.text(llm.ask(p, temperature=0.95)), set(ids))
+        if len(out2.split()) > len(out.split()):
+            out = out2
+    return out
 
 
 # ------------------------------------------------------------------ orchestration
 def generate(ctx, facts, words):
     by_id = {f["id"]: f for f in facts}
-    chosen, unused = select_facts(facts, words)
+    chosen, unused = select_facts(facts, words, [x["id"] for x in ctx.get("points") or []])
     print(f"   {len(chosen)} faits retenus pour {words} mots ({len(unused)} en réserve)")
     titre, chapters = plan(ctx, chosen, words)
 
@@ -175,10 +205,19 @@ def generate(ctx, facts, words):
     tail, titles = "", []
     for k, s in enumerate(secs):
         print(f"   écriture : {s['titre']} ({s['budget']} mots)")
-        s["text"] = write_section(ctx, s, s["budget"], by_id, tail, titles,
-                                  device=DEVICES[k % len(DEVICES)])
+        try:
+            s["text"] = write_section(ctx, s, s["budget"], by_id, tail, titles,
+                                      device=DEVICES[k % len(DEVICES)])
+        except (SystemExit, RuntimeError) as e:     # quota/délai : on garde ce qui est déjà écrit
+            print(f"   ! écriture interrompue ({str(e)[:110]}) : {len(secs) - k} section(s) non écrite(s)")
+            for rest in secs[k:]:
+                rest.setdefault("text", "")
+            break
         tail = clean(s["text"])
         titles.append(s["titre"])
+    secs = [s for s in secs if s.get("text", "").strip()]
+    if not secs:
+        raise SystemExit("Aucune section n'a pu être écrite (quota ou délai) : les faits et sources restent dans donnees.json.")
 
     try:
         fit(ctx, secs, words, by_id, unused)

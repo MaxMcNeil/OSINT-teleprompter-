@@ -27,7 +27,8 @@ def pick_top3(cands, sujet):
     ok = None
     try:
         j = llm.ask_json(f"""SUJET : {sujet}
-Quelles vidéos ci-dessous traitent réellement CE sujet (pas un sujet voisin, pas une simple mention) ?
+Quelles vidéos ci-dessous traitent le même THÈME GÉNÉRAL (mêmes personnes / même affaire / même question), même si l'angle diffère ?
+Écarte seulement le hors-sujet évident.
 Réponds en JSON : liste des numéros.
 
 {listing}""", temperature=0.0)
@@ -35,10 +36,11 @@ Réponds en JSON : liste des numéros.
             ok = [int(x) for x in j if str(x).isdigit() and int(x) < len(short)]
     except Exception as e:
         print(f"   ! pertinence vidéos par LLM indisponible ({str(e)[:60]}) : repli sur les mots-clés")
-    if not ok:
+    if not ok:      # repli : au moins 2 mots-clés du sujet (1 si le sujet en a peu) dans le titre ou la description
         keys = {w for w in _norm(sujet).split() if len(w) > 3}
+        need = 1 if len(keys) <= 3 else 2
         ok = [i for i, v in enumerate(short)
-              if keys and len(keys & set(_norm(v["titre"] + " " + v["description"]).split())) >= max(1, len(keys) // 2)]
+              if keys and len(keys & set(_norm(v["titre"] + " " + v["description"]).split())) >= need]
     top = sorted((short[i] for i in ok), key=lambda v: -v["vues"])[:3]
     return top
 
@@ -84,11 +86,25 @@ Réponds UNIQUEMENT en JSON :
                "texte_miniature": {{"texte": "", "couleur": "", "police": "", "placement": ""}}}}}}"""
 
 
+def _s(v):
+    return v.strip() if isinstance(v, str) else ""
+
+
 def _enforce(L, sujet):
     """Respect strict des limites (titre ≤5 mots, texte ≤3 mots, prompt en anglais)."""
-    t = L.get("titre", "")
-    txt = L.get("texte_miniature", {}).get("texte", "")
-    pr = L.get("prompt_image", "")
+    L = dict(L) if isinstance(L, dict) else {}
+    tm = L.get("texte_miniature")
+    if isinstance(tm, str):
+        tm = {"texte": tm}
+    tm = tm if isinstance(tm, dict) else {}
+    L["texte_miniature"] = {k: _s(tm.get(k)) for k in ("texte", "couleur", "police", "placement")}
+    for k in ("titre", "prompt_image", "composition_miniature", "pourquoi_ce_titre"):
+        L[k] = _s(L.get(k))
+    alts = L.get("titres_alternatifs")
+    L["titres_alternatifs"] = [a.strip() for a in alts if isinstance(a, str) and a.strip()][:3] if isinstance(alts, list) else []
+    t = L["titre"]
+    txt = L["texte_miniature"]["texte"]
+    pr = L["prompt_image"]
     non_ascii = sum(1 for c in pr if ord(c) > 127)
     bad = []
     if _words(t) > 5 or _words(t) < 2:
@@ -102,12 +118,16 @@ def _enforce(L, sujet):
             fix = llm.ask_json(f"Corrige uniquement ces points : {'; '.join(bad)}.\nJSON actuel : {L}\n"
                                "Renvoie le MÊME JSON complet corrigé.", temperature=0.3)
             if isinstance(fix, dict) and "titre" in fix:
-                L.update(fix)
-        except Exception:
+                keep = {k: v for k, v in fix.items() if k != "texte_miniature"}
+                L.update(keep)
+                if isinstance(fix.get("texte_miniature"), dict):
+                    L["texte_miniature"].update({k: _s(v) for k, v in fix["texte_miniature"].items() if k in L["texte_miniature"]})
+        except (Exception, SystemExit):
             pass
-    L["titre"] = " ".join(L.get("titre", "").split()[:5])
-    if isinstance(L.get("texte_miniature"), dict):
-        L["texte_miniature"]["texte"] = " ".join(L["texte_miniature"].get("texte", "").split()[:3])
+        for k in ("titre", "prompt_image"):
+            L[k] = _s(L.get(k))
+    L["titre"] = " ".join(L["titre"].split()[:5])
+    L["texte_miniature"]["texte"] = " ".join(_s(L["texte_miniature"].get("texte")).split()[:3])
     return L
 
 
@@ -115,14 +135,18 @@ def build(ctx, sources, queries, titre_live, top_facts):
     """Retourne (livrables, analyse_titres, analyse_miniatures, top3, note)."""
     sujet = ctx["sujet"]
     hl = ctx["lang"]["hl"]
-    cands = collect.youtube_top([sujet] + list(queries[:2]), hl)
+    try:
+        cands = collect.youtube_top(list(dict.fromkeys([ctx.get("court") or sujet] + list(queries[:2]))), hl)
+    except Exception as e:
+        print(f"   ! YouTube indisponible pour l'analyse ({str(e)[:80]})")
+        cands = []
     # on ajoute les vidéos déjà trouvées pendant la collecte (si absentes)
     have = {v["id"] for v in cands}
     for s in sources:
         if s.kind == "youtube" and s.meta.get("video_id") and s.meta["video_id"] not in have and s.meta.get("vues"):
             cands.append({"id": s.meta["video_id"], "titre": s.title, "chaine": s.publisher, "date": s.date,
                           "vues": s.meta["vues"], "duree_min": 0, "description": s.text[:300], "url": s.url})
-    top3 = pick_top3(cands, sujet)
+    top3 = pick_top3(cands, ctx.get("court") or sujet)
     note = ""
     parts, bloc = [], ""
     if top3:
@@ -142,14 +166,27 @@ def build(ctx, sources, queries, titre_live, top_facts):
                 "et conçois les livrables d'après les meilleures pratiques High-CTR et les faits.")
     faits = "\n".join(f"- {f['fact']}" for f in top_facts) or "- (aucun)"
     prompt = PROMPT.format(sujet=sujet, titre_live=titre_live, langue=ctx["lang"]["nom"], faits=faits, bloc_concurrents=bloc)
-    resp = llm.ask([prompt] + parts, temperature=0.8, json_mode=True, fatal=False)
-    j = llm.parse_json(llm.text(resp))
-    L = _enforce(j.get("livrables", {}), sujet)
-    return L, j.get("analyse_titres", {}), j.get("analyse_miniatures", {}), top3, note
+    j = None
+    for attempt_parts in ([parts, []] if parts else [[]]):     # si les images posent problème, on réessaie sans
+        try:
+            resp = llm.ask([prompt] + attempt_parts, temperature=0.8, json_mode=True, fatal=False)
+            j = llm.parse_json(llm.text(resp))
+            if isinstance(j, dict) and isinstance(j.get("livrables"), dict):
+                break
+        except (Exception, SystemExit) as e:
+            print(f"   ! titre/miniature : essai échoué ({str(e)[:100]})")
+        j = None
+    if j is None:
+        raise RuntimeError("le modèle n'a pas renvoyé de livrables exploitables")
+    if not parts and top3:
+        note = "Les miniatures n'ont pas pu être transmises au modèle : analyse faite sur les titres et les chiffres seulement."
+    L = _enforce(j["livrables"], sujet)
+    at, am = j.get("analyse_titres"), j.get("analyse_miniatures")
+    return L, at if isinstance(at, dict) else {}, am if isinstance(am, dict) else {}, top3, note
 
 
 def render(sujet, titre_live, L, at, am, top3, note) -> str:
-    tm = L.get("texte_miniature", {}) if isinstance(L.get("texte_miniature"), dict) else {}
+    tm = L.get("texte_miniature") if isinstance(L.get("texte_miniature"), dict) else {}
     o = [f"# Titre et miniature — {sujet}", ""]
     if note:
         o += [f"> ⚠ {note}", ""]
@@ -170,14 +207,17 @@ def render(sujet, titre_live, L, at, am, top3, note) -> str:
             o.append(f"   - Vidéo : {v['url']}")
             o.append(f"   - Miniature : {v.get('thumb_url', '')}")
         for label, blk in (("Titres", at), ("Miniatures", am)):
-            if not blk:
+            if not blk or not isinstance(blk, dict):
                 continue
             o += ["", f"### {label}", ""]
-            for pv in blk.get("par_video", []):
-                detail = "; ".join(f"{k} : {', '.join(v) if isinstance(v, list) else v}" for k, v in pv.items() if k != "rang" and v)
+            for pv in blk.get("par_video") if isinstance(blk.get("par_video"), list) else []:
+                if not isinstance(pv, dict):
+                    continue
+                detail = "; ".join(f"{k} : {', '.join(map(str, v)) if isinstance(v, list) else v}"
+                                   for k, v in pv.items() if k != "rang" and v)
                 o.append(f"- Vidéo {pv.get('rang', '?')} — {detail}")
-            if blk.get("motifs_communs"):
-                o += ["", "Motifs communs : " + " ; ".join(blk["motifs_communs"])]
+            if isinstance(blk.get("motifs_communs"), list) and blk["motifs_communs"]:
+                o += ["", "Motifs communs : " + " ; ".join(map(str, blk["motifs_communs"]))]
             if blk.get("ce_qui_fait_la_difference"):
                 o += ["", f"Ce qui fait la différence : {blk['ce_qui_fait_la_difference']}"]
     return "\n".join(o) + "\n"
