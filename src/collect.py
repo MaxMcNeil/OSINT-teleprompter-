@@ -438,6 +438,25 @@ def reliability(s):
     return "moyenne"
 
 
+def _domainlike(t):
+    t = (t or "").strip()
+    return not t or (" " not in t and "." in t and len(t) < 60)
+
+
+def _fill_meta(s, meta):
+    """Titre / date / média réels de la page quand la source n'avait que son nom de domaine (recherche Google intégrée)."""
+    if not meta:
+        return
+    title = (getattr(meta, "title", "") or "").strip()
+    if title and _domainlike(s.title):
+        s.title = title[:200]
+    if not s.date and getattr(meta, "date", None):
+        s.date = str(meta.date)[:10]
+    site = (getattr(meta, "sitename", "") or "").strip()
+    if site and _domainlike(s.publisher):
+        s.publisher = site[:60]
+
+
 def _fetch(s, max_chars):
     if s.kind in ("youtube", "x", "reddit"):
         return
@@ -449,6 +468,7 @@ def _fetch(s, max_chars):
     try:
         import trafilatura
         t = trafilatura.extract(r.text, include_comments=False, include_tables=True, favor_recall=True)
+        _fill_meta(s, trafilatura.extract_metadata(r.text))
     except Exception:
         t = None
     if t:

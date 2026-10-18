@@ -14,12 +14,17 @@ def build(titre, secs, facts, sources, ctx, stats) -> str:
     sb = {s.id: s for s in sources}
     rows, unsourced, flagged, used_src = [], [], [], {}
     n = 0
+
+    def pool_of(sent):
+        ids = re.findall(r"\[(F\d+)\]", sent)
+        return " ".join(fb[i]["fact"] + " " + sb[fb[i]["source_id"]].text for i in ids
+                        if i in fb and fb[i]["source_id"] in sb)
+
     for sec in secs:
         txt = re.sub(r"([.!?…])\s*((?:\[F\d+\])+)", r" \2\1", sec["text"])
         for para in re.split(r"\n\s*\n", txt):
-            for sent in SENT.split(para.strip()):
-                if not sent:
-                    continue
+            sents = [x for x in SENT.split(para.strip()) if x]
+            for k, sent in enumerate(sents):
                 ids = list(dict.fromkeys(re.findall(r"\[(F\d+)\]", sent)))
                 plain = clean(sent)
                 if ids:
@@ -33,7 +38,9 @@ def build(titre, secs, facts, sources, ctx, stats) -> str:
                     for f in cited:
                         used_src[f["source_id"]] = sb.get(f["source_id"])
                 elif nums(plain):
-                    unsourced.append(plain)
+                    near = " ".join(pool_of(x) for x in sents[max(0, k - 2):k + 3])   # chiffre repris d'une phrase voisine sourcée
+                    if nums(plain) - nums(near):
+                        unsourced.append(plain)
 
     L = [f"# Sources — {titre}", "",
          f"**Sujet** : {ctx['sujet']}  ", f"**Thèse** : {ctx['these'] or '—'}  ",

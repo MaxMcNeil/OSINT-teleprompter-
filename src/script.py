@@ -267,7 +267,7 @@ def _trim(secs, target, by_id, tol):
     return total
 
 
-def fit(ctx, secs, target, by_id, unused, tol=0.04, rounds=3):
+def fit(ctx, secs, target, by_id, unused, tol=0.03, rounds=5):
     """Cale le texte sur la durée. Trop long : coupe l'accessoire (sans LLM). Trop court : étoffe par du fond.
     Une réécriture n'est gardée que si elle rapproche vraiment de la cible."""
     for r in range(rounds):
