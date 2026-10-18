@@ -1,0 +1,4 @@
+INÉVITABLE ?
+Couleur : Vert Néon (#00FF66)
+Police : Impact Bold Condensed
+Placement : En haut à gauche, aligné horizontalement
