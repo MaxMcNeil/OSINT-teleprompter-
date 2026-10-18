@@ -140,6 +140,16 @@ def main():
     titre = " ".join(str(titre).split()) or a.sujet
 
     print("[5/5] Documents de sortie…")
+    try:        # liens du commentaire épinglé : on décode les liens Google News encore codés des sources citées
+        cited = set(re.findall(r"\[(F\d+)\]", "\n".join(x["text"] for x in secs)))
+        sid = {f["source_id"] for f in facts if f["id"] in cited}
+        todo = [x for x in sources if x.id in sid and "news.google.com" in x.url]
+        for x in todo[:80]:
+            x.url = collect.resolve_gnews(x.url)
+        if todo:
+            print(f"   liens des sources citées : {sum(1 for x in todo[:80] if 'news.google.com' not in x.url)}/{len(todo[:80])} décodés")
+    except Exception as e:
+        print(f"   ! décodage final des liens ignoré ({str(e)[:80]})")
     clean_txt = "\n\n".join(script.clean(s["text"]) for s in secs)
     annot = f"# {titre}\n\n" + "\n\n".join(f"## {s['titre']}\n\n{s['text']}" for s in secs)
     final_words = len(clean_txt.split())

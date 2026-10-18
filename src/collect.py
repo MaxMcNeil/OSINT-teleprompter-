@@ -417,7 +417,7 @@ def resolve_gnews(url):
         try:
             from googlenewsdecoder import gnewsdecoder
             d = gnewsdecoder(url, interval=1)
-            if d.get("status"):
+            if (d.get("success") or d.get("status")) and str(d.get("decoded_url", "")).startswith("http"):   # "status" = anciennes versions
                 _gn_stats["ok"] += 1
                 return d["decoded_url"]
             _gn_stats["err"] = str(d.get("message", d))[:100]
