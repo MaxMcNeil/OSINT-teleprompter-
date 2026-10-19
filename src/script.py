@@ -20,7 +20,8 @@ STYLE = """STYLE (live YouTube, texte parlé) :
 - Choc frontal, sans langue de bois ni euphémisme. Vocabulaire cru autorisé quand il sert le propos.
 - Mélange : gravité d'abord (faits durs, chiffres, dates, noms), humour noir en contrepoint (ironie, sarcasme, chute cynique), alertes ponctuelles ("ALERTE.", "Retenez ce chiffre.", "Relisez cette date.").
 - Rythme oral : phrases courtes, ruptures, relances, questions rhétoriques. Jamais de pavé monotone.
-- Cible les actes, décisions, déclarations et responsabilités de personnes publiques et d'organisations. Jamais d'attaque contre un groupe en raison de son origine, sa religion, son orientation, son handicap. Aucun appel à la violence."""
+- Cible les actes, décisions, déclarations et responsabilités de personnes publiques et d'organisations. Jamais d'attaque contre un groupe en raison de son origine, sa religion, son orientation, son handicap. Aucun appel à la violence. L'ironie sur le DÉCALAGE entre le parcours public et documenté d'une personnalité (origines comprises, si les faits sont sourcés) et ses positions ou promesses est permise : elle vise la personne publique et ses actes, jamais un groupe.
+- FIDÉLITÉ À LA REQUÊTE : le live défend l'angle exact de l'utilisateur (sujet + thèse), dans ses termes les plus directs. INTERDIT : minimiser cet angle ("théâtre d'ombres", "ce n'est pas le sujet", "la généalogie n'est pas une politique"), moraliser, ajouter des précautions oratoires, s'excuser, ou faire la leçon au public. Les faits contraires se traitent par la règle 6, jamais en désamorçant l'angle."""
 
 TRUTH = """RÈGLES DE VÉRITÉ (non négociables) :
 1. Toute affirmation factuelle (chiffre, date, nom, décision, citation) vient UNIQUEMENT des FAITS fournis et est suivie de son marqueur [F12] (plusieurs : [F12][F14]).
@@ -130,10 +131,11 @@ def write_section(ctx, sec, budget, facts_by_id, prev_tail="", done_titles=(), e
     sel = [facts_by_id[i] for i in ids if i in facts_by_id]
     kind = sec["kind"]
     role = {
-        "hook": "OUVERTURE : les 20 premières secondes décident de tout. Commence par le fait le plus violent, pose l'enjeu, "
-                "promets ce que le live va démontrer, puis lance le premier chapitre.",
+        "hook": "OUVERTURE : les 20 premières secondes décident de tout. Commence par le fait le plus violent, puis annonce l'angle EXACT "
+                "de la requête presque mot pour mot, avec un fait dur pour CHAQUE personne ou point en jeu, et promets ce que le live va démontrer. "
+                "Aucune phrase qui relativise ou détourne l'angle. Puis lance le premier chapitre.",
         "chapter": f"CHAPITRE « {sec['titre']} » — angle : {sec.get('angle', '')}. Procédé de rythme : {device}.",
-        "outro": "CONCLUSION : rappelle les 3 chiffres/faits les plus lourds, chute cynique, phrase de sortie mémorable, "
+        "outro": "CONCLUSION : rappelle les chiffres/faits les plus lourds (un par personne ou point), reviens à l'angle exact de la requête, chute cynique, phrase de sortie mémorable, "
                  "appel court à s'abonner et partager. Pas de nouveau fait hors liste.",
     }[kind]
     extras = []
@@ -198,9 +200,14 @@ def generate(ctx, facts, words):
         c["budget"] = round(body * c["weight"] / tot)
 
     top = sorted(chosen, key=score, reverse=True)[:5]
-    secs = [{"kind": "hook", "titre": "Ouverture", "fact_ids": [f["id"] for f in top[:2]], "budget": hook_w}]
+    best = sorted(chosen, key=score, reverse=True)
+    per_point = [next((f for f in best if f.get("point") == x["id"]), None) for x in ctx.get("points") or []]
+    per_point = [f["id"] for f in per_point if f]
+    hook_ids = list(dict.fromkeys(per_point + [f["id"] for f in top[:2]]))[:6]       # un fait dur par point dans l'ouverture
+    outro_ids = list(dict.fromkeys(per_point + [f["id"] for f in top[:3]]))[:6]
+    secs = [{"kind": "hook", "titre": "Ouverture", "fact_ids": hook_ids, "budget": hook_w}]
     secs += chapters
-    secs += [{"kind": "outro", "titre": "Conclusion", "fact_ids": [f["id"] for f in top[:3]], "budget": outro_w}]
+    secs += [{"kind": "outro", "titre": "Conclusion", "fact_ids": outro_ids, "budget": outro_w}]
 
     tail, titles = "", []
     for k, s in enumerate(secs):
