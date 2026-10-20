@@ -26,7 +26,7 @@ STYLE = """STYLE (live YouTube, texte parlé) :
 TRUTH = """RÈGLES DE VÉRITÉ (non négociables) :
 1. Toute affirmation factuelle (chiffre, date, nom, décision, citation) vient UNIQUEMENT des FAITS fournis et est suivie de son marqueur [F12] (plusieurs : [F12][F14]).
 2. Aucun fait, chiffre, date ou nom hors de la liste. Interdit de combler avec ta mémoire.
-3. Statut allégation / signal / opinion, ou fiabilité faible : attribue clairement ("selon", "affirme", "d'après une vidéo virale"). Jamais présenté comme établi.
+3. Statut allégation / signal / opinion, ou fiabilité faible : attribue clairement ("selon", "affirme", "d'après une vidéo virale"). Jamais présenté comme établi. L'attribution se répète À CHAQUE reprise du fait dans le live (« selon X », « d'après X »), pas seulement la première fois : surtout quand il touche un proche, un tiers ou une personne privée.
 4. Humour, indignation, transitions, analyse : pas de marqueur, mais aucun chiffre ni fait nouveau dedans.
 5. Tu peux relier les faits (comparaison, contradiction, conséquence logique) en marquant chaque fait mobilisé.
 6. Faits "contre" la thèse : mentionne-les honnêtement en une ou deux phrases, puis réponds avec les autres faits. C'est ce qui rend le live inattaquable.
@@ -43,7 +43,8 @@ def wc(text: str) -> int:
 
 
 def score(f) -> int:
-    return f["importance"] * 2 + f["choc"] + (1 if f["pertinence_these"] == "pour" else 0)
+    base = f["importance"] * 2 + f["choc"] + (1 if f["pertinence_these"] == "pour" else 0)
+    return base - (3 if f.get("verification") == "non_corrobore" else 0)      # fragile ET non confirmé : on le garde, mais moins en avant
 
 
 def points_text(ctx) -> str:
@@ -56,6 +57,10 @@ def facts_text(facts) -> str:
         f"[{f['id']}] ({f['type']}, importance {f['importance']}/5, {f['statut']}, fiabilité {f['fiabilite']}, "
         f"{f['pertinence_these'].upper()}{', point ' + f['point'] if f.get('point') else ''}) {f['fact']}"
         + (f" — affirmé par : {f['attribution']}" if f.get("attribution") else "")
+        + {"indisponible": " — ⚠ NON VÉRIFIÉ (vérification impossible) : attribue-le à sa source nommée à CHAQUE mention",
+           "non_corrobore": " — ⚠ NON CORROBORÉ par une autre source : attribue-le à sa source nommée à CHAQUE mention (« selon X, non confirmé par ailleurs »)",
+           "contredit": " — ⚠ CONTREDIT par une autre source : présente le fait ET la contradiction",
+           "confirme": " — confirmé par une source indépendante"}.get(f.get("verification"), "")
         for f in facts)
 
 

@@ -12,7 +12,7 @@ import traceback
 import unicodedata
 from dataclasses import asdict
 
-from . import collect, config, facts as F, llm, report, script, thumb
+from . import collect, config, facts as F, llm, report, script, thumb, verify
 
 
 def slug(s):
@@ -40,6 +40,7 @@ def main():
     ap.add_argument("--langue", default="auto")
     ap.add_argument("--wpm", type=int, default=config.WPM, help="mots par minute")
     ap.add_argument("--no-defense", action="store_true", help="ne pas développer les faits contraires")
+    ap.add_argument("--no-verify", action="store_true", help="pas de vérification croisée des faits fragiles")
     ap.add_argument("--no-interactions", action="store_true", help="pas d'appels au chat")
     ap.add_argument("--out", default=os.getenv("OUT_DIR", "prompter"))
     a = ap.parse_args()
@@ -130,6 +131,17 @@ def main():
     if short:
         print(f"   ! matière limitée : {len(facts)} faits pour {need} idéalement ; "
               "le script approfondira l'analyse au lieu de broder.")
+
+    vstats = None
+    if not a.no_verify:
+        print("   Vérification croisée des faits fragiles (source faible, allégation)…")
+        try:
+            vstats, nxt = verify.corroborate(facts, sources, lang, collect.enrich, collect.assign_ids, nxt)
+            print(f"   {vstats['verifies']} faits fragiles vérifiés : {vstats['confirmes']} confirmés par une autre source, "
+                  f"{vstats['contredits']} contredits, {vstats['non_corrobores']} non corroborés, {vstats['indisponibles']} non vérifiés")
+        except (Exception, SystemExit) as e:
+            print(f"   ! vérification croisée interrompue ({str(e)[:100]}) : faits gardés tels quels")
+    ctx["vstats"] = vstats
 
     json.dump({"sources": [asdict(s) for s in sources], "faits": facts},
               open(os.path.join(d, "donnees.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)

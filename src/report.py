@@ -60,6 +60,18 @@ def build(titre, secs, facts, sources, ctx, stats) -> str:
         for sent in SENT.split(clean(sec["text"])):
             if figur.search(sent):
                 L.append(f"- Formulation forte (humour/figuré) : « {sent[:150]} » : OK tant que ça reste clairement une punchline à l'antenne.")
+    vs = ctx.get("vstats")
+    if vs:
+        L.append(f"- Vérification croisée automatique : {vs['verifies']} faits fragiles testés, {vs['confirmes']} confirmés par une "
+                 f"source indépendante, {vs['contredits']} contredits, {vs['non_corrobores']} non corroborés.")
+    used_ids = {f["id"] for r in rows for f in r[3]}
+    for f in facts:
+        if f["id"] in used_ids and f.get("verification") == "non_corrobore":
+            L.append(f"- NON CORROBORÉ ({f['id']}) : « {f['fact'][:150]} » : source unique ({sb[f['source_id']].publisher if f['source_id'] in sb else '?'}) ; "
+                     "à dire avec « selon … » à chaque mention.")
+        if f["id"] in used_ids and f.get("verification") == "contredit":
+            c = sb.get(f.get("contredit_par"))
+            L.append(f"- CONTREDIT ({f['id']}) : « {f['fact'][:130]} » ; contredit par {c.publisher if c else '?'} {c.url if c else ''}")
     weak = [r for r in rows if any(f["fiabilite"] == "faible" or f["statut"] in ("allegation", "signal", "opinion") for f in r[3])]
     if weak:
         L.append(f"- {len(weak)} affirmation(s) reposent sur des sources faibles ou des allégations : "
@@ -76,6 +88,9 @@ def build(titre, secs, facts, sources, ctx, stats) -> str:
             L.append(f"- **{f['id']}**{warn} {f['fact']}")
             if f.get("attribution"):
                 L.append(f"  - Affirmé par : {f['attribution']}")
+            if f.get("verification") == "confirme" and sb.get(f.get("corrobore_par")):
+                c = sb[f["corrobore_par"]]
+                L.append(f"  - ✔ Corroboré par : {c.publisher} — « {c.title[:90]} » — {c.url}")
             if s:
                 L.append(f"  - Source : {s.publisher or s.kind} — « {s.title[:110]} » — {s.date or 's.d.'} "
                          f"— fiabilité {s.meta.get('fiab')} — {s.url}")

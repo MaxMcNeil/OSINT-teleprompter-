@@ -43,6 +43,10 @@ Options : `--wpm 145` (mots par minute), `--langue fr|en|…`, `--no-defense`, `
 - Si un run échoue, la cause est écrite dans `prompter/…/ERREUR.txt` (ou `prompter/ERREUR_date.txt`) et ce qui a été collecté est quand même enregistré.
 - Délai global : au bout de 45 min le script s'arrête proprement et garde ce qui est déjà écrit (`DEADLINE_MIN`).
 
+## Vérification croisée automatique
+
+Pour chaque fait fragile (source faible, allégation, signal), le workflow cherche tout seul une source indépendante plus solide (Google News, Bing) et la fait juger : une source n'est acceptée que si une citation exacte se retrouve dans sa page et si les chiffres concordent. Fait confirmé : la citation pointe vers la source la plus solide. Non confirmé : il reste dans le live (rien n'est supprimé), mais attribué à chaque mention et signalé dans `sources.md`. Contredit : le live présente le fait et sa contradiction. Désactivable : `--no-verify`.
+
 ## Limites à connaître
 
 - X n'a pas de recherche gratuite : sans `X_BEARER_TOKEN`, les posts X ne sont vus que via la recherche Google.
