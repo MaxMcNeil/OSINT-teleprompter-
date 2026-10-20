@@ -1,0 +1,4 @@
+TROP TARD
+Couleur : Rouge Vif (#FF0033)
+Police : Impact Bold Condensed
+Placement : Centré en haut de l'image sur fond contrasté
