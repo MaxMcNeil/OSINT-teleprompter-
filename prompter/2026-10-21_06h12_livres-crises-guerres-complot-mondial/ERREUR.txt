@@ -1,0 +1,9 @@
+Traceback (most recent call last):
+  File "/home/runner/work/OSINT-teleprompter-/OSINT-teleprompter-/src/main.py", line 251, in <module>
+    main()
+  File "/home/runner/work/OSINT-teleprompter-/OSINT-teleprompter-/src/main.py", line 151, in main
+    titre, secs = script.generate(ctx, facts, words)
+                  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "/home/runner/work/OSINT-teleprompter-/OSINT-teleprompter-/src/script.py", line 232, in generate
+    raise SystemExit("Aucune section n'a pu être écrite (quota ou délai) : les faits et sources restent dans donnees.json.")
+SystemExit: Aucune section n'a pu être écrite (quota ou délai) : les faits et sources restent dans donnees.json.
