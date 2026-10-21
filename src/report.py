@@ -72,6 +72,11 @@ def build(titre, secs, facts, sources, ctx, stats) -> str:
         if f["id"] in used_ids and f.get("verification") == "contredit":
             c = sb.get(f.get("contredit_par"))
             L.append(f"- CONTREDIT ({f['id']}) : « {f['fact'][:130]} » ; contredit par {c.publisher if c else '?'} {c.url if c else ''}")
+    groupe = re.compile(r"\bhordes?\b|vermine|parasites?|nettoy(?:er|age) (?:les|leurs|ces)|\binvasion\b|grand remplacement|cafards?|sous-hommes?|exterminer|\bdéporter\b", re.I)
+    for sec in secs:
+        for sent in SENT.split(clean(sec["text"])):
+            if groupe.search(sent):
+                L.append(f"- Formulation visant possiblement un GROUPE (à relire, risque de signalement/strike) : « {sent[:150]} »")
     weak = [r for r in rows if any(f["fiabilite"] == "faible" or f["statut"] in ("allegation", "signal", "opinion") for f in r[3])]
     if weak:
         L.append(f"- {len(weak)} affirmation(s) reposent sur des sources faibles ou des allégations : "

@@ -34,6 +34,10 @@ DEADLINE = float(os.getenv("DEADLINE_MIN", "45")) * 60   # délai global : au-de
 
 class Deadline(RuntimeError):
     pass
+
+
+def elapsed() -> float:
+    return time.monotonic() - T0
 _announced = set()
 _KEYS = None
 MODELS = None
@@ -254,6 +258,6 @@ def ask_json(prompt: str, temperature: float = 0.3):
     for _ in range(2):
         try:
             return parse_json(text(ask(prompt, temperature=temperature, json_mode=True)))
-        except Exception as e:
+        except ValueError as e:         # JSON invalide / réponse vide : un second essai ; toute autre erreur (délai, quota) remonte
             print(f"  ! JSON invalide ({str(e)[:80]}), nouvel essai")
     return None

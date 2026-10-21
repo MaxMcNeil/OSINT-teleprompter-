@@ -59,6 +59,12 @@ def main():
            "defense": not a.no_defense, "interactions": not a.no_interactions}
     print(f"[1/5] Cible : {a.duree} min = {words} mots ({a.wpm} mots/min), langue {lang['nom']}")
 
+    # Budget de temps : la recherche ne doit jamais manger le temps d'écriture (≈ 8 min + 1 min / 1000 mots, à réserver).
+    reserve = (8 + words / 1000) * 60
+
+    def late():
+        return llm.elapsed() > llm.DEADLINE - reserve
+
     print("[2/5] Collecte multi-sources…")
     br = collect.analyse_requete(a.sujet, a.these, lang["nom"])
     pts, court = br["points"], br["court"]
@@ -85,6 +91,9 @@ def main():
 
     # Un point de la requête sous-documenté ? Recherche ciblée sur CE point avant tout le reste.
     thin = [x for x in pts if sum(1 for f in facts if f.get("point") == x["id"]) < 3]
+    if thin and late():
+        print("   points sous-documentés : recherche ciblée SAUTÉE (il faut garder le temps d'écrire)")
+        thin = []
     if thin:
         print("   points sous-documentés : " + ", ".join(x["id"] for x in thin) + " -> recherche ciblée")
         try:
@@ -107,6 +116,9 @@ def main():
     need = int(words / config.WORDS_PER_FACT)
     for rnd in range(2):
         if len(facts) >= need * 0.9:
+            break
+        if late():
+            print("   temps de recherche écoulé : on passe à l'écriture avec les faits déjà vérifiés")
             break
         print(f"   matière insuffisante ({len(facts)}/{need}) -> recherche approfondie {rnd + 1}/2")
         q2 = collect.expand_queries(a.sujet, a.these, lang["nom"], avoid=queries)
@@ -133,7 +145,9 @@ def main():
               "le script approfondira l'analyse au lieu de broder.")
 
     vstats = None
-    if not a.no_verify:
+    if not a.no_verify and late():
+        print("   vérification croisée SAUTÉE (temps de recherche écoulé)")
+    if not a.no_verify and not late():
         print("   Vérification croisée des faits fragiles (source faible, allégation)…")
         try:
             vstats, nxt = verify.corroborate(facts, sources, lang, collect.enrich, collect.assign_ids, nxt)
