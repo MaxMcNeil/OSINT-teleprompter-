@@ -1,0 +1,121 @@
+📚 SOURCES : Microsoft devient dangereux, la Suisse se débarrasse de Microsoft
+Les propos rapportés sont attribués à leurs auteurs.
+
+[1] watson.ch/fr, 2025-11-18 : « Microsoft pose un problème à l'armée suisse »
+https://www.watson.ch/fr/suisse/technologie/567391086-berne-s-accroche-a-microsoft-et-ca-derange-le-chef-de-l-armee
+
+[2] ClearMedia AG, 2026-06-17 : « US CLOUD Act: why a Swiss cloud region is not data sovereignty · ClearMedia AG »
+https://www.clearmedia.ch/en/insights/us-cloud-act
+
+[3] Telecharger, 2026-08-12 : « Microsoft corrige 398 failles Windows, dont une brèche exploitée par les pirates nord-coréens »
+https://www.01net.com/actualites/microsoft-corrige-398-failles-windows-dont-breche-exploitee-pirates-nord-coreens.html
+
+[4] Enderi, 2026-07-20 : « Commandement Cyber suisse : sortir de Microsoft pour préserver la liberté d’action »
+https://enderi.fr/commandement-cyber-suisse-sortir-de-microsoft-pour-preserver-la-liberte-daction/
+
+[5] Science et vie, 2026-09-20 : « Le gouvernement Suisse s'affranchit des Américains et teste l'abandon des solutions Microsoft sur ses ordinate »
+https://www.science-et-vie.com/technos-et-futur/le-gouvernement-suisse-saffranchit-des-americains-et-teste-labandon-des-solutions-microsoft-sur-ses-ordinateurs-259225.html
+
+[6] ZDNet, 2026-09-15 : « Les Helvètes sortent leur couteau suisse face à Microsoft 365 »
+https://www.zdnet.fr/actualites/les-helvetes-sortent-leur-couteau-suisse-face-a-microsoft-365-503507.htm
+
+[7] Developpez.com, 2026-09-07 : « Le gouvernement fédéral suisse teste le remplacement sur 3000 postes de travail de Microsoft 365 par la suite  »
+https://windows.developpez.com/actu/386911/Le-gouvernement-federal-suisse-teste-le-remplacement-sur-3000-postes-de-travail-de-Microsoft-365-par-la-suite-open-source-OpenDesk-et-allonge-la-liste-des-tentatives-d-affranchissement-des-solutions-Microsoft/
+
+[8] Science et vie, 2026-09-20 : « Le gouvernement Suisse s'affranchit des Américains et teste l'abandon des solutions Microsoft sur ses ordinate »
+https://www.science-et-vie.com/technos-et-futur/le-gouvernement-suisse-saffranchit-des-americains-et-teste-labandon-des-solutions-microsoft-sur-ses-ordinateurs-259225.html
+
+[9] Frandroid, 2026-09-08 : « Souveraineté numérique : le gouvernement suisse évalue une alternative open source à Microsoft 365 »
+https://www.frandroid.com/marques/microsoft/3238165_la-suisse-lance-une-experimentation-pour-delaisser-microsoft-365
+
+[10] GIGAZINE, 2026-09-08 : « The Swiss Federal Government has launched a program to replace Microsoft 365 with open-source alternative soft »
+https://gigazine.net/gsc_news/en/20260908-switzerland-replaces-microsoft-on-3000-pcs
+
+[11] cybersecuritynews, 2026-09-07 : « Switzerland Moves Away From Microsoft 365 to Open-Source Alternatives »
+https://cybersecuritynews.com/switzerland-moves-away-from-microsoft-365/
+
+[12] Les Numériques, 2026-09-08 : « Souveraineté numérique : au tour de la Suisse d'abandonner Microsoft pour ses données sensibles »
+https://www.lesnumeriques.com/appli-logiciel/souverainete-numerique-au-tour-de-la-suisse-d-abandonner-microsoft-pour-ses-donnees-sensibles-n261529.html
+
+[13] MSN, 2026-07-08 : « Commandement Cyber suisse : sortir de Microsoft pour préserver la liberté d’action »
+https://www.msn.com/fr-fr/finance/autres/commandement-cyber-suisse-sortir-de-microsoft-pour-pr%C3%A9server-la-libert%C3%A9-d-action/ar-AA28hDId
+
+[14] Enderi, 2026-07-20 : « Commandement Cyber suisse : sortir de Microsoft pour préserver la liberté d’action »
+https://enderi.fr/commandement-cyber-suisse-sortir-de-microsoft-pour-preserver-la-liberte-daction/
+
+[15] MSN, 2026-09-11 : « Switzerland takes a Swiss Army knife to Microsoft 365 »
+https://www.msn.com/en-us/technology/software/switzerland-takes-a-swiss-army-knife-to-microsoft-365/ar-AA2c4cZP
+
+[16] ictjournal.ch, 2026-07-14 : « Le Commandement Cyber abandonne Microsoft Office au profit d’une alternative open source »
+https://www.ictjournal.ch/news/2026-07-14/le-commandement-cyber-abandonne-microsoft-office-au-profit-dune-alternative-open
+
+[17] Clash Report, 2026-07-14 : « Swiss Army Drops Microsoft for Open-Source Software Over US Espionage Fears · Clash Report »
+https://clashreport.com/world/articles/swiss-army-drops-microsoft-for-open-source-software-over-us-espionage-fears-q7mobg2588g
+
+[18] cybernews, 2026-09-07 : « Swiss government is getting ready to replace Microsoft 365 with openDesk »
+https://cybernews.com/tech/switzerland-microsoft-opendesk/
+
+[19] Yahoo, 2026-09-14 : « Switzerland Is Spending $11 Million to Build a Microsoft-Free Backup Plan »
+https://www.yahoo.com/news/world/articles/switzerland-spending-11-million-build-162200682.html
+
+[20] realtyme.com, 2025-07-30 : « Microsoft Can’t Guarantee EU Data Sovereignty from U.S. Spying »
+https://www.realtyme.com/blog/microsoft-admits-it-cant-protect-eu-data-from-u-s-snooping
+
+[21] Cybernews, 2026-04-23 : « Swiss government is looking for ways to break up with Microsoft products »
+https://cybernews.com/tech/switzerland-replace-microsoft/
+
+[22] Village de la Justice, 2025-07-21 : « L'utilisation de Microsoft 365 n'est pas conforme au RGPD ! Par Gildas Neger, Docteur en Droit. »
+https://www.village-justice.com/articles/utilisation-microsoft-365-est-pas-conforme-rgpd,54051.html
+
+[23] PwC, 2019-06-24 : « The CLOUD Act: old wine in new bottles »
+https://www.pwc.ch/en/insights/regulation/cloud-act.html
+
+[24] MacGeneration, 2026-09-08 : « La Suisse prépare un plan B open source face à Microsoft 365 »
+https://www.macg.co/logiciels/2026/09/la-suisse-prepare-un-plan-b-open-source-face-microsoft-365-310917
+
+[25] Börsenverein des Deutschen Buchhandels, 2025-10-31 : « Le chef de l'armée suisse n'a pas confiance aux Américains »
+https://www.blick.ch/fr/suisse/armee-le-chef-suisse-na-pas-confiance-aux-americains/hl96jvf
+
+[26] Radio Télévision Suisse, 2026-04-20 : « La Confédération va-t-elle tourner le dos à Microsoft? »
+https://www.rts.ch/info/suisse/2026/article/la-confederation-veut-reduire-sa-dependance-a-microsoft-29216786.html
+
+[27] Telecharger, 2025-11-11 : « Souveraineté numérique : les efforts de Microsoft pour rassurer les Européens »
+https://www.01net.com/actualites/souverainete-numerique-microsoft-essaie-de-rassurer-les-europeens.html
+
+[28] campax.org, 2025-11-20 : « Finissons-en avec les données Microsoft dangereuses et fantaisistes »
+https://act.campax.org/petitions/finissons-en-avec-les-donnees-microsoft-dangereuses-et-fantaisistes?source=2025-11-05-sb&bucket=2025-11-05-sb
+
+[29] Clash Report, 2026-07-14 : « Swiss Army Drops Microsoft for Open-Source Software Over US Espionage Fears · Clash Report »
+https://clashreport.com/world/articles/swiss-army-drops-microsoft-for-open-source-software-over-us-espionage-fears-q7mobg2588g
+
+[30] ZDNET, 2026-09-15 : « Les Helvètes sortent leur couteau suisse face à Microsoft 365 - ZDNET »
+https://www.zdnet.fr/actualites/les-helvetes-sortent-leur-couteau-suisse-face-a-microsoft-365-503507.htm
+
+[31] bluewin.ch, 2026-02-25 : « Too risky: Army chief Süssli says no to Microsoft Office 365 »
+https://www.bluewin.ch/en/news/switzerland/too-risky-army-chief-suessli-says-no-to-microsoft-office-li.2943774
+
+[32] Telecharger, 2026-06-10 : « Microsoft corrige 198 failles Windows en juin 2026, un nouveau record »
+https://www.01net.com/actualites/microsoft-corrige-198-failles-windows-en-juin-2026-un-nouveau-record.html
+
+[33] Comment ça marche, 2026-07-15 : « Microsoft corrige plus de 600 failles de sécurité avec son Patch Tuesday de juillet : du jamais vu ! »
+https://www.commentcamarche.net/informatique/windows/38463-patch-tuesday-juillet-2026/
+
+[34] SecurityWeek, 2026-10-14 : « Microsoft Patches Record 1,413 Vulnerabilities, Including Exploited Windows Zero-Day »
+https://www.securityweek.com/microsoft-patches-record-1413-vulnerabilities-including-exploited-windows-zero-day/
+
+[35] ZDNet, 2026-08-12 : « Microsoft mise tout sur une nouvelle stratégie de sécurité Windows basée sur l'IA : ce que cela signifie pour  »
+https://www.zdnet.fr/actualites/microsoft-mise-tout-sur-une-nouvelle-strategie-de-securite-windows-basee-sur-lia-ce-que-cela-signifie-pour-vous-499756.htm
+
+[36] Comment ça marche, 2026-05-22 : « Votre PC est en danger : des pirates exploitent deux failles de Microsoft Defender, la protection intégrée à W »
+https://www.commentcamarche.net/securite/piratage/37995-failles-microsoft-defender/
+
+[37] GNT, 2026-06-01 : « Lunaire : Microsoft menace un chercheur en sécurité pour ses découvertes »
+https://www.generation-nt.com/actualites/microsoft-menace-chercheur-securite-2076307
+
+[38] IDECSI, 2026-09-24 : « Identifier les risques sur les données sensibles Microsoft 365 »
+https://blog.idecsi.com/fr/donnees-sensibles-microsoft-365
+
+[39] ICTjournal, 2026-02-02 : « Des documents du département des affaires étrangères stockés par erreur dans le cloud de Microsoft »
+https://www.ictjournal.ch/news/2026-02-02/des-documents-du-departement-des-affaires-etrangeres-stockes-par-erreur-dans-le
+
+… et 6 autre(s) source(s) dans le document complet.

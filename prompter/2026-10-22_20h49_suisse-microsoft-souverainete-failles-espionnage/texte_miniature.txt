@@ -1,0 +1,4 @@
+ADIEU MICROSOFT
+Couleur : Rouge Alerte (#FF1E1E)
+Police : Impact Bold Condensed
+Placement : En haut à gauche, sur deux lignes, avec un fort contraste.
