@@ -1,0 +1,4 @@
+FIN DES RATIONS
+Couleur : Rouge sang (#FF0033)
+Police : Impact Condensed Bold
+Placement : Centré en haut, taille maximale pour un impact visuel foudroyant
