@@ -67,7 +67,7 @@ def _get_img(url, timeout=40):
 def commons_candidates(queries, limit=8):
     """Photos réelles, paysage, assez grandes, sous licence libre."""
     out, seen = [], set()
-    for q in queries[:3]:
+    for q in queries[:5]:
         try:
             r = requests.get("https://commons.wikimedia.org/w/api.php", headers=HDR, timeout=20, params={
                 "action": "query", "format": "json", "generator": "search", "gsrnamespace": 6, "gsrlimit": 15,
@@ -96,7 +96,7 @@ def commons_candidates(queries, limit=8):
 
 
 def pick_real_photo(cands, sujet, concept):
-    """Gemini regarde les photos et garde la seule qui colle vraiment au sujet (ou aucune)."""
+    """Gemini regarde les photos et classe celles qui collent vraiment au sujet (liste vide si aucune)."""
     from google.genai import types
     parts, kept = [], []
     for c in cands[:6]:
@@ -117,27 +117,26 @@ IMAGE VOULUE POUR LA MINIATURE : {concept}
 Voici {len(kept)} photos réelles (dans l'ordre). Laquelle ferait une miniature YouTube FORTE et DIRECTEMENT liée au sujet ?
 Critères : lien évident avec le sujet (bonne personne, bon lieu, bon objet), un point focal net, pas de collage, pas de schéma,
 pas de carte, pas de texte incrusté, pas de photo d'archive hors-sujet. Si aucune ne convient vraiment, réponds -1.
-Réponds en JSON : {{"choix": int, "raison": str}}
+Classe les photos qui conviennent, de la meilleure à la moins bonne ; écarte celles qui ne conviennent pas (liste vide si aucune).
+Réponds en JSON : {{"classement": [int], "raison": str}}
 {listing}"""
     try:
         j = llm.parse_json(llm.text(llm.ask([p] + parts, temperature=0.0, json_mode=True, fatal=False)))
-        k = int(j.get("choix", -1)) if isinstance(j, dict) else -1
+        rank = j.get("classement") if isinstance(j, dict) else None
+        if rank is None and isinstance(j, dict) and "choix" in j:
+            rank = [j["choix"]]
+        rank = [int(k) for k in (rank or []) if str(k).lstrip("-").isdigit() and 0 <= int(k) < len(kept)]
+        if isinstance(j, dict) and j.get("raison"):
+            print(f"   photos réelles : {len(rank)} retenue(s) — {str(j['raison'])[:140]}")
     except (Exception, SystemExit) as e:
         print(f"   ! choix de la photo réelle impossible ({str(e)[:60]})")
-        return None
-    if 0 <= k < len(kept):
-        c = kept[k]
-        try:
-            c["image"] = _get_img(c["url"])
-            return c
-        except Exception:
-            return None
-    return None
+        return []
+    return [kept[k] for k in dict.fromkeys(rank)][:3]
 
 
 def gemini_image(prompt):
     from google.genai import types
-    for model in ("gemini-2.5-flash-image", "gemini-2.0-flash-preview-image-generation"):
+    for model in llm.image_models()[:3]:
         for i in range(len(llm.keys())):
             try:
                 r = llm.client(i).models.generate_content(
@@ -283,38 +282,107 @@ def draw_text(im, text, accent_word, accent, zone):
     return im.convert("RGB")
 
 
+# ------------------------------------------------------------------ contrôle qualité
+JUGE = """Tu es un directeur artistique YouTube exigeant. Voici une miniature (1280x720) pour un live sur :
+SUJET : {sujet}
+ENJEU CENTRAL VOULU : {idee}
+Juge-la comme un spectateur qui scrolle sur mobile, en 1 seconde :
+- "sujet" : l'image ET le texte font-ils comprendre CE sujet (pas un sujet voisin, pas un détail secondaire) ?
+- "texte" : le texte est-il lisible, sensé seul, en rapport direct avec l'enjeu ?
+- "image" : photo nette et crédible, point focal clair, pas d'aspect « fausse IA » (flou, déformations, plastique) ?
+- "propre" : aucun logo, filigrane, texte parasite, bord ou artefact ?
+Note globale de 0 à 10 (7 = publiable tel quel). Sois sévère : un objet générique sans lien évident avec l'enjeu = 4 maximum.
+Réponds en JSON : {{"note": int, "sujet": bool, "texte": bool, "image": bool, "propre": bool, "probleme": str}}"""
+
+
+def juger(im, sujet, idee):
+    """Gemini regarde la miniature finie et la note. None si le contrôle est indisponible (quota)."""
+    from google.genai import types
+    buf = io.BytesIO()
+    im.copy().resize((640, 360)).save(buf, "JPEG", quality=85)
+    try:
+        r = llm.ask([JUGE.format(sujet=sujet[:500], idee=idee or "(voir sujet)"),
+                     types.Part.from_bytes(data=buf.getvalue(), mime_type="image/jpeg")],
+                    temperature=0.0, json_mode=True, fatal=False, retries=3)
+        j = llm.parse_json(llm.text(r))
+        if isinstance(j, dict) and str(j.get("note", "")).strip().lstrip("-").isdigit():
+            j["note"] = max(0, min(10, int(j["note"])))
+            return j
+    except (Exception, SystemExit) as e:
+        print(f"   ! contrôle qualité de la miniature indisponible ({str(e)[:60]})")
+    return None
+
+
 # ------------------------------------------------------------------ orchestration
-def make(L, sujet, out_path):
-    """Retourne un dict décrivant l'image produite (source, crédit) ou None."""
-    tm = L.get("texte_miniature") or {}
-    zone = (tm.get("zone") or "left").lower()
-    zone = zone if zone in ("left", "right", "top", "bottom") else "left"
-    img, info = None, {}
+def _sources(L, sujet):
+    """Images candidates, de la plus authentique à la moins : vraies photos classées, puis Gemini, puis Pollinations."""
     cands = commons_candidates(L.get("recherche_photo") or [])
     if cands:
         print(f"   {len(cands)} photo(s) réelle(s) candidates sur Wikimedia Commons")
-        c = pick_real_photo(cands, sujet, L.get("concept") or L.get("composition_miniature") or sujet)
-        if c:
-            img = c["image"]
-            info = {"source": "photo réelle (Wikimedia Commons)", "credit": f"{c['auteur']} — {c['licence']}", "lien": c["page"],
-                    "generee": False}
+        for c in pick_real_photo(cands, sujet, L.get("concept") or sujet):
+            try:
+                yield _get_img(c["url"]), {"source": "photo réelle (Wikimedia Commons)", "credit": f"{c['auteur']} — {c['licence']}",
+                                           "lien": c["page"], "generee": False}
+            except Exception:
+                continue
     prompt = L.get("prompt_image", "")
     neg = L.get("prompt_negatif", "")
     full = f"{prompt}. Avoid: {neg}" if neg else prompt
-    if img is None and prompt:
-        img, model = gemini_image(full)
-        if img is not None:
-            info = {"source": f"image générée ({model})", "generee": True}
-    if img is None and prompt:
+    if not prompt:
+        return
+    img, model = gemini_image(full)
+    if img is not None:
+        yield img, {"source": f"image générée ({model})", "generee": True}
+    for _ in range(2):
         img, model = pollinations(full)
-        if img is not None:
-            info = {"source": f"image générée ({model})", "generee": True}
-    if img is None:
-        print("   ! aucune image obtenue : miniature non fabriquée")
-        return None
+        if img is None:
+            break
+        yield img, {"source": f"image générée ({model})", "generee": True}
+
+
+def _composer(img, info, tm, zone):
     im = photo_finish(cover(img), info["generee"])
     im = _shade(im, zone)
-    im = draw_text(im, tm.get("texte", ""), tm.get("mot_cle", ""), _hex(tm.get("couleur"), "#FFD400"), zone)
+    return draw_text(im, tm.get("texte", ""), tm.get("mot_cle", ""), _hex(tm.get("couleur"), "#FFD400"), zone)
+
+
+def make(L, sujet, out_path, budget_s=None):
+    """Fabrique la miniature, la fait NOTER par Gemini, essaie l'image suivante tant qu'elle n'est pas publiable.
+    Retourne un dict (source, crédit, note, problème) ou None."""
+    import time
+    fin = time.monotonic() + (budget_s or float(os.getenv("MINIATURE_BUDGET_S", "300")))
+    seuil = int(os.getenv("MINIATURE_NOTE_MIN", "7"))
+    tm = dict(L.get("texte_miniature") or {})
+    zone = (tm.get("zone") or "left").lower()
+    zone = zone if zone in ("left", "right", "top", "bottom") else "left"
+    idee = L.get("idee_centrale") or L.get("concept") or ""
+    best, essais = None, 0
+    for img, info in _sources(L, sujet):
+        essais += 1
+        im = _composer(img, info, tm, zone)
+        verdict = juger(im, sujet, idee)
+        if verdict is None:                     # pas de contrôle possible : on garde la première image obtenue
+            best = best or (-1, im, {**info, "note": None, "probleme": "contrôle qualité indisponible (quota)"})
+            break
+        print(f"   essai {essais} ({info['source']}) : note {verdict['note']}/10"
+              + (f" — {str(verdict.get('probleme'))[:120]}" if verdict.get("probleme") else ""))
+        if verdict.get("texte") is False and verdict.get("sujet") is not False and tm.get("secours"):
+            im2 = _composer(img, info, {**tm, "texte": tm["secours"], "mot_cle": tm["secours"].split()[-1]}, zone)
+            v2 = juger(im2, sujet, idee)
+            if v2 and v2["note"] > verdict["note"]:
+                print(f"   texte de secours « {tm['secours']} » : note {v2['note']}/10")
+                im, verdict = im2, v2
+        cur = (verdict["note"], im, {**info, "note": verdict["note"], "probleme": verdict.get("probleme", "")})
+        if best is None or cur[0] > best[0]:
+            best = cur
+        if verdict["note"] >= seuil or essais >= 5 or time.monotonic() > fin:
+            break
+    if best is None:
+        print("   ! aucune image obtenue : miniature non fabriquée")
+        return None
+    note, im, info = best
     im.save(out_path, "JPEG", quality=92, optimize=True)
-    print(f"   miniature : {out_path} ({info['source']})")
+    if note is not None and 0 <= note < seuil:
+        info["a_revoir"] = True
+    print(f"   miniature : {out_path} ({info['source']}, note {info.get('note')}/10)")
     return info

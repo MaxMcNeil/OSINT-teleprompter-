@@ -22,6 +22,10 @@ on:
         description: "Reprise d'un run coupé : auto = même sujet sans script (≤ 4 jours), non = tout refaire, ou nom du dossier prompter/"
         required: false
         default: "auto"
+      miniature_seule:
+        description: "Refaire SEULEMENT titre + miniature d'un live déjà écrit : nom (ou début) du dossier prompter/ — vide sinon"
+        required: false
+        default: ""
       video_finder:
         description: "Lancer ensuite Vid-o-presse-finder, ciblé sur ce sujet (vidéos + articles pour le montage)"
         type: choice
@@ -77,6 +81,7 @@ jobs:
           THESE: ${{ inputs.these }}
           LANGUE: ${{ inputs.langue }}
           REPRENDRE: ${{ inputs.reprendre || 'auto' }}
+          MINIATURE_SEULE: ${{ inputs.miniature_seule }}
           JOURNAL: ${{ runner.temp }}/journal.txt
           OUT_DIR: prompter
         run: python -m src.main --sujet "$SUJET" --duree "$DUREE" --these "$THESE" --langue "$LANGUE"
@@ -84,7 +89,7 @@ jobs:
       # Lancé par ce run uniquement (aucun cron). Le lot du Finder garde ORIGINE.json -> le montage s'y synchronise.
       - name: Vid-o-presse-finder — préparer les recherches ciblées
         id: vpf
-        if: always() && inputs.video_finder != 'non'
+        if: always() && inputs.video_finder != 'non' && inputs.miniature_seule == ''
         continue-on-error: true
         timeout-minutes: 10
         env:

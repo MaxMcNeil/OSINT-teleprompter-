@@ -293,6 +293,73 @@ def _rechercher(a, lang, ctx, words, late):
     return d, sources, facts, pts, court, queries, short
 
 
+def _miniature(a, ctx, sources, facts, queries, titre, d, problems):
+    """Titre + miniature (analyse du top 3 YouTube, image notée par Gemini). Ne fait jamais échouer le run."""
+    print("   Titre + miniature (analyse du top 3 YouTube)…")
+    try:
+        top_facts = sorted(facts, key=script.score, reverse=True)[:5]
+        L, top3, note = thumb.build(ctx, sources, queries, titre, top_facts)
+        img = None
+        try:
+            img = image.make(L, a.sujet, os.path.join(d, "miniature.jpg"))
+        except BaseException as e:
+            if isinstance(e, KeyboardInterrupt):
+                raise
+            print(f"   ! image de miniature non fabriquée : {type(e).__name__}: {str(e)[:150]}")
+        if not img:
+            problems.append("Image de miniature non fabriquée (sources d'image indisponibles) : le prompt est dans miniature.md.")
+        elif img.get("a_revoir"):
+            problems.append(f"Miniature sous le seuil de qualité ({img.get('note')}/10 : {str(img.get('probleme', ''))[:120]}) : "
+                            "à refaire avec le prompt de miniature.md.")
+        _w(os.path.join(d, "miniature.md"), thumb.render(a.sujet, L, top3, note, img))
+        print("   titre :", L.get("titre"), "|", note or "ok")
+    except BaseException as e:  # ne jamais perdre le script pour la miniature
+        if isinstance(e, KeyboardInterrupt):
+            raise
+        print(f"   ! titre/miniature non générés : {type(e).__name__}: {str(e)[:150]}")
+        problems.append(f"Titre / miniature NON générés : {type(e).__name__}: {str(e)[:200]}. "
+                        "Relance le workflow plus tard (quota Gemini) : le script, lui, est complet.")
+        try:
+            _w(os.path.join(d, "miniature.md"), "# Miniature\n\n⚠ Non générée : " + problems[-1] + "\n")
+        except Exception:
+            pass
+
+
+def _refaire_miniature(a, lang, ctx, nom):
+    """Refait seulement le titre et la miniature d'un live déjà écrit (dossier ou début de nom de dossier)."""
+    global _D
+    dirs = sorted((x for x in os.listdir(a.out) if x.startswith(nom) and os.path.isdir(os.path.join(a.out, x))), reverse=True)
+    if not dirs:
+        raise SystemExit(f"Aucun dossier « {nom} » dans {a.out}/")
+    _D = d = os.path.join(a.out, dirs[0])
+    with open(os.path.join(d, "donnees.json"), encoding="utf-8") as fh:
+        data = json.load(fh)
+    fields = set(collect.Source.__dataclass_fields__)
+    sources = [collect.Source(**{k: v for k, v in x.items() if k in fields}) for x in data.get("sources") or []]
+    facts = data.get("faits") or []
+    try:
+        with open(os.path.join(d, "requete.json"), encoding="utf-8") as fh:
+            br = json.load(fh)
+    except (OSError, ValueError):
+        br = {}
+    if br.get("sujet"):            # le sujet d'origine du live prime sur celui tapé dans le formulaire
+        a.sujet = ctx["sujet"] = br["sujet"]
+    ctx.update({"points": br.get("points") or [], "court": br.get("court") or a.sujet[:80]})
+    titre = a.sujet
+    try:
+        with open(os.path.join(d, "script_annote.md"), encoding="utf-8") as fh:
+            titre = fh.readline().lstrip("# ").strip() or a.sujet
+    except OSError:
+        pass
+    queries = list(dict.fromkeys(q for x in ctx["points"] for q in (x.get("requetes") or [])))
+    print(f"[MINIATURE] {d} : titre + miniature refaits ({len(facts)} faits, titre du live « {titre} »)")
+    _STOP["protege"] = False
+    problems = []
+    _miniature(a, ctx, sources, facts, queries, titre, d, problems)
+    for x in problems:
+        print("⚠ " + x)
+
+
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--sujet", required=True)
@@ -333,6 +400,8 @@ def main():
     def late():
         return llm.elapsed() > llm.DEADLINE - reserve
 
+    if os.getenv("MINIATURE_SEULE", "").strip():
+        return _refaire_miniature(a, lang, ctx, os.environ["MINIATURE_SEULE"].strip())
     rep = None if os.getenv("REPRENDRE", "auto").strip().lower() in ("non", "no", "0") else \
         _trouver_reprise(a, os.getenv("REPRENDRE", "auto"))
     if rep:
@@ -401,32 +470,7 @@ def main():
             grace = min(grace, hard * 60 - 90)
         llm.DEADLINE = max(llm.DEADLINE, grace)
     _STOP["protege"] = False       # miniature : interrompable (elle est facultative, protégée par son propre try)
-    print("   Titre + miniature (analyse du top 3 YouTube)…")
-    try:
-        top_facts = sorted(facts, key=script.score, reverse=True)[:5]
-        L, top3, note = thumb.build(ctx, sources, queries, titre, top_facts)
-        img = None
-        try:
-            img = image.make(L, a.sujet, os.path.join(d, "miniature.jpg"))
-        except BaseException as e:
-            if isinstance(e, KeyboardInterrupt):
-                raise
-            print(f"   ! image de miniature non fabriquée : {type(e).__name__}: {str(e)[:150]}")
-        if not img:
-            problems.append("Image de miniature non fabriquée (sources d'image indisponibles) : le prompt est dans miniature.md.")
-        _w(os.path.join(d, "miniature.md"), thumb.render(a.sujet, L, top3, note, img))
-        print("   titre :", L.get("titre"), "|", note or "ok")
-    except BaseException as e:  # ne jamais perdre le script pour la miniature
-        if isinstance(e, KeyboardInterrupt):
-            raise
-        print(f"   ! titre/miniature non générés : {type(e).__name__}: {str(e)[:150]}")
-        problems.append(f"Titre / miniature NON générés : {type(e).__name__}: {str(e)[:200]}. "
-                        "Relance le workflow plus tard (quota Gemini) : le script, lui, est complet.")
-        try:
-            _w(os.path.join(d, "miniature.md"), "# Miniature\n\n⚠ Non générée : " + problems[-1] + "\n")
-        except Exception:
-            pass
-
+    _miniature(a, ctx, sources, facts, queries, titre, d, problems)
     _STOP["protege"] = True
     if final_words < words * 0.85:
         problems.append(f"Script plus court que la cible : {final_words} mots au lieu de {words} "

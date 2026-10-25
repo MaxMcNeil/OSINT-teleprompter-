@@ -104,6 +104,21 @@ def models():
     return MODELS
 
 
+def image_models():
+    """Modèles Gemini capables de produire une image (découverts, donc à jour quand Google en sort de nouveaux)."""
+    found = []
+    try:
+        for m in client(0).models.list():
+            name = (m.name or "").replace("models/", "")
+            acts = getattr(m, "supported_actions", None) or []
+            if "gemini" in name and "image" in name and "generateContent" in acts and "tts" not in name:
+                found.append(name)
+        found.sort(key=_rank)
+    except Exception as e:
+        print(f"  ! liste des modèles d'image indisponible ({str(e)[:60]})")
+    return found or ["gemini-2.5-flash-image"]
+
+
 _strikes = {}
 
 

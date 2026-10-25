@@ -74,9 +74,20 @@ RÈGLES ANTI-PUTACLIC
   flèches, cercles rouges, visages surpris, fausse urgence.
 - Un chiffre réel ou un fait concret vaut mieux qu'un adjectif.
 
+L'ENJEU CENTRAL D'ABORD (règle n°1, la plus importante)
+- Avant tout, écris "idee_centrale" : en une phrase, l'enjeu que le spectateur doit saisir en UNE seconde
+  (la conséquence concrète pour les gens, la question brûlante), pas un détail technique du sujet.
+- texte_miniature DIT cet enjeu, compréhensible SEUL (sans lire le titre) et reprend un mot-clé du sujet.
+  Un chiffre seulement s'il est accompagné de ce qu'il mesure et qu'il frappe (« -40 % D'ENGRAIS »).
+  Interdit : un chiffre ou un objet secondaire sans signification seul (ex. « 4 NAVIRES » pour un live sur la famine).
+- L'image MONTRE cet enjeu : la conséquence humaine ou concrète, reconnaissable au premier coup d'œil
+  (famine → rayons vides, file d'attente pour du pain, champ ravagé ; guerre → lieu ou dirigeant concerné).
+  Jamais un objet générique (navire, immeuble, drapeau, salle de réunion) s'il n'est pas lui-même le cœur du sujet.
+
 RÈGLES ANTI-« FAUSSE IA »
-- Priorité à une VRAIE photo : donne des recherches Wikimedia Commons (en anglais) pour trouver une photo réelle et libre du lieu,
-  de l'objet ou de la personnalité publique au cœur du sujet (ex. "Strait of Hormuz tanker", "Giorgia Meloni press conference").
+- Priorité à une VRAIE photo : donne 4 recherches Wikimedia Commons (en anglais, 2 à 4 mots) qui trouvent une photo réelle et
+  libre montrant l'ENJEU CENTRAL (ex. "empty supermarket shelves", "bread queue", "Strait of Hormuz tanker",
+  "Giorgia Meloni press conference"), de la plus parlante à la plus générale.
 - prompt_image (secours si aucune vraie photo ne convient) : ANGLAIS, style PHOTO DE PRESSE documentaire (Reuters / AP / AFP),
   « shot on 35mm, natural light, slight film grain, realistic colors », une scène simple et crédible, un seul point focal,
   espace vide du côté du texte. AUCUNE personne réelle reconnaissable, pas de visage en gros plan, pas de texte dans l'image.
@@ -91,8 +102,8 @@ LIVRABLES
 - lecon_top3 : 1 à 2 phrases, ce qui fait marcher les miniatures concurrentes et ce qu'on en reprend (ou "indisponible").
 
 Réponds UNIQUEMENT en JSON :
-{{"livrables": {{"titre": "", "titres_alternatifs": ["", ""], "texte_miniature": {{"texte": "", "mot_cle": "", "couleur": "#FFD400", "zone": "left"}},
- "concept": "", "recherche_photo": ["", "", ""], "prompt_image": "", "prompt_negatif": "", "lecon_top3": ""}}}}"""
+{{"livrables": {{"idee_centrale": "", "titre": "", "titres_alternatifs": ["", ""], "texte_miniature": {{"texte": "", "mot_cle": "", "couleur": "#FFD400", "zone": "left"}},
+ "concept": "", "recherche_photo": ["", "", "", ""], "prompt_image": "", "prompt_negatif": "", "lecon_top3": ""}}}}"""
 
 NEG_BASE = ("AI-generated look, CGI, 3D render, illustration, painting, plastic skin, oversaturated colors, HDR glow, "
             "fantasy lighting, extra fingers, deformed hands, distorted faces, duplicated objects, gibberish text, letters, "
@@ -111,10 +122,10 @@ def _enforce(L, sujet):
         tm = {"texte": tm}
     tm = tm if isinstance(tm, dict) else {}
     L["texte_miniature"] = {k: _s(tm.get(k)) for k in ("texte", "mot_cle", "couleur", "zone")}
-    for k in ("titre", "prompt_image", "prompt_negatif", "concept", "lecon_top3"):
+    for k in ("titre", "prompt_image", "prompt_negatif", "concept", "lecon_top3", "idee_centrale"):
         L[k] = _s(L.get(k))
     rp = L.get("recherche_photo")
-    L["recherche_photo"] = [q.strip() for q in rp if isinstance(q, str) and q.strip()][:3] if isinstance(rp, list) else []
+    L["recherche_photo"] = [q.strip() for q in rp if isinstance(q, str) and q.strip()][:5] if isinstance(rp, list) else []
     alts = L.get("titres_alternatifs")
     L["titres_alternatifs"] = [a.strip() for a in alts if isinstance(a, str) and a.strip()][:3] if isinstance(alts, list) else []
     t = L["titre"]
@@ -151,7 +162,46 @@ def _enforce(L, sujet):
     L["prompt_negatif"] = ", ".join(dict.fromkeys(neg))
     if not L["recherche_photo"]:
         L["recherche_photo"] = [sujet[:60]]
+    L["texte_miniature"]["secours"] = texte_secours(L, sujet)
+    if not texte_pertinent(L["texte_miniature"]["texte"], sujet, L):
+        old_t = L["texte_miniature"]["texte"]
+        L["texte_miniature"]["texte"] = texte_secours(L, sujet)
+        L["texte_miniature"]["mot_cle"] = L["texte_miniature"]["texte"].split()[-1] if L["texte_miniature"]["texte"] else ""
+        print(f"   texte de miniature « {old_t} » sans rapport clair avec le sujet -> « {L['texte_miniature']['texte']} »")
     return L
+
+
+_VIDES = set("avec pour dans sans plus moins tout tous toute cette comme mais elle elles nous vous leur leurs sont etre "
+             "avoir fait faire quand entre apres avant depuis contre vers chez the and with from that this".split())
+
+
+def _cles(*textes):
+    return {w for t in textes for w in _norm(t or "").split() if len(w) > 3 and w not in _VIDES}
+
+
+def texte_pertinent(texte, sujet, L) -> bool:
+    """Le texte sur l'image doit porter l'enjeu du sujet : au moins un mot-clé du sujet, du titre ou de l'idée centrale
+    (racines comparées sur 5 lettres : famine/famines, engrais/engrais…). Un chiffre seul + un mot hors sujet est refusé."""
+    mots = _cles(texte)
+    if not mots:
+        return False
+    ref = _cles(sujet, L.get("titre", ""), L.get("idee_centrale", ""))
+    rac = {w[:5] for w in ref}
+    return any(w[:5] in rac for w in mots)
+
+
+def texte_secours(L, sujet) -> str:
+    """Texte tiré du titre (partie après « : » si elle est courte), sinon les mots forts du sujet."""
+    t = L.get("titre", "")
+    if ":" in t:
+        apres = t.split(":", 1)[1].strip()
+        if 1 <= _words(apres) <= 3:
+            return apres
+    mots = [w for w in re.findall(r"[\w'’-]+", t) if len(w) > 3 and _norm(w).strip() not in _VIDES][:3]
+    if mots and texte_pertinent(" ".join(mots), sujet, L):
+        return " ".join(mots[-3:])
+    mots = [w for w in re.findall(r"[\w'’-]+", sujet) if len(w) > 4 and _norm(w).strip() not in _VIDES]
+    return " ".join(mots[:2])
 
 
 def build(ctx, sources, queries, titre_live, top_facts):
@@ -212,9 +262,16 @@ def render(sujet, L, top3, note, img=None) -> str:
     tm = L.get("texte_miniature") or {}
     zone = {"left": "à gauche", "right": "à droite", "top": "en haut", "bottom": "en bas"}.get(tm.get("zone"), tm.get("zone", ""))
     o = [f"# Miniature — {sujet}", ""]
+    if L.get("idee_centrale"):
+        o += [f"**Enjeu montré** : {L['idee_centrale']}", ""]
     if img:
         o += ["![miniature](miniature.jpg)", "",
               f"Image : {img['source']}" + (f" · crédit à mettre en description : {img['credit']} ({img['lien']})" if img.get("credit") else ""), ""]
+        if img.get("note") is not None:
+            o += [f"Contrôle qualité (Gemini, vue mobile) : **{img['note']}/10**"
+                  + (f" — {img['probleme']}" if img.get("probleme") else ""), ""]
+        if img.get("a_revoir"):
+            o += ["> ⚠ Meilleure miniature obtenue mais sous le seuil de qualité : refais-la avec le prompt ci-dessous.", ""]
     else:
         o += ["> ⚠ Image non fabriquée automatiquement : utilise le prompt ci-dessous.", ""]
     if note:
