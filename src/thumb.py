@@ -197,59 +197,37 @@ def _hex(c):
 
 
 def prompt_complet(L) -> str:
-    """Prompt UNIQUE à coller dans une IA d'image externe (ChatGPT, Gemini, Ideogram…) pour obtenir la miniature
-    COMPLÈTE, texte compris. Assemblé sans IA à partir du prompt et du texte d'origine : rien n'est réécrit."""
+    """UN bloc à copier-coller tel quel dans une IA d'image externe (ChatGPT, Gemini, Ideogram…) pour obtenir la
+    miniature COMPLÈTE, texte compris. Assemblé sans IA à partir des livrables d'origine : rien n'est réécrit."""
     tm = L.get("texte_miniature") if isinstance(L.get("texte_miniature"), dict) else {}
-    base = re.sub(r"\s*--\w+(\s+[^-\s]\S*)?", "", L.get("prompt_image", "")).strip(" ,.")
-    o = [f"YouTube thumbnail, 16:9, 1280x720. {base}."]
+    scene = re.sub(r"\s*--\w+(\s+[^-\s]\S*)?", "", L.get("prompt_image", "")).strip(" ,.")
+    coul = _hex(tm.get("couleur"))
+    nom_coul = re.sub(r"\s*\(?#?[0-9a-fA-F]{6}\)?", "", tm.get("couleur") or "").strip(" ,()")
+    police = tm.get("police") or "Anton"
+    o = ["Create a YouTube thumbnail: 16:9, 1280x720, photorealistic, one single image.", ""]
+    if scene:
+        o += [f"SCENE: {scene}.", ""]
+    if L.get("composition_miniature"):
+        o += [f"COMPOSITION: {L['composition_miniature']}", ""]
     if tm.get("texte"):
-        coul = _hex(tm.get("couleur"))
-        o.append(f'Add this exact text on the image, spelled exactly, nothing else written: "{tm["texte"]}". '
-                 f"Text color: {tm.get('couleur', '')}{' ' + coul if coul and coul not in tm.get('couleur', '') else ''}, "
-                 f"bold condensed font ({tm.get('police', 'Anton / Impact')}), thick black outline, "
-                 f"placement: {tm.get('placement', 'top left')}. Very large, readable on a phone.")
-    o.append("Avoid: " + NEGATIF + ".")
-    return " ".join(o)
+        o += [f'TEXT ON THE IMAGE (exact spelling, nothing else written): "{tm["texte"]}"',
+              f"- Color: {coul or tm.get('couleur', '')}" + (f" ({nom_coul})" if coul and nom_coul else "")
+              + ", thick black outline",
+              f"- Font: {police}" + ("" if "condens" in police.lower() else ", extra bold condensed"),
+              f"- Placement: {tm.get('placement') or 'top left'}",
+              "- Very large, readable on a phone screen", ""]
+    o += [f"AVOID: {NEGATIF}."]
+    return "\n".join(o)
 
 
 def render(sujet, titre_live, L, at, am, top3, note, img=None) -> str:
-    """UN seul document : titre, composition, prompt complet pour une IA externe (texte compris), prompt d'origine,
-    texte incrusté, puis l'analyse du top 3. Le contenu est celui du générateur d'origine, sans changement."""
-    tm = L.get("texte_miniature") if isinstance(L.get("texte_miniature"), dict) else {}
-    o = [f"# Titre et miniature — {sujet}", ""]
-    if note:
-        o += [f"> ⚠ {note}", ""]
-    o += ["## 1. Titre (3 à 5 mots)", "", f"**{L.get('titre', '')}**", ""]
+    """Document court : le titre (+ variantes), puis UN bloc complet à copier-coller dans une IA d'image."""
+    o = [f"# Miniature — {sujet}", "",
+         f"**Titre** : {L.get('titre', '')}"]
     if L.get("titres_alternatifs"):
-        o += ["Variantes à tester :"] + [f"- {t}" for t in L["titres_alternatifs"]] + [""]
-    if L.get("pourquoi_ce_titre"):
-        o += [f"Pourquoi : {L['pourquoi_ce_titre']}", ""]
-    o += ["## 2. Composition de la miniature", "", L.get("composition_miniature", ""), "",
-          "## 3. Prompt complet — à coller dans ChatGPT, Gemini, Ideogram… (miniature finie, texte compris)", "",
-          "```", prompt_complet(L), "```", "",
-          "Version Midjourney (image seule, texte à ajouter ensuite) :", "", "```", L.get("prompt_image", ""), "```",
-          "Prompt négatif (Midjourney : après `--no`) :", "", "```", NEGATIF, "```", "",
-          "## 4. Texte incrusté sur la miniature", "",
-          f"- Texte : **{tm.get('texte', '')}**", f"- Couleur : {tm.get('couleur', '')}",
-          f"- Police : {tm.get('police', '')}", f"- Placement : {tm.get('placement', '')}", ""]
-    if top3:
-        o += ["---", "", "## Analyse du top 3 (audience)", ""]
-        for r, v in enumerate(top3, 1):
-            o.append(f"{r}. **{v['titre']}** — {v['chaine']} — {v['vues']:,} vues — {v['date']}".replace(",", " "))
-            o.append(f"   - Vidéo : {v['url']}")
-            o.append(f"   - Miniature : {v.get('thumb_url', '')}")
-        for label, blk in (("Titres", at), ("Miniatures", am)):
-            if not blk or not isinstance(blk, dict):
-                continue
-            o += ["", f"### {label}", ""]
-            for pv in blk.get("par_video") if isinstance(blk.get("par_video"), list) else []:
-                if not isinstance(pv, dict):
-                    continue
-                detail = "; ".join(f"{k} : {', '.join(map(str, v)) if isinstance(v, list) else v}"
-                                   for k, v in pv.items() if k != "rang" and v)
-                o.append(f"- Vidéo {pv.get('rang', '?')} — {detail}")
-            if isinstance(blk.get("motifs_communs"), list) and blk["motifs_communs"]:
-                o += ["", "Motifs communs : " + " ; ".join(map(str, blk["motifs_communs"]))]
-            if blk.get("ce_qui_fait_la_difference"):
-                o += ["", f"Ce qui fait la différence : {blk['ce_qui_fait_la_difference']}"]
+        o.append("**Variantes** : " + " · ".join(L["titres_alternatifs"]))
+    o += ["", "**À copier-coller dans ChatGPT, Gemini ou Ideogram** (miniature complète, texte compris) :", "",
+          "```", prompt_complet(L), "```", ""]
+    if note:
+        o += [f"> {note}", ""]
     return "\n".join(o) + "\n"
