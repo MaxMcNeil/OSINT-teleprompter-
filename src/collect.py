@@ -300,7 +300,7 @@ def expand_queries(sujet, these, lang_nom, avoid=(), n=None):
     n = n or config.N_QUERIES
     p = (f"Sujet : {sujet}\nThèse / angle : {these or '(aucune)'}\n\n"
          f"Génère {n} requêtes de recherche web courtes (2 à 7 mots), en {lang_nom} "
-         "(dont 2 en anglais), pour trouver : chiffres officiels, dates, décisions de justice, "
+         "(dont 2 en anglais, et 1 dans la langue du pays au cœur du sujet s'il est différent), pour trouver : chiffres officiels, dates, décisions de justice, "
          "rapports, déclarations exactes, affaires, réactions sur X et forums, couverture "
          "internationale, contradictions et promesses non tenues. "
          f"Évite ces requêtes déjà faites : {list(avoid)[:20]}.\n"
@@ -332,11 +332,15 @@ Tu prépares un live satirique d'investigation. Avant tout, COMPRENDS la requêt
 3. "cibles" : personnes, institutions, entreprises ou politiques mis en cause.
 4. "points" : {'4 à 8' if long else '2 à 6'} POINTS distincts qu'un live complet doit TOUS traiter (chaque affirmation, chaque personne,
    chaque reproche, chaque angle, même allusif). Ne reformule pas pour adoucir, ne supprime rien, ne fusionne pas deux idées différentes.
-   Pour chaque point : un intitulé net (une phrase) et 3 requêtes de recherche courtes (2 à 6 mots) : deux en {lang_nom},
-   une en anglais, visant des FAITS vérifiables (chiffres, dates, décisions, déclarations, documents, enquêtes) — pas des opinions.
+   Pour chaque point : un intitulé net (une phrase) et 3 ou 4 requêtes de recherche courtes (2 à 6 mots) : deux en {lang_nom},
+   une en anglais, et UNE dans la langue du pays concerné si ce point vise surtout un pays d'une autre langue
+   (arabe pour le monde arabe, italien pour l'Italie, persan, russe, hébreu, espagnol, etc.), visant des FAITS vérifiables (chiffres, dates, décisions, déclarations, documents, enquêtes) — pas des opinions.
 5. "court" : 3 à 6 mots (noms propres + thème) pour chercher sur YouTube/presse.
 Réponds en JSON : {{"demontrer": str, "raisonnement": [str], "cibles": [str], "court": str,
-"points": [{{"intitule": str, "requetes": [str, str, str]}}]}}"""
+"points": [{{"intitule": str, "requetes": [str, str, str, str]}}]}}
+La requête peut être en français, arabe, italien, anglais ou autre : comprends-la dans sa langue. Rédige "demontrer", "raisonnement",
+"cibles" et les intitulés en {lang_nom}. Aucun sujet n'est tabou : ne refuse pas, n'édulcore pas, quel que soit le pays, la religion,
+le dirigeant ou l'institution visés."""
     out = {"court": sujet if len(sujet.split()) <= 8 else " ".join(sujet.split()[:8]), "points": [],
            "demontrer": "", "raisonnement": [], "cibles": []}
     j = None
@@ -362,7 +366,7 @@ Réponds en JSON : {{"demontrer": str, "raisonnement": [str], "cibles": [str], "
         if not isinstance(pt, dict) or not isinstance(pt.get("intitule"), str) or not pt["intitule"].strip():
             continue
         qs = [q.strip() for q in (pt.get("requetes") if isinstance(pt.get("requetes"), list) else [])
-              if isinstance(q, str) and q.strip()][:3]
+              if isinstance(q, str) and q.strip()][:4]
         out["points"].append({"id": f"P{k}", "intitule": pt["intitule"].strip()[:300], "requetes": qs})
     out["points"] = out["points"][:8]
     return out

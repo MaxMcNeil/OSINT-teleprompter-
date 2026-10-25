@@ -49,10 +49,11 @@ def _detect(sujet: str) -> str:
     w = set(sujet.lower().replace("'", " ").split())
     marks = {
         "fr": {"le", "la", "les", "des", "du", "de", "un", "une", "et", "pour", "sur", "avec", "pourquoi", "en", "au", "aux"},
-        "en": {"the", "of", "and", "for", "with", "why", "to", "in", "on", "is"},
+        "en": {"the", "of", "and", "for", "with", "why", "to", "in", "on", "is", "are", "how", "what", "who", "against"},
         "es": {"el", "los", "las", "del", "por", "para", "con", "una", "y"},
         "de": {"der", "die", "das", "und", "mit", "für", "von", "ist"},
-        "it": {"il", "gli", "della", "per", "con", "una", "e"},
+        "it": {"il", "gli", "della", "delle", "dei", "del", "nel", "sul", "alla", "per", "con", "una", "e", "è", "che", "non",
+               "sono", "perché", "questo", "governo", "anche", "più", "lo"},
         "pt": {"os", "as", "da", "do", "para", "com", "uma", "e"},
     }
     best = max(marks, key=lambda k: len(w & marks[k]))

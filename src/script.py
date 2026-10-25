@@ -23,6 +23,8 @@ STYLE = """STYLE — tu n'es PAS journaliste, tu es un chroniqueur satirique au 
 - Tu parles AU spectateur (« toi », « vous »), tu le prends à témoin, tu t'indignes, tu te moques des responsables. Voix incarnée, opinion tranchée, jamais le ton d'une dépêche AFP.
 - Rythme oral : phrases courtes, ruptures, silences (« ... »), relances. Jamais de pavé monotone ni d'énumération de chiffres sans réaction.
 - TICS INTERDITS : « selon X », « d'après X », « affirme X », « la même source » à chaque phrase ; « ALERTE. » / « Retenez ce chiffre. » / « Relisez cette date. » plus d'une fois par chapitre ; résumés plats ; « il est important de noter » ; ton professoral.
+- LANGUE : tout le texte est écrit DIRECTEMENT dans la langue du live (français, arabe, italien, anglais…), avec l'humour noir, les expressions, le rythme et les références propres à cette langue — jamais une traduction plate du français. Les exemples ci-dessous montrent le REGISTRE, pas la langue.
+- SANS TABOU : aucun sujet, aucun pays, aucun dirigeant, aucun parti, aucune institution (religieuse, militaire, internationale, financière), aucune célébrité ni entreprise n'est épargné ou ménagé. Même férocité quel que soit le camp, le pays ou le bord politique visé : pas de double standard, pas de traitement de faveur.
 - Exemple de registre ATTENDU : « Trente pour cent des engrais du monde coincés dans un détroit. Trente. Mais rassure-toi : à Bruxelles, on a créé un groupe de travail. La famine, elle, n'a pas besoin de groupe de travail. Elle est très autonome. »
 - Exemple de registre REFUSÉ : « Selon Rabobank, le blocage paralyse 25 à 30 % des exportations d'engrais, d'après les données publiées. »
 - Cible les actes, décisions, déclarations et responsabilités de personnes publiques et d'organisations. Jamais d'attaque contre un groupe en raison de son origine, sa religion, son orientation, son handicap. Aucun appel à la violence. L'ironie sur le DÉCALAGE entre le parcours public et documenté d'une personnalité (origines comprises, si les faits sont sourcés) et ses positions ou promesses est permise : elle vise la personne publique et ses actes, jamais un groupe.
@@ -148,11 +150,13 @@ FAITS :
 
 
 # ------------------------------------------------------------------ écriture
-SAME_SRC = re.compile(r",?\s*(?:selon|d'après|d’après|affirme)\s+la\s+même\s+source(?:\s+non\s+confirmée)?", re.I)
+SAME_SRC = re.compile(r",?\s*(?:(?:selon|d'après|d’après|affirme)\s+la\s+même\s+source(?:\s+non\s+confirmée)?"
+                      r"|according\s+to\s+the\s+same\s+source|secondo\s+la\s+stessa\s+fonte"
+                      r"|(?:وفقا|وفقاً|حسب|بحسب)\s+(?:لـ\s*)?(?:ال)?(?:نفس\s+المصدر|المصدر\s+نفسه))", re.I)
 
 
 def _tidy(text, allowed):
-    text = re.sub(r"\b(?:Selon|D'après|D’après)\s+la\s+même\s+source(?:\s+non\s+confirmée)?\s*,\s*(\w)",
+    text = re.sub(r"\b(?:Selon|D'après|D’après|According\s+to|Secondo)\s+(?:la|the)\s+(?:même|same|stessa)\s+(?:source|fonte)(?:\s+non\s+confirmée)?\s*,\s*(\w)",
                   lambda m: m.group(1).upper(), text)
     text = SAME_SRC.sub("", text)
     text = re.sub(r"^\s*#+\s.*$", "", text, flags=re.M)
@@ -197,7 +201,7 @@ def write_section(ctx, sec, budget, facts_by_id, prev_tail="", done_titles=(), e
 SUJET DU LIVE : {ctx['sujet']}{fil}
 THÈSE : {ctx['these'] or '(aucune)'}
 {comprehension(ctx)}
-LANGUE : {ctx['lang']['nom']}
+LANGUE DU LIVE : {ctx['lang']['nom']} — écris TOUT le texte en {ctx['lang']['nom']} (les faits fournis peuvent être dans une autre langue : traduis-les fidèlement, chiffres et noms intacts).
 {role}
 {' '.join(extras)}
 
@@ -218,8 +222,11 @@ FAITS À UTILISER :
     return out
 
 
-ATTR_MID = re.compile(r",\s*(selon|d'après|d’après|affirme|affirment|rapporte)\s+((?:l[ae']\s?|les\s)?[A-ZÉÈÀ][\w.’'\- ]{1,40}?)(?=\s*(?:\[F\d+\])*\s*[,.;!?…])")
-ATTR_HEAD = re.compile(r"(^|(?<=[.!?…]\s))(Selon|D'après|D’après)\s+((?:l[ae']\s?|les\s)?[A-ZÉÈÀ][\w.’'\- ]{1,40}?),\s*(\w)")
+ATTR_MID = re.compile(r",\s*(selon|d'après|d’après|affirme|affirment|rapporte|according\s+to|says|reports|secondo|stando\s+a|riporta)\s+((?:l[ae']\s?|les\s)?[A-ZÉÈÀ][\w.’'\- ]{1,40}?)(?=\s*(?:\[F\d+\])*\s*[,.;!?…])")
+ATTR_HEAD = re.compile(r"(^|(?<=[.!?…]\s))(Selon|D'après|D’après|According\s+to|Secondo|Stando\s+a)\s+((?:l[ae']\s?|les\s)?[A-ZÉÈÀ][\w.’'\- ]{1,40}?),\s*(\w)")
+
+
+ATTR_AR = re.compile(r"[،,]?\s*(?:وفقاً|وفقا|بحسب|حسب|نقلاً\s+عن|نقلا\s+عن)\s+(?:لـ\s*)?([^\s،,.!؟\[]+(?:\s+[^\s،,.!؟\[]+)?)")
 
 
 def dedup_attributions(secs):
@@ -255,6 +262,16 @@ def dedup_attributions(secs):
             pos = m.end()
         out.append(t[pos:])
         sec["text"] = re.sub(r"[ \t]{2,}", " ", "".join(out))
+    seen_ar = set()
+
+    def ar(m):
+        k = m.group(1)
+        if k in seen_ar:
+            return ""
+        seen_ar.add(k)
+        return m.group(0)
+    for sec in secs:
+        sec["text"] = ATTR_AR.sub(ar, sec["text"])
     n1 = sum(len(ATTR_MID.findall(x["text"])) + len(ATTR_HEAD.findall(x["text"])) for x in secs)
     if n0 != n1:
         print(f"   citations orales répétées supprimées : {n0} -> {n1}")
