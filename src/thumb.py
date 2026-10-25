@@ -185,27 +185,38 @@ def build(ctx, sources, queries, titre_live, top_facts):
     return L, at if isinstance(at, dict) else {}, am if isinstance(am, dict) else {}, top3, note
 
 
-# Prompt négatif (pour Midjourney : après --no ; pour Flux/Gemini : « Avoid: ») — n'altère pas le prompt ci-dessus.
-NEGATIF = ("text, letters, watermark, logo, signature, frame, collage, split screen, cartoon, illustration, painting, "
-           "plastic skin, deformed hands, extra fingers, distorted faces, duplicated objects, blurry, low resolution, "
-           "oversaturated colors, recognizable real person")
+# Prompt négatif (Midjourney : après --no ; autres IA : « Avoid: ») — n'altère pas le prompt d'origine.
+NEGATIF = ("watermark, logo, signature, frame, collage, split screen, cartoon, illustration, painting, plastic skin, "
+           "deformed hands, extra fingers, distorted faces, duplicated objects, blurry, low resolution, misspelled text, "
+           "extra text, recognizable real person")
+
+
+def _hex(c):
+    m = re.search(r"#?([0-9a-fA-F]{6})\b", c or "")
+    return "#" + m.group(1).upper() if m else ""
+
+
+def prompt_complet(L) -> str:
+    """Prompt UNIQUE à coller dans une IA d'image externe (ChatGPT, Gemini, Ideogram…) pour obtenir la miniature
+    COMPLÈTE, texte compris. Assemblé sans IA à partir du prompt et du texte d'origine : rien n'est réécrit."""
+    tm = L.get("texte_miniature") if isinstance(L.get("texte_miniature"), dict) else {}
+    base = re.sub(r"\s*--\w+(\s+[^-\s]\S*)?", "", L.get("prompt_image", "")).strip(" ,.")
+    o = [f"YouTube thumbnail, 16:9, 1280x720. {base}."]
+    if tm.get("texte"):
+        coul = _hex(tm.get("couleur"))
+        o.append(f'Add this exact text on the image, spelled exactly, nothing else written: "{tm["texte"]}". '
+                 f"Text color: {tm.get('couleur', '')}{' ' + coul if coul and coul not in tm.get('couleur', '') else ''}, "
+                 f"bold condensed font ({tm.get('police', 'Anton / Impact')}), thick black outline, "
+                 f"placement: {tm.get('placement', 'top left')}. Very large, readable on a phone.")
+    o.append("Avoid: " + NEGATIF + ".")
+    return " ".join(o)
 
 
 def render(sujet, titre_live, L, at, am, top3, note, img=None) -> str:
-    """UN seul document : la miniature fabriquée, le titre, la composition, le prompt (+ négatif), le texte incrusté,
-    puis l'analyse du top 3. Le contenu est celui du générateur d'origine, sans changement."""
+    """UN seul document : titre, composition, prompt complet pour une IA externe (texte compris), prompt d'origine,
+    texte incrusté, puis l'analyse du top 3. Le contenu est celui du générateur d'origine, sans changement."""
     tm = L.get("texte_miniature") if isinstance(L.get("texte_miniature"), dict) else {}
     o = [f"# Titre et miniature — {sujet}", ""]
-    if img and img.get("echec"):
-        o += ["> ⚠ Image non fabriquée automatiquement : utilise le prompt ci-dessous.",
-              "> Raisons : " + " · ".join(img.get("raisons") or ["inconnue"]), ""]
-    elif img:
-        o += ["![miniature](miniature.jpg)", "", f"Image : {img.get('source', '')}"
-              + (f" · contrôle qualité {img['note']}/10" if img.get("note") is not None else ""), ""]
-        if img.get("a_revoir"):
-            o += [f"> ⚠ Image sous le seuil de qualité ({img.get('probleme', '')}) : refais-la avec le prompt ci-dessous.", ""]
-    else:
-        o += ["> ⚠ Image non fabriquée automatiquement : utilise le prompt ci-dessous.", ""]
     if note:
         o += [f"> ⚠ {note}", ""]
     o += ["## 1. Titre (3 à 5 mots)", "", f"**{L.get('titre', '')}**", ""]
@@ -214,8 +225,10 @@ def render(sujet, titre_live, L, at, am, top3, note, img=None) -> str:
     if L.get("pourquoi_ce_titre"):
         o += [f"Pourquoi : {L['pourquoi_ce_titre']}", ""]
     o += ["## 2. Composition de la miniature", "", L.get("composition_miniature", ""), "",
-          "## 3. Prompt Midjourney / Ideogram (anglais)", "", "```", L.get("prompt_image", ""), "```", "",
-          "Prompt négatif :", "", "```", NEGATIF, "```", "",
+          "## 3. Prompt complet — à coller dans ChatGPT, Gemini, Ideogram… (miniature finie, texte compris)", "",
+          "```", prompt_complet(L), "```", "",
+          "Version Midjourney (image seule, texte à ajouter ensuite) :", "", "```", L.get("prompt_image", ""), "```",
+          "Prompt négatif (Midjourney : après `--no`) :", "", "```", NEGATIF, "```", "",
           "## 4. Texte incrusté sur la miniature", "",
           f"- Texte : **{tm.get('texte', '')}**", f"- Couleur : {tm.get('couleur', '')}",
           f"- Police : {tm.get('police', '')}", f"- Placement : {tm.get('placement', '')}", ""]

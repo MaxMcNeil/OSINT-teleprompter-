@@ -23,7 +23,7 @@ on:
         required: false
         default: "auto"
       miniature_seule:
-        description: "Refaire SEULEMENT titre + miniature d'un live déjà écrit : nom (ou début) du dossier prompter/ — vide sinon"
+        description: "Refaire SEULEMENT le document titre + miniature d'un live déjà écrit : nom (ou début) du dossier prompter/ — vide sinon"
         required: false
         default: ""
       video_finder:
@@ -57,11 +57,6 @@ jobs:
       YT_API_KEYS: ${{ secrets.YT_API_KEYS }}
       YOUTUBE_API_KEYS_PLUS: ${{ secrets.YOUTUBE_API_KEYS_PLUS }}
       X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
-      # génération de l'image de miniature (gratuit) : Cloudflare Workers AI d'abord, puis Hugging Face, Gemini, Pollinations
-      CF_ACCOUNT_ID: ${{ secrets.CF_ACCOUNT_ID }}
-      CF_API_TOKEN: ${{ secrets.CF_API_TOKEN }}
-      HF_TOKEN: ${{ secrets.HF_TOKEN }}
-      POLLINATIONS_TOKEN: ${{ secrets.POLLINATIONS_TOKEN }}
     steps:
       - uses: actions/checkout@v5
       - name: Repère de début (pour retrouver le dossier de CE run)

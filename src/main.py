@@ -12,7 +12,7 @@ import traceback
 import unicodedata
 from dataclasses import asdict
 
-from . import collect, config, facts as F, image, llm, report, script, thumb, verify
+from . import collect, config, facts as F, llm, report, script, thumb, verify
 
 
 def slug(s):
@@ -294,25 +294,12 @@ def _rechercher(a, lang, ctx, words, late):
 
 
 def _miniature(a, ctx, sources, facts, queries, titre, d, problems):
-    """Titre + miniature (analyse du top 3 YouTube, image notée par Gemini). Ne fait jamais échouer le run."""
+    """Titre + document miniature (analyse du top 3 YouTube, prompt complet pour une IA externe). Ne fait jamais échouer le run."""
     print("   Titre + miniature (analyse du top 3 YouTube)…")
     try:
         top_facts = sorted(facts, key=script.score, reverse=True)[:5]
         L, at, am, top3, note = thumb.build(ctx, sources, queries, titre, top_facts)
-        img = None
-        try:
-            img = image.make(L, a.sujet, os.path.join(d, "miniature.jpg"))
-        except BaseException as e:
-            if isinstance(e, KeyboardInterrupt):
-                raise
-            print(f"   ! image de miniature non fabriquée : {type(e).__name__}: {str(e)[:150]}")
-        if not img or img.get("echec"):
-            why = " ; ".join((img or {}).get("raisons") or [])[:400]
-            problems.append("Image de miniature non fabriquée" + (f" ({why})" if why else "")
-                            + " : le prompt est dans miniature.md.")
-        elif img.get("a_revoir"):
-            problems.append(f"Image de miniature sous le seuil de qualité ({img.get('note')}/10) : à refaire avec le prompt de miniature.md.")
-        _w(os.path.join(d, "miniature.md"), thumb.render(a.sujet, titre, L, at, am, top3, note, img))
+        _w(os.path.join(d, "miniature.md"), thumb.render(a.sujet, titre, L, at, am, top3, note))
         print("   titre :", L.get("titre"), "|", note or "ok")
     except BaseException as e:  # ne jamais perdre le script pour la miniature
         if isinstance(e, KeyboardInterrupt):
