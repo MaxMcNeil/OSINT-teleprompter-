@@ -1,0 +1,52 @@
+[  0.0 min] [1/5] Cible : 20.0 min = 2900 mots (145 mots/min), langue français
+[  0.0 min] [2/5] REPRISE de prompter/2026-10-25_18h06_dirigeants-europeens-famine-engrais-gaz : 236 sources et 102 faits déjà vérifiés, recherche sautée
+[  0.0 min]    requête recomprise (1 appel IA)…
+[  0.0 min]   10 clé(s) Gemini chargée(s)
+[  0.0 min]   modèles, du plus performant au moins performant : gemini-3.8-flash, gemini-3.7-flash, gemini-3.6-flash, gemini-3.5-flash, gemini-3.5-flash-lite, gemini-3.1-flash-lite, gemini-3.1-flash-lite-preview, gemini-3-flash-preview, gemini-2.5-flash, gemini-2.5-flash-lite
+[  0.0 min]   > clé n°1 / gemini-3.8-flash
+[  0.0 min]   ! gemini-3.8-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[  0.0 min]   > clé n°2 / gemini-3.7-flash
+[  0.0 min]   ! gemini-3.7-flash surchargé (clé n°2) : on passe au modèle suivant pendant 90s
+[  0.0 min]   > clé n°3 / gemini-3.6-flash
+[  0.3 min] [3/5] Faits repris tels quels (déjà extraits et vérifiés)
+[  0.3 min] [4/5] Écriture du script…
+[  0.3 min]    76 faits retenus pour 2900 mots (26 en réserve)
+[  0.3 min]   > clé n°4 / gemini-3.6-flash
+[  0.3 min]   ! gemini-3.6-flash surchargé (clé n°4) : on passe au modèle suivant pendant 90s
+[  0.3 min]   > clé n°5 / gemini-3.5-flash
+[  0.3 min]   ! gemini-3.5-flash surchargé (clé n°5) : on passe au modèle suivant pendant 90s
+[  0.3 min]   > clé n°6 / gemini-3.5-flash-lite
+[  0.4 min]    écriture : Ouverture (145 mots)
+[  0.4 min]   > clé n°7 / gemini-3.5-flash-lite
+[  0.4 min]    écriture : Ormuz verrouillé, engrais bloqués : le choke-point qui assoiffe les champs (729 mots)
+[  0.4 min]   > clé n°8 / gemini-3.5-flash-lite
+[  0.5 min]    écriture : Silos vides et ports sous scellés : l'Ukraine ne nourrira plus l'Europe (493 mots)
+[  0.5 min]   > clé n°9 / gemini-3.5-flash-lite
+[  0.5 min]    écriture : Factures de gaz explosives et coûts agricoles hors sol : la double peine énergétique (1188 mots)
+[  0.5 min]   > clé n°10 / gemini-3.5-flash-lite
+[  0.6 min]    écriture : Dirigeants aveugles et assiettes vides : chronique d'une famine non anticipée (142 mots)
+[  0.6 min]   > clé n°1 / gemini-3.5-flash-lite
+[  0.6 min]    écriture : Conclusion (203 mots)
+[  0.6 min]   > clé n°2 / gemini-3.5-flash-lite
+[  0.7 min]    calage 1: 2263/2900 mots
+[  0.7 min]   > clé n°3 / gemini-3.5-flash-lite
+[  0.7 min]   > clé n°4 / gemini-3.5-flash-lite
+[  0.8 min]    réécriture écartée (elle s'éloignait de la cible)
+[  0.8 min]   > clé n°5 / gemini-3.5-flash-lite
+[  0.9 min]    réécriture écartée (elle s'éloignait de la cible)
+[  0.9 min]    calage 2: 2435/2900 mots
+[  0.9 min]    réécriture écartée (elle s'éloignait de la cible)
+[  1.1 min]    calage 3: 2841/2900 mots
+[  1.1 min] [5/5] Documents de sortie…
+[  1.1 min]    script enregistré : 2841 mots
+[  1.1 min]    Titre + miniature (analyse du top 3 YouTube)…
+[  1.3 min]    8 photo(s) réelle(s) candidates sur Wikimedia Commons
+[  1.5 min]    miniature : prompter/2026-10-25_18h06_dirigeants-europeens-famine-engrais-gaz/miniature.jpg (image générée (pollinations / flux))
+[  1.5 min]    titre : Blocage d'Ormuz : famine en Europe | ok
+[  1.5 min] 
+[  1.5 min] Famine en Europe : Comment les guerres en Ukraine et en Iran et l'impréparation de Bruxelles mènent à la pénurie
+[  1.5 min] 
+[  1.5 min] Script : 2841 mots ≈ 19.6 min (cible 20.0) · 236 sources · 102 faits vérifiés · 90 s
+[  1.5 min] 
+[  1.5 min] ⚠ Point P6 de ta requête (« L'absence d'anticipation et de stocks stratégiques par les dirigeants européens. ») : AUCUN fait cité dans le script (0 fait(s) trouvé(s)). Source introuvable ou trop faible : précise-le dans le champ thèse ou relance.
+[  1.5 min] Fichiers : prompter/2026-10-25_18h06_dirigeants-europeens-famine-engrais-gaz

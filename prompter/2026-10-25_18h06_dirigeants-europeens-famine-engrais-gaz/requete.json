@@ -1,6 +1,81 @@
 {
  "sujet": "La famine menace l'Europe à cause des guerres en Ukraine et en Iran : blocus du détroit d'Ormuz et engrais bloqués, blé et maïs ukrainiens, flambée du gaz et des prix alimentaires, pénuries qui arrivent, et des dirigeants européens qui n'ont rien anticipé",
- "these": "",
+ "these": "Les guerres en Ukraine et au Moyen-Orient provoquent une crise alimentaire majeure et une menace de famine en Europe en raison de l'impréparation totale des dirigeants européens.",
  "langue": "fr",
- "court": "dirigeants européens famine engrais gaz"
+ "court": "famine Europe engrais blé Ormuz",
+ "demontrer": "Les guerres en Ukraine et au Moyen-Orient provoquent une crise alimentaire majeure et une menace de famine en Europe en raison de l'impréparation totale des dirigeants européens.",
+ "raisonnement": [
+  "Les conflits en Ukraine et autour de l'Iran bloquent les flux majeurs de blé, maïs, engrais et gaz.",
+  "La hausse du prix du gaz et la pénurie d'engrais renchérissent massivement les coûts de production agricole.",
+  "L'augmentation des coûts entraîne une explosion des prix alimentaires et fait craindre des pénuries sévères.",
+  "Les dirigeants européens n'ont élaboré aucun plan d'anticipation ou de stockage stratégique face à cette vulnérabilité."
+ ],
+ "cibles": [
+  "Dirigeants de l'Union européenne",
+  "Gouvernements des États membres de l'UE",
+  "Gouvernement iranien",
+  "Gouvernement russe"
+ ],
+ "points": [
+  {
+   "id": "P1",
+   "intitule": "Le blocus du détroit d'Ormuz perturbe l'approvisionnement en engrais et carburants.",
+   "requetes": [
+    "détroit ormuz blocage engrais",
+    "iran impact fret maritime engrais",
+    "strait hormuz fertilizer supply chain",
+    "تنگه هرمز صادرات کود شیمیایی"
+   ]
+  },
+  {
+   "id": "P2",
+   "intitule": "La guerre en Ukraine bloque les exportations de blé et de maïs vers le marché européen.",
+   "requetes": [
+    "ukraine blocage exportations blé maïs",
+    "crise céréalière ukraine europe chiffres",
+    "ukraine wheat corn export disruption",
+    "експорт пшениці кукурудзи Україна"
+   ]
+  },
+  {
+   "id": "P3",
+   "intitule": "La flambée des prix du gaz paralyse la fabrication d'engrais en Europe.",
+   "requetes": [
+    "prix gaz europe usines engrais",
+    "arrêt production engrais europe gaz",
+    "europe gas prices fertilizer production shutdown",
+    "Gaspreise Düngemittelproduktion Europa"
+   ]
+  },
+  {
+   "id": "P4",
+   "intitule": "L'explosion des prix alimentaires frappe le budget des ménages européens.",
+   "requetes": [
+    "flambée prix alimentaires europe eurostat",
+    "hausse coût panier alimentaire europe",
+    "europe food price inflation data",
+    "inflación precios alimentos europa"
+   ]
+  },
+  {
+   "id": "P5",
+   "intitule": "Le risque de pénuries alimentaires réelles et la menace de famine s'installent en Europe.",
+   "requetes": [
+    "risques pénuries alimentaires europe",
+    "rapport sécurité alimentaire vulnérabilité europe",
+    "europe food shortage vulnerability report",
+    "Lebensmittelknappheit Europa Risiko"
+   ]
+  },
+  {
+   "id": "P6",
+   "intitule": "L'absence d'anticipation et de stocks stratégiques par les dirigeants européens.",
+   "requetes": [
+    "union européenne anticipation crise alimentaire",
+    "stocks stratégiques céréales europe manque",
+    "EU food security failure planning",
+    "EU Lebensmittelsicherheit Vorrat Mangel"
+   ]
+  }
+ ]
 }
