@@ -153,21 +153,57 @@ def gdelt(query, limit=40):
 
 
 # ---------------------------------------------------------------- YouTube
-def youtube(query, hl, n=8):
-    key = os.getenv("YT_API_KEY")
-    if not key:
-        return []
+# Plusieurs clés : secrets YT_API_KEYS (séparées par virgule / espace / retour à la ligne) et/ou YT_API_KEY.
+# Une clé dont le quota du jour est épuisé (403 quotaExceeded) est mise de côté et la suivante prend le relais.
+_YT_DEAD = set()
+_YT_CLIENTS = {}
+
+
+def _yt_keys():
+    raw = (os.getenv("YT_API_KEYS", "") + "," + os.getenv("YT_API_KEY", "")).replace("\n", ",").replace(" ", ",")
+    return [k for k in dict.fromkeys(x.strip() for x in raw.split(",")) if k]
+
+
+def _yt_exec(make_request):
+    """Exécute make_request(client) en passant à la clé suivante si le quota est épuisé."""
     from googleapiclient.discovery import build
-    yt = build("youtube", "v3", developerKey=key, cache_discovery=False)
+    from googleapiclient.errors import HttpError
+    keys = _yt_keys()
+    last = None
+    for i, k in enumerate(keys):
+        if k in _YT_DEAD:
+            continue
+        if k not in _YT_CLIENTS:
+            _YT_CLIENTS[k] = build("youtube", "v3", developerKey=k, cache_discovery=False)
+        try:
+            return make_request(_YT_CLIENTS[k]).execute()
+        except HttpError as e:
+            last = e
+            msg = str(e)
+            if e.resp.status in (403, 429) and any(x in msg for x in ("quota", "Quota", "dailyLimit", "rateLimit")):
+                print(f"  YouTube : quota de la clé {i + 1}/{len(keys)} épuisé → clé suivante")
+                _YT_DEAD.add(k)
+                continue
+            if e.resp.status in (400, 403) and ("API key" in msg or "keyInvalid" in msg or "has not been used" in msg):
+                print(f"  YouTube : clé {i + 1}/{len(keys)} refusée → clé suivante")
+                _YT_DEAD.add(k)
+                continue
+            raise
+    raise last or RuntimeError("aucune clé YouTube utilisable")
+
+
+def youtube(query, hl, n=8):
+    if not _yt_keys():
+        return []
     ids = []
     for order in ("relevance", "viewCount"):
-        r = yt.search().list(q=query, part="id", maxResults=n, order=order,
-                             type="video", relevanceLanguage=hl).execute()
+        r = _yt_exec(lambda yt: yt.search().list(q=query, part="id", maxResults=n, order=order,
+                                                 type="video", relevanceLanguage=hl))
         ids += [i["id"]["videoId"] for i in r.get("items", [])]
     ids = list(dict.fromkeys(ids))
     if not ids:
         return []
-    res = yt.videos().list(id=",".join(ids[:50]), part="snippet,statistics").execute()
+    res = _yt_exec(lambda yt: yt.videos().list(id=",".join(ids[:50]), part="snippet,statistics"))
     out = []
     for it in res.get("items", []):
         sn, st = it["snippet"], it.get("statistics", {})
@@ -189,24 +225,21 @@ def _iso_minutes(d):
 
 def youtube_top(queries, hl, n=15):
     """Vidéos candidates triées par AUDIENCE : recherche par nombre de vues + stats complètes. Retourne une liste de dicts."""
-    key = os.getenv("YT_API_KEY")
-    if not key:
+    if not _yt_keys():
         return []
-    from googleapiclient.discovery import build
-    yt = build("youtube", "v3", developerKey=key, cache_discovery=False)
     ids = []
     for q in queries:
         for order in ("viewCount", "relevance"):
             try:
-                r = yt.search().list(q=q, part="id", maxResults=n, order=order, type="video",
-                                     relevanceLanguage=hl).execute()
+                r = _yt_exec(lambda yt: yt.search().list(q=q, part="id", maxResults=n, order=order, type="video",
+                                                         relevanceLanguage=hl))
                 ids += [i["id"]["videoId"] for i in r.get("items", [])]
             except Exception as e:
                 print(f"  ! youtube_top: {str(e)[:80]}")
     ids = list(dict.fromkeys(ids))[:50]
     if not ids:
         return []
-    res = yt.videos().list(id=",".join(ids), part="snippet,statistics,contentDetails").execute()
+    res = _yt_exec(lambda yt: yt.videos().list(id=",".join(ids), part="snippet,statistics,contentDetails"))
     out = []
     for it in res.get("items", []):
         sn, st = it["snippet"], it.get("statistics", {})
