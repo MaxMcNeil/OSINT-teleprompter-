@@ -317,34 +317,54 @@ def expand_queries(sujet, these, lang_nom, avoid=(), n=None):
 
 
 def analyse_requete(sujet, these, lang_nom):
-    """Décompose la requête (souvent une longue phrase) en POINTS distincts, pour qu'aucun ne soit oublié.
-    Retourne {"court": str, "points": [{"id","intitule","requetes":[...]}]}."""
-    p = f"""REQUÊTE DE L'UTILISATEUR : {sujet}
-THÈSE / ANGLE : {these or '(aucune)'}
+    """Comprend la requête (souvent une longue phrase) : ce qu'elle veut démontrer, son raisonnement, ses cibles,
+    puis la décompose en POINTS distincts pour qu'aucun ne soit oublié.
+    Retourne {"court", "points": [{"id","intitule","requetes"}], "demontrer", "raisonnement", "cibles"}."""
+    long = len(sujet.split()) > 25
+    p = f"""REQUÊTE DE L'UTILISATEUR (lis-la ENTIÈREMENT, jusqu'au dernier mot) :
+\"\"\"{sujet}\"\"\"
+THÈSE / ANGLE DONNÉ À PART : {these or '(aucune : déduis-la de la requête)'}
 
-Décompose cette requête en 2 à 6 POINTS distincts qu'un live complet doit TOUS traiter (chaque affirmation, chaque
-personne, chaque reproche, chaque angle exprimé, même sous forme d'allusion). Ne reformule pas pour adoucir, ne supprime rien.
-Pour chaque point : un intitulé net (une phrase) et 2 requêtes de recherche courtes (2 à 6 mots) : une en {lang_nom},
-une en anglais, pour trouver des FAITS vérifiables (chiffres, dates, décisions, déclarations, documents, enquêtes).
-Donne aussi "court" : 3 à 6 mots (noms propres + thème) pour chercher sur YouTube/presse.
-Réponds en JSON : {{"court": str, "points": [{{"intitule": str, "requetes": [str, str]}}]}}"""
-    out = {"court": sujet if len(sujet.split()) <= 8 else " ".join(sujet.split()[:8]), "points": []}
-    try:
-        j = llm.ask_json(p, temperature=0.2)
-    except RuntimeError as e:
-        print(f"   ! décomposition de la requête indisponible ({str(e)[:80]})")
-        return out
+Tu prépares un live satirique d'investigation. Avant tout, COMPRENDS la requête comme un rédacteur en chef :
+1. "demontrer" : en une phrase directe, ce que l'auteur veut prouver au public (sa thèse, même implicite), dans SES termes, sans l'adoucir.
+2. "raisonnement" : la chaîne logique de la requête, 2 à 6 étapes courtes dans l'ordre (ex. cause -> mécanisme -> conséquence -> responsables).
+   Repère les liens « à cause de », « donc », « alors que », « pendant que », les contradictions et sous-entendus.
+3. "cibles" : personnes, institutions, entreprises ou politiques mis en cause.
+4. "points" : {'4 à 8' if long else '2 à 6'} POINTS distincts qu'un live complet doit TOUS traiter (chaque affirmation, chaque personne,
+   chaque reproche, chaque angle, même allusif). Ne reformule pas pour adoucir, ne supprime rien, ne fusionne pas deux idées différentes.
+   Pour chaque point : un intitulé net (une phrase) et 3 requêtes de recherche courtes (2 à 6 mots) : deux en {lang_nom},
+   une en anglais, visant des FAITS vérifiables (chiffres, dates, décisions, déclarations, documents, enquêtes) — pas des opinions.
+5. "court" : 3 à 6 mots (noms propres + thème) pour chercher sur YouTube/presse.
+Réponds en JSON : {{"demontrer": str, "raisonnement": [str], "cibles": [str], "court": str,
+"points": [{{"intitule": str, "requetes": [str, str, str]}}]}}"""
+    out = {"court": sujet if len(sujet.split()) <= 8 else " ".join(sujet.split()[:8]), "points": [],
+           "demontrer": "", "raisonnement": [], "cibles": []}
+    j = None
+    for temp in (0.2, 0.4):
+        try:
+            j = llm.ask_json(p, temperature=temp)
+        except RuntimeError as e:
+            print(f"   ! analyse de la requête indisponible ({str(e)[:80]})")
+            return out
+        if isinstance(j, dict) and isinstance(j.get("points"), list) and j["points"]:
+            break
     if not isinstance(j, dict):
         return out
     if isinstance(j.get("court"), str) and j["court"].strip():
         out["court"] = " ".join(j["court"].split())[:80]
+    if isinstance(j.get("demontrer"), str):
+        out["demontrer"] = " ".join(j["demontrer"].split())[:400]
+    for k in ("raisonnement", "cibles"):
+        v = j.get(k)
+        if isinstance(v, list):
+            out[k] = [" ".join(x.split())[:160] for x in v if isinstance(x, str) and x.strip()][:8]
     for k, pt in enumerate(j.get("points") if isinstance(j.get("points"), list) else [], 1):
         if not isinstance(pt, dict) or not isinstance(pt.get("intitule"), str) or not pt["intitule"].strip():
             continue
         qs = [q.strip() for q in (pt.get("requetes") if isinstance(pt.get("requetes"), list) else [])
-              if isinstance(q, str) and q.strip()][:2]
-        out["points"].append({"id": f"P{k}", "intitule": pt["intitule"].strip()[:220], "requetes": qs})
-    out["points"] = out["points"][:6]
+              if isinstance(q, str) and q.strip()][:3]
+        out["points"].append({"id": f"P{k}", "intitule": pt["intitule"].strip()[:300], "requetes": qs})
+    out["points"] = out["points"][:8]
     return out
 
 

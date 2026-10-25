@@ -8,26 +8,35 @@ from . import config, llm
 MARK = re.compile(r"\[F\d+\]")
 
 DEVICES = [
-    "montée en tension par accumulation de chiffres, phrases de plus en plus courtes",
-    "contraste frontal promesse / réalité, en miroir",
-    "mini-chronologie : date après date, comme un décompte",
-    "une seule affaire disséquée en gros plan, ton de thriller",
-    "question lancée au chat puis réponse cinglante avec un fait dur",
-    "bilan chiffré brutal, façon addition qu'on pose sur la table",
+    "accumulation de chiffres qui cognent, phrases de plus en plus courtes, puis une chute absurde",
+    "promesse officielle contre réalité, en miroir, avec un sarcasme glacial entre les deux",
+    "compte à rebours date après date, raconté comme la chronique d'un naufrage annoncé",
+    "une seule affaire disséquée en gros plan, ton de polar noir, humour de croque-mort",
+    "fausse publicité / faux communiqué officiel parodique, puis le fait brut qui le démolit",
+    "question au chat, réponse cinglante, puis une analogie absurde qui fait rire jaune",
+    "l'addition posée sur la table, façon ticket de caisse de l'apocalypse",
 ]
 
-STYLE = """STYLE (live YouTube, texte parlé) :
-- Choc frontal, sans langue de bois ni euphémisme. Vocabulaire cru autorisé quand il sert le propos.
-- Mélange : gravité d'abord (faits durs, chiffres, dates, noms), humour noir en contrepoint (ironie, sarcasme, chute cynique), alertes ponctuelles ("ALERTE.", "Retenez ce chiffre.", "Relisez cette date.").
-- Rythme oral : phrases courtes, ruptures, relances, questions rhétoriques. Jamais de pavé monotone.
+STYLE = """STYLE — tu n'es PAS journaliste, tu es un chroniqueur satirique au vitriol (humour noir, choc, mauvaise foi assumée sur le TON, jamais sur les faits) :
+- AGRESSIF ET NOIR D'ABORD. Chaque paragraphe frappe : un fait dur, puis une punchline cynique, une ironie glaciale ou une image absurde qui fait rire jaune. Une vanne ou une pique au moins toutes les 2-3 phrases. Zéro paragraphe neutre.
+- Outils : sarcasme, antiphrase (« Bravo. Vraiment, chapeau. »), fausse admiration, analogies grotesques, exagération comique manifeste, faux communiqué officiel parodié, humour de croque-mort, chute qui claque. Vocabulaire cru autorisé quand il sert le propos.
+- Tu parles AU spectateur (« toi », « vous »), tu le prends à témoin, tu t'indignes, tu te moques des responsables. Voix incarnée, opinion tranchée, jamais le ton d'une dépêche AFP.
+- Rythme oral : phrases courtes, ruptures, silences (« ... »), relances. Jamais de pavé monotone ni d'énumération de chiffres sans réaction.
+- TICS INTERDITS : « selon X », « d'après X », « affirme X », « la même source » à chaque phrase ; « ALERTE. » / « Retenez ce chiffre. » / « Relisez cette date. » plus d'une fois par chapitre ; résumés plats ; « il est important de noter » ; ton professoral.
+- Exemple de registre ATTENDU : « Trente pour cent des engrais du monde coincés dans un détroit. Trente. Mais rassure-toi : à Bruxelles, on a créé un groupe de travail. La famine, elle, n'a pas besoin de groupe de travail. Elle est très autonome. »
+- Exemple de registre REFUSÉ : « Selon Rabobank, le blocage paralyse 25 à 30 % des exportations d'engrais, d'après les données publiées. »
 - Cible les actes, décisions, déclarations et responsabilités de personnes publiques et d'organisations. Jamais d'attaque contre un groupe en raison de son origine, sa religion, son orientation, son handicap. Aucun appel à la violence. L'ironie sur le DÉCALAGE entre le parcours public et documenté d'une personnalité (origines comprises, si les faits sont sourcés) et ses positions ou promesses est permise : elle vise la personne publique et ses actes, jamais un groupe.
-- FIDÉLITÉ À LA REQUÊTE : le live défend l'angle exact de l'utilisateur (sujet + thèse), dans ses termes les plus directs. INTERDIT : minimiser cet angle ("théâtre d'ombres", "ce n'est pas le sujet", "la généalogie n'est pas une politique"), moraliser, ajouter des précautions oratoires, s'excuser, ou faire la leçon au public. Les faits contraires se traitent par la règle 6, jamais en désamorçant l'angle."""
+- FIDÉLITÉ À LA REQUÊTE : le live défend l'angle exact de l'utilisateur (sujet + thèse), dans ses termes les plus directs. INTERDIT : minimiser cet angle, moraliser, ajouter des précautions oratoires, s'excuser, ou faire la leçon au public. Les faits contraires se traitent par la règle 6, jamais en désamorçant l'angle."""
 
 TRUTH = """RÈGLES DE VÉRITÉ (non négociables) :
 1. Toute affirmation factuelle (chiffre, date, nom, décision, citation) vient UNIQUEMENT des FAITS fournis et est suivie de son marqueur [F12] (plusieurs : [F12][F14]).
 2. Aucun fait, chiffre, date ou nom hors de la liste. Interdit de combler avec ta mémoire.
-3. Statut allégation / signal / opinion, ou fiabilité faible : attribue clairement ("selon", "affirme", "d'après une vidéo virale"). Jamais présenté comme établi. L'attribution se répète À CHAQUE reprise du fait dans le live (« selon X », « d'après X »), pas seulement la première fois : surtout quand il touche un proche, un tiers ou une personne privée.
-4. Humour, indignation, transitions, analyse : pas de marqueur, mais aucun chiffre ni fait nouveau dedans.
+3. SOURCES À L'ORAL — le moins possible : les sources complètes sont dans le commentaire épinglé, PAS dans la voix.
+   - Fait établi (statut fait, confirmé, source fiable) : énonce-le CASH, sans « selon » ni nom de média. Le marqueur [F12] suffit.
+   - Allégation, opinion, accusation, fait contredit ou non corroboré : attribue-le UNE fois, brièvement, à sa PREMIÈRE apparition (« d'après Le Monde », « c'est l'ONU qui le dit »). Les reprises suivantes du même fait n'ont pas besoin d'être réattribuées, sauf s'il vise une personne privée.
+   - Au maximum UNE attribution orale toutes les 4-5 phrases. Jamais « la même source », jamais deux médias dans la même phrase.
+   - Tu peux transformer l'attribution en arme (« même l'ONU, pas vraiment un repaire d'agitateurs, s'en inquiète »).
+4. Humour, indignation, transitions, analyse, métaphores : pas de marqueur, et c'est là que tu te lâches — mais aucun chiffre ni fait réel nouveau dedans (l'exagération manifestement comique reste permise).
 5. Tu peux relier les faits (comparaison, contradiction, conséquence logique) en marquant chaque fait mobilisé.
 6. Faits "contre" la thèse : mentionne-les honnêtement en une ou deux phrases, puis réponds avec les autres faits. C'est ce qui rend le live inattaquable.
 7. Présomption d'innocence dans les passages FACTUELS : enquête, perquisition, mise en examen, plainte ou soupçon ne sont PAS une condamnation. Écris « enquête », « soupçonné de », « visé par » et non « coupable » ou « condamné » comme un fait. Les images, métaphores et punchlines d'humour noir restent autorisées, même sur la justice, tant qu'elles sont manifestement figurées et jamais présentées comme un fait établi."""
@@ -47,6 +56,19 @@ def score(f) -> int:
     return base - (3 if f.get("verification") == "non_corrobore" else 0)      # fragile ET non confirmé : on le garde, mais moins en avant
 
 
+def comprehension(ctx) -> str:
+    """Ce que la requête veut VRAIMENT démontrer (thèse implicite + raisonnement), surtout utile pour les requêtes longues."""
+    c = ctx.get("comprendre") or {}
+    rows = []
+    if c.get("demontrer"):
+        rows.append(f"CE QUE LE LIVE DOIT DÉMONTRER : {c['demontrer']}")
+    if c.get("raisonnement"):
+        rows.append("RAISONNEMENT DE LA REQUÊTE (à suivre dans cet ordre) : " + " -> ".join(c["raisonnement"]))
+    if c.get("cibles"):
+        rows.append("RESPONSABLES / CIBLES visés : " + ", ".join(c["cibles"]))
+    return "\n".join(rows)
+
+
 def points_text(ctx) -> str:
     pts = ctx.get("points") or []
     return "\n".join(f"- {x['id']} : {x['intitule']}" for x in pts)
@@ -57,8 +79,8 @@ def facts_text(facts) -> str:
         f"[{f['id']}] ({f['type']}, importance {f['importance']}/5, {f['statut']}, fiabilité {f['fiabilite']}, "
         f"{f['pertinence_these'].upper()}{', point ' + f['point'] if f.get('point') else ''}) {f['fact']}"
         + (f" — affirmé par : {f['attribution']}" if f.get("attribution") else "")
-        + {"indisponible": " — ⚠ NON VÉRIFIÉ (vérification impossible) : attribue-le à sa source nommée à CHAQUE mention",
-           "non_corrobore": " — ⚠ NON CORROBORÉ par une autre source : attribue-le à sa source nommée à CHAQUE mention (« selon X, non confirmé par ailleurs »)",
+        + {"indisponible": " — ⚠ non vérifié : attribue-le UNE fois, brièvement",
+           "non_corrobore": " — ⚠ non corroboré : attribue-le UNE fois, brièvement",
            "contredit": " — ⚠ CONTREDIT par une autre source : présente le fait ET la contradiction",
            "confirme": " — confirmé par une source indépendante"}.get(f.get("verification"), "")
         for f in facts)
@@ -90,9 +112,11 @@ def plan(ctx, chosen, words):
                         for f in chosen)
     p = f"""Tu es rédacteur en chef d'un live YouTube d'investigation. SUJET : {ctx['sujet']}
 THÈSE : {ctx['these'] or '(aucune)'}
+{comprehension(ctx)}
 {('POINTS DE LA REQUÊTE : ils DOIVENT TOUS être traités. Chaque point a au moins un chapitre qui lui est consacré (ou une partie clairement identifiable), et le titre_live doit refléter la requête sans l\'édulcorer :' + chr(10) + points_text(ctx)) if ctx.get('points') else ''}
 Construis le conducteur : {n_ch} chapitre(s) (davantage si nécessaire pour couvrir tous les points), chacun avec un ANGLE distinct (pas de redite, pas de hors-sujet),
-dans un ordre qui fait monter la tension jusqu'à la chute. Répartis TOUS les faits ci-dessous (chacun dans un seul chapitre),
+dans un ordre qui SUIT LE RAISONNEMENT de la requête (cause -> mécanisme -> conséquences -> responsables -> chute), en faisant monter la tension.
+Chaque angle doit être une idée-force satirique, pas une simple rubrique (« Bruxelles organise la pénurie avec un tableur », pas « Les importations »). Répartis TOUS les faits ci-dessous (chacun dans un seul chapitre),
 en regroupant ceux qui se répondent.
 Réponds en JSON : {{"titre_live": str, "chapitres": [{{"titre": str, "angle": str, "points": ["P1"], "fact_ids": ["F1","F2"]}}]}}
 
@@ -124,7 +148,13 @@ FAITS :
 
 
 # ------------------------------------------------------------------ écriture
+SAME_SRC = re.compile(r",?\s*(?:selon|d'après|d’après|affirme)\s+la\s+même\s+source(?:\s+non\s+confirmée)?", re.I)
+
+
 def _tidy(text, allowed):
+    text = re.sub(r"\b(?:Selon|D'après|D’après)\s+la\s+même\s+source(?:\s+non\s+confirmée)?\s*,\s*(\w)",
+                  lambda m: m.group(1).upper(), text)
+    text = SAME_SRC.sub("", text)
     text = re.sub(r"^\s*#+\s.*$", "", text, flags=re.M)
     text = re.sub(r"^\s*[-*•]\s+", "", text, flags=re.M).replace("**", "").replace("__", "")
     text = re.sub(r"\[(F\d+)\]", lambda m: m.group(0) if m.group(1) in allowed else "", text)
@@ -136,12 +166,12 @@ def write_section(ctx, sec, budget, facts_by_id, prev_tail="", done_titles=(), e
     sel = [facts_by_id[i] for i in ids if i in facts_by_id]
     kind = sec["kind"]
     role = {
-        "hook": "OUVERTURE : les 20 premières secondes décident de tout. Commence par le fait le plus violent, puis annonce l'angle EXACT "
+        "hook": "OUVERTURE : les 20 premières secondes décident de tout. Aucune source citée ici. Commence par le fait le plus violent suivi d'une punchline noire, puis annonce l'angle EXACT "
                 "de la requête presque mot pour mot, avec un fait dur pour CHAQUE personne ou point en jeu, et promets ce que le live va démontrer. "
                 "Aucune phrase qui relativise ou détourne l'angle. Puis lance le premier chapitre.",
         "chapter": f"CHAPITRE « {sec['titre']} » — angle : {sec.get('angle', '')}. Procédé de rythme : {device}.",
-        "outro": "CONCLUSION : rappelle les chiffres/faits les plus lourds (un par personne ou point), reviens à l'angle exact de la requête, chute cynique, phrase de sortie mémorable, "
-                 "appel court à s'abonner et partager. Pas de nouveau fait hors liste.",
+        "outro": "CONCLUSION : rappelle en rafale, SANS citer aucune source, les chiffres les plus lourds (un par personne ou point), reviens à l'angle exact de la requête, "
+                 "chute la plus noire et la plus drôle du live, phrase de sortie mémorable, appel court et sarcastique à s'abonner et partager. Pas de nouveau fait hors liste.",
     }[kind]
     extras = []
     if ctx["interactions"] and kind == "chapter":
@@ -166,6 +196,7 @@ def write_section(ctx, sec, budget, facts_by_id, prev_tail="", done_titles=(), e
 
 SUJET DU LIVE : {ctx['sujet']}{fil}
 THÈSE : {ctx['these'] or '(aucune)'}
+{comprehension(ctx)}
 LANGUE : {ctx['lang']['nom']}
 {role}
 {' '.join(extras)}
@@ -179,12 +210,54 @@ FAITS À UTILISER :
 {facts_text(sel) or '(aucun fait spécifique : reprends et mets en perspective ceux déjà cités)'}
 {mode}
 Écris maintenant le texte, rien d'autre."""
-    out = _tidy(llm.text(llm.ask(p, temperature=0.85)), set(ids))
+    out = _tidy(llm.text(llm.ask(p, temperature=0.95)), set(ids))
     if not current and len(out.split()) < max(8, budget * 0.25):      # réponse vide / bloquée / tronquée : un second essai
-        out2 = _tidy(llm.text(llm.ask(p, temperature=0.95)), set(ids))
+        out2 = _tidy(llm.text(llm.ask(p, temperature=1.0)), set(ids))
         if len(out2.split()) > len(out.split()):
             out = out2
     return out
+
+
+ATTR_MID = re.compile(r",\s*(selon|d'après|d’après|affirme|affirment|rapporte)\s+((?:l[ae']\s?|les\s)?[A-ZÉÈÀ][\w.’'\- ]{1,40}?)(?=\s*(?:\[F\d+\])*\s*[,.;!?…])")
+ATTR_HEAD = re.compile(r"(^|(?<=[.!?…]\s))(Selon|D'après|D’après)\s+((?:l[ae']\s?|les\s)?[A-ZÉÈÀ][\w.’'\- ]{1,40}?),\s*(\w)")
+
+
+def dedup_attributions(secs):
+    """Une même source n'est nommée à voix haute qu'une fois dans tout le live : les reprises suivantes sont supprimées."""
+    seen = set()
+
+    def key(name):
+        return re.sub(r"^(l[ae']\s?|les\s)", "", name.strip().lower())
+
+    def mid(m):
+        k = key(m.group(2))
+        if k in seen:
+            return ""
+        seen.add(k)
+        return m.group(0)
+
+    def head(m):
+        k = key(m.group(3))
+        if k in seen:
+            return m.group(1) + m.group(4).upper()
+        seen.add(k)
+        return m.group(0)
+
+    n0 = sum(len(ATTR_MID.findall(x["text"])) + len(ATTR_HEAD.findall(x["text"])) for x in secs)
+    for sec in secs:
+        t = sec["text"]
+        out, pos = [], 0
+        for m in sorted(list(ATTR_MID.finditer(t)) + list(ATTR_HEAD.finditer(t)), key=lambda m: m.start()):
+            if m.start() < pos:
+                continue
+            out.append(t[pos:m.start()])
+            out.append(mid(m) if m.re is ATTR_MID else head(m))
+            pos = m.end()
+        out.append(t[pos:])
+        sec["text"] = re.sub(r"[ \t]{2,}", " ", "".join(out))
+    n1 = sum(len(ATTR_MID.findall(x["text"])) + len(ATTR_HEAD.findall(x["text"])) for x in secs)
+    if n0 != n1:
+        print(f"   citations orales répétées supprimées : {n0} -> {n1}")
 
 
 # ------------------------------------------------------------------ orchestration
@@ -231,10 +304,12 @@ def generate(ctx, facts, words):
     if not secs:
         raise SystemExit("Aucune section n'a pu être écrite (quota ou délai) : les faits et sources restent dans donnees.json.")
 
+    dedup_attributions(secs)
     try:
         fit(ctx, secs, words, by_id, unused)
     except (SystemExit, RuntimeError) as e:
         print(f"   ! calage final interrompu ({str(e)[:100]}) : on garde le texte déjà écrit")
+    dedup_attributions(secs)
     return titre, secs
 
 

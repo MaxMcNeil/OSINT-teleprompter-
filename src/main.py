@@ -69,6 +69,12 @@ def main():
     br = collect.analyse_requete(a.sujet, a.these, lang["nom"])
     pts, court = br["points"], br["court"]
     ctx["points"], ctx["court"] = pts, court
+    ctx["comprendre"] = {k: br.get(k) for k in ("demontrer", "raisonnement", "cibles")}
+    if not a.these and br.get("demontrer"):       # pas de thèse saisie : on prend celle comprise dans la requête
+        a.these = ctx["these"] = br["demontrer"]
+        print(f"   thèse comprise : {a.these}")
+    if br.get("raisonnement"):
+        print("   raisonnement : " + " -> ".join(br["raisonnement"]))
     print(f"   requête décomposée en {len(pts)} point(s) ; recherche courte : « {court} »")
     for x in pts:
         print(f"     {x['id']} : {x['intitule']}")
