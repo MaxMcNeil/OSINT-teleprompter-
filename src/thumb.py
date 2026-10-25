@@ -196,7 +196,10 @@ def render(sujet, titre_live, L, at, am, top3, note, img=None) -> str:
     puis l'analyse du top 3. Le contenu est celui du générateur d'origine, sans changement."""
     tm = L.get("texte_miniature") if isinstance(L.get("texte_miniature"), dict) else {}
     o = [f"# Titre et miniature — {sujet}", ""]
-    if img:
+    if img and img.get("echec"):
+        o += ["> ⚠ Image non fabriquée automatiquement : utilise le prompt ci-dessous.",
+              "> Raisons : " + " · ".join(img.get("raisons") or ["inconnue"]), ""]
+    elif img:
         o += ["![miniature](miniature.jpg)", "", f"Image : {img.get('source', '')}"
               + (f" · contrôle qualité {img['note']}/10" if img.get("note") is not None else ""), ""]
         if img.get("a_revoir"):

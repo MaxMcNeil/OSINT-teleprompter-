@@ -306,8 +306,10 @@ def _miniature(a, ctx, sources, facts, queries, titre, d, problems):
             if isinstance(e, KeyboardInterrupt):
                 raise
             print(f"   ! image de miniature non fabriquée : {type(e).__name__}: {str(e)[:150]}")
-        if not img:
-            problems.append("Image de miniature non fabriquée (générateurs indisponibles) : le prompt est dans miniature.md.")
+        if not img or img.get("echec"):
+            why = " ; ".join((img or {}).get("raisons") or [])[:400]
+            problems.append("Image de miniature non fabriquée" + (f" ({why})" if why else "")
+                            + " : le prompt est dans miniature.md.")
         elif img.get("a_revoir"):
             problems.append(f"Image de miniature sous le seuil de qualité ({img.get('note')}/10) : à refaire avec le prompt de miniature.md.")
         _w(os.path.join(d, "miniature.md"), thumb.render(a.sujet, titre, L, at, am, top3, note, img))

@@ -134,8 +134,51 @@ Réponds en JSON : {{"classement": [int], "raison": str}}
     return [kept[k] for k in dict.fromkeys(rank)][:3]
 
 
+def _img_bytes(data):
+    im = Image.open(io.BytesIO(data))
+    im.load()
+    return im.convert("RGB")
+
+
+def cloudflare(prompt):
+    """Cloudflare Workers AI (FLUX schnell) : gratuit (quota quotidien), fiable. Secrets CF_ACCOUNT_ID + CF_API_TOKEN."""
+    acc, tok = os.getenv("CF_ACCOUNT_ID", "").strip(), os.getenv("CF_API_TOKEN", "").strip()
+    if not (acc and tok):
+        return None, "Cloudflare : secrets CF_ACCOUNT_ID / CF_API_TOKEN absents"
+    import base64
+    url = f"https://api.cloudflare.com/client/v4/accounts/{acc}/ai/run/@cf/black-forest-labs/flux-1-schnell"
+    try:
+        r = requests.post(url, headers={"Authorization": f"Bearer {tok}"}, json={"prompt": prompt[:2000], "steps": 8}, timeout=120)
+        if r.status_code != 200:
+            return None, f"Cloudflare : HTTP {r.status_code} {r.text[:120]}"
+        b64 = ((r.json() or {}).get("result") or {}).get("image")
+        if not b64:
+            return None, "Cloudflare : réponse sans image"
+        return _img_bytes(base64.b64decode(b64)), "cloudflare / flux-1-schnell"
+    except Exception as e:
+        return None, f"Cloudflare : {str(e)[:120]}"
+
+
+def huggingface(prompt):
+    """Hugging Face (FLUX.1 schnell) : crédits gratuits limités. Secret HF_TOKEN."""
+    tok = os.getenv("HF_TOKEN", "").strip()
+    if not tok:
+        return None, "Hugging Face : secret HF_TOKEN absent"
+    url = "https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell"
+    try:
+        r = requests.post(url, headers={"Authorization": f"Bearer {tok}"}, timeout=150,
+                          json={"inputs": prompt[:1500], "parameters": {"width": W, "height": H}})
+        if r.status_code != 200 or not r.headers.get("content-type", "").startswith("image"):
+            return None, f"Hugging Face : HTTP {r.status_code} {r.text[:120]}"
+        return _img_bytes(r.content), "huggingface / flux-schnell"
+    except Exception as e:
+        return None, f"Hugging Face : {str(e)[:120]}"
+
+
 def gemini_image(prompt):
+    """Gemini image : n'a souvent AUCUN quota gratuit (facturation requise) — essayé quand même, raison affichée."""
     from google.genai import types
+    last = "aucun modèle d'image"
     for model in llm.image_models()[:3]:
         for i in range(len(llm.keys())):
             try:
@@ -144,30 +187,46 @@ def gemini_image(prompt):
                     config=types.GenerateContentConfig(response_modalities=["TEXT", "IMAGE"], safety_settings=llm.SAFETY))
                 for part in r.candidates[0].content.parts:
                     if getattr(part, "inline_data", None) and part.inline_data.data:
-                        return Image.open(io.BytesIO(part.inline_data.data)).convert("RGB"), model
+                        return _img_bytes(part.inline_data.data), model
+                last = f"{model} : réponse sans image"
             except Exception as e:
-                msg = str(e)
-                if "429" in msg or "RESOURCE_EXHAUSTED" in msg or "NOT_FOUND" in msg or "404" in msg[:40]:
+                msg = " ".join(str(e).split())
+                last = f"{model} : {msg[:120]}"
+                if "429" in msg or "RESOURCE_EXHAUSTED" in msg:
+                    if "limit: 0" in msg or "limit:0" in msg:      # quota gratuit nul pour ce modèle : inutile d'essayer les autres clés
+                        break
                     continue
-                print(f"   ! {model} : {msg[:80]}")
+                if "NOT_FOUND" in msg or "404" in msg[:40]:
+                    break
                 break
-    return None, None
+    return None, f"Gemini image : {last}"
 
 
 def pollinations(prompt):
+    """Pollinations (FLUX). Sans jeton il est devenu payant/instable (402, 503) : secret POLLINATIONS_TOKEN conseillé."""
+    tok = os.getenv("POLLINATIONS_TOKEN", "").strip()
+    hdr = dict(HDR, **({"Authorization": f"Bearer {tok}"} if tok else {}))
+    last = ""
     for seed in random.sample(range(1, 99999), 2):
-        # Pollinations ajoute son logo en bas à droite malgré nologo : on demande 80 px de plus et on coupe la bande du bas
+        # le logo Pollinations est en bas : on demande 80 px de plus et on coupe la bande du bas
         url = ("https://image.pollinations.ai/prompt/" + urllib.parse.quote(prompt[:900])
                + f"?width={W}&height={H + 80}&model=flux&nologo=true&private=true&enhance=false&seed={seed}")
         try:
-            im = _get_img(url, timeout=150)
-            if im is not None:
-                cut = max(40, round(im.height * 80 / (H + 80)))
-                im = im.crop((0, 0, im.width, im.height - cut))
-            return im, "pollinations / flux"
+            r = requests.get(url, headers=hdr, timeout=150)
+            if r.status_code != 200:
+                last = f"HTTP {r.status_code}"
+                if r.status_code in (401, 402, 403):
+                    break
+                continue
+            im = _img_bytes(r.content)
+            cut = max(40, round(im.height * 80 / (H + 80)))
+            return im.crop((0, 0, im.width, im.height - cut)), "pollinations / flux"
         except Exception as e:
-            print(f"   ! Pollinations ({str(e)[:60]})")
-    return None, None
+            last = str(e)[:100]
+    return None, f"Pollinations : {last}" + ("" if tok else " (sans jeton POLLINATIONS_TOKEN)")
+
+
+GENERATEURS = (cloudflare, huggingface, gemini_image, pollinations)
 
 
 # ------------------------------------------------------------------ mise en page
@@ -330,16 +389,16 @@ def _zone(placement):
     return "top"
 
 
-def _generees(prompt):
-    """Images générées à partir du prompt : modèles d'image Gemini d'abord, puis Pollinations (2 tirages)."""
-    img, model = gemini_image(prompt)
-    if img is not None:
-        yield img, model
-    for _ in range(2):
-        img, model = pollinations(prompt)
-        if img is None:
-            break
-        yield img, model
+def _generees(prompt, raisons):
+    """Images générées à partir du prompt, générateur après générateur (chacun dit pourquoi il échoue)."""
+    for gen in GENERATEURS:
+        for _ in range(2 if gen is not gemini_image else 1):     # 2 tirages par générateur qui marche
+            img, info = gen(prompt)
+            if img is None:
+                raisons.append(info)
+                print(f"   ! {info}")
+                break
+            yield img, info
 
 
 def make(L, sujet, out_path, budget_s=None):
@@ -355,8 +414,8 @@ def make(L, sujet, out_path, budget_s=None):
     tm = L.get("texte_miniature") or {}
     zone = _zone(tm.get("placement"))
     couleur = _hex(tm.get("couleur"), "#FFD400")
-    best, n = None, 0
-    for img, model in _generees(prompt):
+    best, n, raisons = None, 0, []
+    for img, model in _generees(prompt, raisons):
         n += 1
         v = juger(img, prompt)
         note = v["note"] if v else None
@@ -370,7 +429,7 @@ def make(L, sujet, out_path, budget_s=None):
             break
     if best is None:
         print("   ! aucune image obtenue : miniature non fabriquée")
-        return None
+        return {"echec": True, "raisons": raisons}
     note, img, info = best
     im = _shade(cover(img), zone)
     im = draw_text(im, tm.get("texte", ""), "", couleur, zone, tout=True)   # tout le texte dans la couleur choisie
