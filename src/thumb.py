@@ -145,7 +145,8 @@ def _enforce(L, sujet):
     L["texte_miniature"]["texte"] = " ".join(_s(L["texte_miniature"].get("texte")).split()[:3])
     # mots qui font « image IA » : retirés du prompt ; négatif de base toujours présent
     L["prompt_image"] = re.sub(r",?\s*\b(8k|4k|ultra[- ]detailed|hyper[- ]?realistic|epic|cinematic masterpiece|octane( render)?|"
-                               r"unreal engine|trending on artstation|--ar \S+|--style \S+|--v \S+)\b", "", L["prompt_image"], flags=re.I).strip(" ,")
+                               r"unreal engine|trending on artstation)\b", "", L["prompt_image"], flags=re.I)
+    L["prompt_image"] = re.sub(r"\s*--\w+\s+\S+", "", L["prompt_image"]).strip(" ,")
     neg = [x.strip() for x in (L["prompt_negatif"] + ", " + NEG_BASE).split(",") if x.strip()]
     L["prompt_negatif"] = ", ".join(dict.fromkeys(neg))
     if not L["recherche_photo"]:
