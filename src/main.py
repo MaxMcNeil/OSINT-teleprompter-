@@ -298,7 +298,7 @@ def _miniature(a, ctx, sources, facts, queries, titre, d, problems):
     print("   Titre + miniature (analyse du top 3 YouTube)…")
     try:
         top_facts = sorted(facts, key=script.score, reverse=True)[:5]
-        L, top3, note = thumb.build(ctx, sources, queries, titre, top_facts)
+        L, at, am, top3, note = thumb.build(ctx, sources, queries, titre, top_facts)
         img = None
         try:
             img = image.make(L, a.sujet, os.path.join(d, "miniature.jpg"))
@@ -307,11 +307,10 @@ def _miniature(a, ctx, sources, facts, queries, titre, d, problems):
                 raise
             print(f"   ! image de miniature non fabriquée : {type(e).__name__}: {str(e)[:150]}")
         if not img:
-            problems.append("Image de miniature non fabriquée (sources d'image indisponibles) : le prompt est dans miniature.md.")
+            problems.append("Image de miniature non fabriquée (générateurs indisponibles) : le prompt est dans miniature.md.")
         elif img.get("a_revoir"):
-            problems.append(f"Miniature sous le seuil de qualité ({img.get('note')}/10 : {str(img.get('probleme', ''))[:120]}) : "
-                            "à refaire avec le prompt de miniature.md.")
-        _w(os.path.join(d, "miniature.md"), thumb.render(a.sujet, L, top3, note, img))
+            problems.append(f"Image de miniature sous le seuil de qualité ({img.get('note')}/10) : à refaire avec le prompt de miniature.md.")
+        _w(os.path.join(d, "miniature.md"), thumb.render(a.sujet, titre, L, at, am, top3, note, img))
         print("   titre :", L.get("titre"), "|", note or "ok")
     except BaseException as e:  # ne jamais perdre le script pour la miniature
         if isinstance(e, KeyboardInterrupt):

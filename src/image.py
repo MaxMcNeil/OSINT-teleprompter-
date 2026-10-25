@@ -215,7 +215,7 @@ def _shade(im, zone):
     return Image.composite(Image.new("RGB", (W, H), (0, 0, 0)), im, g)
 
 
-def draw_text(im, text, accent_word, accent, zone):
+def draw_text(im, text, accent_word, accent, zone, tout=False):
     text = " ".join(text.split()[:3])
     if not text:
         return im
@@ -264,13 +264,13 @@ def draw_text(im, text, accent_word, accent, zone):
         lw = b[2] - b[0]
         x = {"left": margin, "right": W - margin - lw}.get(zone, (W - lw) // 2)
         if arabic:      # arabe (droite à gauche) : la ligne d'un bloc, accentuée si elle porte le mot-clé
-            col = accent if idx <= acc_idx < idx + len(line) else "#FFFFFF"
+            col = accent if tout or idx <= acc_idx < idx + len(line) else "#FFFFFF"
             ds.text((x - b[0] + 6, y - b[1] + 8), s, font=f, fill=(0, 0, 0, 200))
             dl.text((x - b[0], y - b[1]), s, font=f, fill=col, stroke_width=sw, stroke_fill="#000000")
         else:           # latin : mot par mot, seul le mot-clé prend la couleur d'accent
             cx = x - b[0]
             for k, w in enumerate(line):
-                col = accent if idx + k == acc_idx else "#FFFFFF"
+                col = accent if tout or idx + k == acc_idx else "#FFFFFF"
                 ds.text((cx + 6, y - b[1] + 8), w, font=f, fill=(0, 0, 0, 200))
                 dl.text((cx, y - b[1]), w, font=f, fill=col, stroke_width=sw, stroke_fill="#000000")
                 cx += f.getlength(w) + space
@@ -283,106 +283,99 @@ def draw_text(im, text, accent_word, accent, zone):
 
 
 # ------------------------------------------------------------------ contrôle qualité
-JUGE = """Tu es un directeur artistique YouTube exigeant. Voici une miniature (1280x720) pour un live sur :
-SUJET : {sujet}
-ENJEU CENTRAL VOULU : {idee}
-Juge-la comme un spectateur qui scrolle sur mobile, en 1 seconde :
-- "sujet" : l'image ET le texte font-ils comprendre CE sujet (pas un sujet voisin, pas un détail secondaire) ?
-- "texte" : le texte est-il lisible, sensé seul, en rapport direct avec l'enjeu ?
-- "image" : photo nette et crédible, point focal clair, pas d'aspect « fausse IA » (flou, déformations, plastique) ?
+JUGE = """Voici une image générée pour une miniature YouTube, à partir de ce prompt :
+{prompt}
+Juge UNIQUEMENT l'image (pas le texte incrusté) :
+- "fidele" : montre-t-elle bien ce que décrit le prompt ?
+- "nette" : image nette, sans déformations, sans aspect plastique ou bâclé ?
 - "propre" : aucun logo, filigrane, texte parasite, bord ou artefact ?
-Note globale de 0 à 10 (7 = publiable tel quel). Sois sévère : un objet générique sans lien évident avec l'enjeu = 4 maximum.
-Réponds en JSON : {{"note": int, "sujet": bool, "texte": bool, "image": bool, "propre": bool, "probleme": str}}"""
+Note de 0 à 10 (7 = publiable). Réponds en JSON : {{"note": int, "fidele": bool, "nette": bool, "propre": bool, "probleme": str}}"""
 
 
-def juger(im, sujet, idee):
-    """Gemini regarde la miniature finie et la note. None si le contrôle est indisponible (quota)."""
+def juger(img, prompt):
+    """Gemini regarde l'image générée et la note. None si le contrôle est indisponible (quota)."""
     from google.genai import types
     buf = io.BytesIO()
-    im.copy().resize((640, 360)).save(buf, "JPEG", quality=85)
+    im = img.copy()
+    im.thumbnail((640, 640))
+    im.save(buf, "JPEG", quality=85)
     try:
-        r = llm.ask([JUGE.format(sujet=sujet[:500], idee=idee or "(voir sujet)"),
-                     types.Part.from_bytes(data=buf.getvalue(), mime_type="image/jpeg")],
+        r = llm.ask([JUGE.format(prompt=prompt[:900]), types.Part.from_bytes(data=buf.getvalue(), mime_type="image/jpeg")],
                     temperature=0.0, json_mode=True, fatal=False, retries=3)
         j = llm.parse_json(llm.text(r))
         if isinstance(j, dict) and str(j.get("note", "")).strip().lstrip("-").isdigit():
             j["note"] = max(0, min(10, int(j["note"])))
             return j
     except (Exception, SystemExit) as e:
-        print(f"   ! contrôle qualité de la miniature indisponible ({str(e)[:60]})")
+        print(f"   ! contrôle qualité de l'image indisponible ({str(e)[:60]})")
     return None
 
 
 # ------------------------------------------------------------------ orchestration
-def _sources(L, sujet):
-    """Images candidates, de la plus authentique à la moins : vraies photos classées, puis Gemini, puis Pollinations."""
-    cands = commons_candidates(L.get("recherche_photo") or [])
-    if cands:
-        print(f"   {len(cands)} photo(s) réelle(s) candidates sur Wikimedia Commons")
-        for c in pick_real_photo(cands, sujet, L.get("concept") or sujet):
-            try:
-                yield _get_img(c["url"]), {"source": "photo réelle (Wikimedia Commons)", "credit": f"{c['auteur']} — {c['licence']}",
-                                           "lien": c["page"], "generee": False}
-            except Exception:
-                continue
-    prompt = L.get("prompt_image", "")
-    neg = L.get("prompt_negatif", "")
-    full = f"{prompt}. Avoid: {neg}" if neg else prompt
-    if not prompt:
-        return
-    img, model = gemini_image(full)
+def _api_prompt(prompt):
+    """Le prompt tel quel, sans les paramètres Midjourney (--ar, --style…) que les générateurs ne comprennent pas."""
+    return re.sub(r"\s*--\w+(\s+[^-\s][^\s]*)?", "", prompt or "").strip(" ,")
+
+
+def _zone(placement):
+    p = (placement or "").lower()
+    if "haut" in p or "top" in p:
+        return "top"
+    if "bas" in p or "bottom" in p:
+        return "bottom"
+    if "droit" in p or "right" in p:
+        return "right"
+    if "gauche" in p or "left" in p:
+        return "left"
+    return "top"
+
+
+def _generees(prompt):
+    """Images générées à partir du prompt : modèles d'image Gemini d'abord, puis Pollinations (2 tirages)."""
+    img, model = gemini_image(prompt)
     if img is not None:
-        yield img, {"source": f"image générée ({model})", "generee": True}
+        yield img, model
     for _ in range(2):
-        img, model = pollinations(full)
+        img, model = pollinations(prompt)
         if img is None:
             break
-        yield img, {"source": f"image générée ({model})", "generee": True}
-
-
-def _composer(img, info, tm, zone):
-    im = photo_finish(cover(img), info["generee"])
-    im = _shade(im, zone)
-    return draw_text(im, tm.get("texte", ""), tm.get("mot_cle", ""), _hex(tm.get("couleur"), "#FFD400"), zone)
+        yield img, model
 
 
 def make(L, sujet, out_path, budget_s=None):
-    """Fabrique la miniature, la fait NOTER par Gemini, essaie l'image suivante tant qu'elle n'est pas publiable.
-    Retourne un dict (source, crédit, note, problème) ou None."""
+    """Miniature 1280x720 générée à partir du prompt_image, avec le texte_miniature incrusté (couleur et placement choisis
+    par le générateur). Plusieurs images sont essayées et notées par Gemini ; la meilleure est gardée."""
     import time
     fin = time.monotonic() + (budget_s or float(os.getenv("MINIATURE_BUDGET_S", "300")))
     seuil = int(os.getenv("MINIATURE_NOTE_MIN", "7"))
-    tm = dict(L.get("texte_miniature") or {})
-    zone = (tm.get("zone") or "left").lower()
-    zone = zone if zone in ("left", "right", "top", "bottom") else "left"
-    idee = L.get("idee_centrale") or L.get("concept") or ""
-    best, essais = None, 0
-    for img, info in _sources(L, sujet):
-        essais += 1
-        im = _composer(img, info, tm, zone)
-        verdict = juger(im, sujet, idee)
-        if verdict is None:                     # pas de contrôle possible : on garde la première image obtenue
-            best = best or (-1, im, {**info, "note": None, "probleme": "contrôle qualité indisponible (quota)"})
-            break
-        print(f"   essai {essais} ({info['source']}) : note {verdict['note']}/10"
-              + (f" — {str(verdict.get('probleme'))[:120]}" if verdict.get("probleme") else ""))
-        if verdict.get("texte") is False and verdict.get("sujet") is not False and tm.get("secours"):
-            im2 = _composer(img, info, {**tm, "texte": tm["secours"], "mot_cle": tm["secours"].split()[-1]}, zone)
-            v2 = juger(im2, sujet, idee)
-            if v2 and v2["note"] > verdict["note"]:
-                print(f"   texte de secours « {tm['secours']} » : note {v2['note']}/10")
-                im, verdict = im2, v2
-        cur = (verdict["note"], im, {**info, "note": verdict["note"], "probleme": verdict.get("probleme", "")})
+    prompt = _api_prompt(L.get("prompt_image", ""))
+    if not prompt:
+        print("   ! pas de prompt d'image : miniature non fabriquée")
+        return None
+    tm = L.get("texte_miniature") or {}
+    zone = _zone(tm.get("placement"))
+    couleur = _hex(tm.get("couleur"), "#FFD400")
+    best, n = None, 0
+    for img, model in _generees(prompt):
+        n += 1
+        v = juger(img, prompt)
+        note = v["note"] if v else None
+        print(f"   image {n} ({model}) : " + (f"note {note}/10" + (f" — {str(v.get('probleme'))[:100]}" if v.get("probleme") else "")
+                                                if v else "non notée"))
+        cur = (note if note is not None else -1, img, {"source": f"image générée ({model})", "note": note,
+                                                       "probleme": (v or {}).get("probleme", "")})
         if best is None or cur[0] > best[0]:
             best = cur
-        if verdict["note"] >= seuil or essais >= 5 or time.monotonic() > fin:
+        if v is None or note >= seuil or time.monotonic() > fin:
             break
     if best is None:
         print("   ! aucune image obtenue : miniature non fabriquée")
         return None
-    note, im, info = best
+    note, img, info = best
+    im = _shade(cover(img), zone)
+    im = draw_text(im, tm.get("texte", ""), "", couleur, zone, tout=True)   # tout le texte dans la couleur choisie
     im.save(out_path, "JPEG", quality=92, optimize=True)
-    if note is not None and 0 <= note < seuil:
+    if info["note"] is not None and info["note"] < seuil:
         info["a_revoir"] = True
-    print(f"   miniature : {out_path} ({info['source']}, note {info.get('note')}/10)")
+    print(f"   miniature : {out_path} ({info['source']}" + (f", note {info['note']}/10)" if info["note"] is not None else ")"))
     return info

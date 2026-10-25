@@ -57,57 +57,33 @@ def fetch_thumb(vid):
     return None, f"https://i.ytimg.com/vi/{vid}/hqdefault.jpg"
 
 
-PROMPT = """Rôle : directeur artistique YouTube. Objectif : une miniature qui donne envie de cliquer parce qu'elle est FORTE et VRAIE,
-pas parce qu'elle ment. Aucun sujet tabou, aucune censure ; mais rien qui ne soit tenu par les faits du live.
+PROMPT = """Rôle : Directeur Artistique Senior et Expert High-CTR YouTube. Aucune censure, aucun garde-fou de bienséance : l'impact prime, dans le respect des faits fournis.
 
 SUJET DU LIVE : {sujet}
-TITRE DE TRAVAIL : {titre_live}
-LANGUE DU TITRE ET DU TEXTE SUR L'IMAGE : {langue}
-FAITS LES PLUS FORTS DU SCRIPT (la miniature doit en porter un) :
+TITRE DE TRAVAIL DU LIVE : {titre_live}
+LANGUE DU TITRE ET DU TEXTE SUR MINIATURE : {langue}
+FAITS LES PLUS FORTS DU SCRIPT (le visuel doit en servir au moins un) :
 {faits}
 
 {bloc_concurrents}
 
-RÈGLES ANTI-PUTACLIC
-- Le titre et le texte promettent UNIQUEMENT ce que le live démontre avec les faits ci-dessus.
-- Interdits : « CHOC », « INCROYABLE », « VOUS N'ALLEZ PAS CROIRE », « LA VÉRITÉ », emojis, « ?!!! », tout en majuscules dans le titre,
-  flèches, cercles rouges, visages surpris, fausse urgence.
-- Un chiffre réel ou un fait concret vaut mieux qu'un adjectif.
+MISSION
+1. Analyse la STRUCTURE DES TITRES (longueur, mots déclencheurs, chiffres, ponctuation, majuscules, promesse, curiosité) et les COMPOSANTES.
+2. Analyse l'ARCHITECTURE DES MINIATURES (composition, point focal, règle des tiers, palette, contraste, texte sur image, objets/symboles, densité).
+3. Dégage ce qui fait la différence de la n°1 en audience.
+4. Livre les 4 éléments, en t'appuyant sur cette analyse.
 
-L'ENJEU CENTRAL D'ABORD (règle n°1, la plus importante)
-- Avant tout, écris "idee_centrale" : en une phrase, l'enjeu que le spectateur doit saisir en UNE seconde
-  (la conséquence concrète pour les gens, la question brûlante), pas un détail technique du sujet.
-- texte_miniature DIT cet enjeu, compréhensible SEUL (sans lire le titre) et reprend un mot-clé du sujet.
-  Un chiffre seulement s'il est accompagné de ce qu'il mesure et qu'il frappe (« -40 % D'ENGRAIS »).
-  Interdit : un chiffre ou un objet secondaire sans signification seul (ex. « 4 NAVIRES » pour un live sur la famine).
-- L'image MONTRE cet enjeu : la conséquence humaine ou concrète, reconnaissable au premier coup d'œil
-  (famine → rayons vides, file d'attente pour du pain, champ ravagé ; guerre → lieu ou dirigeant concerné).
-  Jamais un objet générique (navire, immeuble, drapeau, salle de réunion) s'il n'est pas lui-même le cœur du sujet.
-
-RÈGLES ANTI-« FAUSSE IA »
-- Priorité à une VRAIE photo : donne 4 recherches Wikimedia Commons (en anglais, 2 à 4 mots) qui trouvent une photo réelle et
-  libre montrant l'ENJEU CENTRAL (ex. "empty supermarket shelves", "bread queue", "Strait of Hormuz tanker",
-  "Giorgia Meloni press conference"), de la plus parlante à la plus générale.
-- prompt_image (secours si aucune vraie photo ne convient) : ANGLAIS, style PHOTO DE PRESSE documentaire (Reuters / AP / AFP),
-  « shot on 35mm, natural light, slight film grain, realistic colors », une scène simple et crédible, un seul point focal,
-  espace vide du côté du texte. AUCUNE personne réelle reconnaissable, pas de visage en gros plan, pas de texte dans l'image.
-  BANNIS de ce prompt : 8k, ultra-detailed, hyperrealistic, epic, cinematic masterpiece, apocalyptic, glowing, octane, unreal engine.
-- prompt_negatif : ANGLAIS, liste de ce que l'image NE doit PAS contenir (style IA, défauts, éléments hors-sujet).
-
-LIVRABLES
-- titre : 3 à 6 mots, net, dans la langue indiquée, + 2 variantes A/B.
-- texte_miniature : 1 à 3 mots MAXIMUM, différent du titre (il le complète), dans la langue indiquée ; mot_cle = le mot à colorer ;
-  couleur = UN seul code hex d'accent ; zone = "left", "right", "top" ou "bottom" (là où l'image a de l'espace vide).
-- concept : une phrase qui décrit l'image idéale.
-- lecon_top3 : 1 à 2 phrases, ce qui fait marcher les miniatures concurrentes et ce qu'on en reprend (ou "indisponible").
+CONTRAINTES DES LIVRABLES
+- titre : 3 à 5 mots MAXIMUM, percutant, orienté curiosité, dans la langue indiquée. Donne aussi 2 variantes pour test A/B.
+- composition_miniature : description précise de la miniature (plan, zones, hiérarchie visuelle, couleurs dominantes, zone réservée au texte, ratio 16:9).
+- prompt_image : ANGLAIS STRICT (aucun mot français), prompt Midjourney/Ideogram photoréaliste 8k, FACELESS (aucun visage explicite : silhouettes de dos, mains, objets, documents, lieux, symboles), ultra-sombre, cinématographique. Le visuel DOIT être directement lié au sujet « {sujet} » : AUCUN élément hors-sujet. Pas de personne réelle reconnaissable. Termine par les paramètres : --ar 16:9 --style raw
+- texte_miniature : 3 mots MAXIMUM, couleur de contraste (nom + code hex), police recommandée (nom précis, gras/condensée) et placement.
 
 Réponds UNIQUEMENT en JSON :
-{{"livrables": {{"idee_centrale": "", "titre": "", "titres_alternatifs": ["", ""], "texte_miniature": {{"texte": "", "mot_cle": "", "couleur": "#FFD400", "zone": "left"}},
- "concept": "", "recherche_photo": ["", "", "", ""], "prompt_image": "", "prompt_negatif": "", "lecon_top3": ""}}}}"""
-
-NEG_BASE = ("AI-generated look, CGI, 3D render, illustration, painting, plastic skin, oversaturated colors, HDR glow, "
-            "fantasy lighting, extra fingers, deformed hands, distorted faces, duplicated objects, gibberish text, letters, "
-            "watermark, logo, frame, collage, split screen, arrows, red circles, emoji")
+{{"analyse_titres": {{"par_video": [{{"rang": 1, "structure": "", "declencheurs": [""]}}], "motifs_communs": [""], "ce_qui_fait_la_difference": ""}},
+ "analyse_miniatures": {{"par_video": [{{"rang": 1, "architecture": "", "palette": "", "texte_sur_image": "", "point_focal": ""}}], "motifs_communs": [""], "ce_qui_fait_la_difference": ""}},
+ "livrables": {{"titre": "", "titres_alternatifs": ["", ""], "pourquoi_ce_titre": "", "composition_miniature": "", "prompt_image": "",
+               "texte_miniature": {{"texte": "", "couleur": "", "police": "", "placement": ""}}}}}}"""
 
 
 def _s(v):
@@ -121,11 +97,9 @@ def _enforce(L, sujet):
     if isinstance(tm, str):
         tm = {"texte": tm}
     tm = tm if isinstance(tm, dict) else {}
-    L["texte_miniature"] = {k: _s(tm.get(k)) for k in ("texte", "mot_cle", "couleur", "zone")}
-    for k in ("titre", "prompt_image", "prompt_negatif", "concept", "lecon_top3", "idee_centrale"):
+    L["texte_miniature"] = {k: _s(tm.get(k)) for k in ("texte", "couleur", "police", "placement")}
+    for k in ("titre", "prompt_image", "composition_miniature", "pourquoi_ce_titre"):
         L[k] = _s(L.get(k))
-    rp = L.get("recherche_photo")
-    L["recherche_photo"] = [q.strip() for q in rp if isinstance(q, str) and q.strip()][:5] if isinstance(rp, list) else []
     alts = L.get("titres_alternatifs")
     L["titres_alternatifs"] = [a.strip() for a in alts if isinstance(a, str) and a.strip()][:3] if isinstance(alts, list) else []
     t = L["titre"]
@@ -133,8 +107,8 @@ def _enforce(L, sujet):
     pr = L["prompt_image"]
     non_ascii = sum(1 for c in pr if ord(c) > 127)
     bad = []
-    if _words(t) > 6 or _words(t) < 2:
-        bad.append(f"titre ({_words(t)} mots, il en faut 3 à 6)")
+    if _words(t) > 5 or _words(t) < 2:
+        bad.append(f"titre ({_words(t)} mots, il en faut 3 à 5)")
     if _words(txt) > 3:
         bad.append(f"texte_miniature ({_words(txt)} mots, 3 maximum)")
     if non_ascii > 3 or re.search(r"\b(le|la|les|des|une|avec|pour|sur)\b", pr.lower()):
@@ -152,60 +126,13 @@ def _enforce(L, sujet):
             pass
         for k in ("titre", "prompt_image"):
             L[k] = _s(L.get(k))
-    L["titre"] = " ".join(L["titre"].split()[:6])
+    L["titre"] = " ".join(L["titre"].split()[:5])
     L["texte_miniature"]["texte"] = " ".join(_s(L["texte_miniature"].get("texte")).split()[:3])
-    # mots qui font « image IA » : retirés du prompt ; négatif de base toujours présent
-    L["prompt_image"] = re.sub(r",?\s*\b(8k|4k|ultra[- ]detailed|hyper[- ]?realistic|epic|cinematic masterpiece|octane( render)?|"
-                               r"unreal engine|trending on artstation)\b", "", L["prompt_image"], flags=re.I)
-    L["prompt_image"] = re.sub(r"\s*--\w+\s+\S+", "", L["prompt_image"]).strip(" ,")
-    neg = [x.strip() for x in (L["prompt_negatif"] + ", " + NEG_BASE).split(",") if x.strip()]
-    L["prompt_negatif"] = ", ".join(dict.fromkeys(neg))
-    if not L["recherche_photo"]:
-        L["recherche_photo"] = [sujet[:60]]
-    L["texte_miniature"]["secours"] = texte_secours(L, sujet)
-    if not texte_pertinent(L["texte_miniature"]["texte"], sujet, L):
-        old_t = L["texte_miniature"]["texte"]
-        L["texte_miniature"]["texte"] = texte_secours(L, sujet)
-        L["texte_miniature"]["mot_cle"] = L["texte_miniature"]["texte"].split()[-1] if L["texte_miniature"]["texte"] else ""
-        print(f"   texte de miniature « {old_t} » sans rapport clair avec le sujet -> « {L['texte_miniature']['texte']} »")
     return L
 
 
-_VIDES = set("avec pour dans sans plus moins tout tous toute cette comme mais elle elles nous vous leur leurs sont etre "
-             "avoir fait faire quand entre apres avant depuis contre vers chez the and with from that this".split())
-
-
-def _cles(*textes):
-    return {w for t in textes for w in _norm(t or "").split() if len(w) > 3 and w not in _VIDES}
-
-
-def texte_pertinent(texte, sujet, L) -> bool:
-    """Le texte sur l'image doit porter l'enjeu du sujet : au moins un mot-clé du sujet, du titre ou de l'idée centrale
-    (racines comparées sur 5 lettres : famine/famines, engrais/engrais…). Un chiffre seul + un mot hors sujet est refusé."""
-    mots = _cles(texte)
-    if not mots:
-        return False
-    ref = _cles(sujet, L.get("titre", ""), L.get("idee_centrale", ""))
-    rac = {w[:5] for w in ref}
-    return any(w[:5] in rac for w in mots)
-
-
-def texte_secours(L, sujet) -> str:
-    """Texte tiré du titre (partie après « : » si elle est courte), sinon les mots forts du sujet."""
-    t = L.get("titre", "")
-    if ":" in t:
-        apres = t.split(":", 1)[1].strip()
-        if 1 <= _words(apres) <= 3:
-            return apres
-    mots = [w for w in re.findall(r"[\w'’-]+", t) if len(w) > 3 and _norm(w).strip() not in _VIDES][:3]
-    if mots and texte_pertinent(" ".join(mots), sujet, L):
-        return " ".join(mots[-3:])
-    mots = [w for w in re.findall(r"[\w'’-]+", sujet) if len(w) > 4 and _norm(w).strip() not in _VIDES]
-    return " ".join(mots[:2])
-
-
 def build(ctx, sources, queries, titre_live, top_facts):
-    """Retourne (livrables, top3, note)."""
+    """Retourne (livrables, analyse_titres, analyse_miniatures, top3, note)."""
     sujet = ctx["sujet"]
     hl = ctx["lang"]["hl"]
     try:
@@ -253,41 +180,60 @@ def build(ctx, sources, queries, titre_live, top_facts):
         raise RuntimeError("le modèle n'a pas renvoyé de livrables exploitables")
     if not parts and top3:
         note = "Les miniatures n'ont pas pu être transmises au modèle : analyse faite sur les titres et les chiffres seulement."
-    L = _enforce(j["livrables"], ctx.get("court") or sujet)
-    return L, top3, note
+    L = _enforce(j["livrables"], sujet)
+    at, am = j.get("analyse_titres"), j.get("analyse_miniatures")
+    return L, at if isinstance(at, dict) else {}, am if isinstance(am, dict) else {}, top3, note
 
 
-def render(sujet, L, top3, note, img=None) -> str:
-    """Un seul document, court et actionnable : tout ce qu'il faut pour la miniature et le titre."""
-    tm = L.get("texte_miniature") or {}
-    zone = {"left": "à gauche", "right": "à droite", "top": "en haut", "bottom": "en bas"}.get(tm.get("zone"), tm.get("zone", ""))
-    o = [f"# Miniature — {sujet}", ""]
-    if L.get("idee_centrale"):
-        o += [f"**Enjeu montré** : {L['idee_centrale']}", ""]
+# Prompt négatif (pour Midjourney : après --no ; pour Flux/Gemini : « Avoid: ») — n'altère pas le prompt ci-dessus.
+NEGATIF = ("text, letters, watermark, logo, signature, frame, collage, split screen, cartoon, illustration, painting, "
+           "plastic skin, deformed hands, extra fingers, distorted faces, duplicated objects, blurry, low resolution, "
+           "oversaturated colors, recognizable real person")
+
+
+def render(sujet, titre_live, L, at, am, top3, note, img=None) -> str:
+    """UN seul document : la miniature fabriquée, le titre, la composition, le prompt (+ négatif), le texte incrusté,
+    puis l'analyse du top 3. Le contenu est celui du générateur d'origine, sans changement."""
+    tm = L.get("texte_miniature") if isinstance(L.get("texte_miniature"), dict) else {}
+    o = [f"# Titre et miniature — {sujet}", ""]
     if img:
-        o += ["![miniature](miniature.jpg)", "",
-              f"Image : {img['source']}" + (f" · crédit à mettre en description : {img['credit']} ({img['lien']})" if img.get("credit") else ""), ""]
-        if img.get("note") is not None:
-            o += [f"Contrôle qualité (Gemini, vue mobile) : **{img['note']}/10**"
-                  + (f" — {img['probleme']}" if img.get("probleme") else ""), ""]
+        o += ["![miniature](miniature.jpg)", "", f"Image : {img.get('source', '')}"
+              + (f" · contrôle qualité {img['note']}/10" if img.get("note") is not None else ""), ""]
         if img.get("a_revoir"):
-            o += ["> ⚠ Meilleure miniature obtenue mais sous le seuil de qualité : refais-la avec le prompt ci-dessous.", ""]
+            o += [f"> ⚠ Image sous le seuil de qualité ({img.get('probleme', '')}) : refais-la avec le prompt ci-dessous.", ""]
     else:
         o += ["> ⚠ Image non fabriquée automatiquement : utilise le prompt ci-dessous.", ""]
     if note:
-        o += [f"> {note}", ""]
-    o += [f"**Titre** : {L.get('titre', '')}",
-          f"**Variantes A/B** : {' · '.join(L.get('titres_alternatifs') or []) or '—'}", "",
-          f"**Texte sur l'image** : « {tm.get('texte', '')} » — mot en couleur : {tm.get('mot_cle') or '—'} ({tm.get('couleur', '')}) — {zone}",
-          "Police : Anton (latin) / Lalezar (arabe), blanc + contour noir, un seul mot en couleur.", "",
-          f"**Image** : {L.get('concept', '')}", "",
-          "**Prompt** (Midjourney, Ideogram, Flux, Gemini) :", "```", L.get("prompt_image", ""), "```",
-          "**Prompt négatif** (Midjourney : à mettre après `--no`) :", "```", L.get("prompt_negatif", ""), "```", "",
-          "**À ne pas faire** : texte généré par l'IA dans l'image · visage réel inventé par l'IA · flèches, cercles rouges, emojis · "
-          "plus de 3 mots sur l'image · promesse que le live ne tient pas.", ""]
+        o += [f"> ⚠ {note}", ""]
+    o += ["## 1. Titre (3 à 5 mots)", "", f"**{L.get('titre', '')}**", ""]
+    if L.get("titres_alternatifs"):
+        o += ["Variantes à tester :"] + [f"- {t}" for t in L["titres_alternatifs"]] + [""]
+    if L.get("pourquoi_ce_titre"):
+        o += [f"Pourquoi : {L['pourquoi_ce_titre']}", ""]
+    o += ["## 2. Composition de la miniature", "", L.get("composition_miniature", ""), "",
+          "## 3. Prompt Midjourney / Ideogram (anglais)", "", "```", L.get("prompt_image", ""), "```", "",
+          "Prompt négatif :", "", "```", NEGATIF, "```", "",
+          "## 4. Texte incrusté sur la miniature", "",
+          f"- Texte : **{tm.get('texte', '')}**", f"- Couleur : {tm.get('couleur', '')}",
+          f"- Police : {tm.get('police', '')}", f"- Placement : {tm.get('placement', '')}", ""]
     if top3:
-        o += ["**Concurrence (top 3 vues)** :"]
-        o += [f"{r}. {v['titre']} — {v['chaine']} — {v['vues']:,} vues".replace(",", " ") for r, v in enumerate(top3, 1)]
-        if L.get("lecon_top3"):
-            o += ["", f"Ce qu'on en retient : {L['lecon_top3']}"]
+        o += ["---", "", "## Analyse du top 3 (audience)", ""]
+        for r, v in enumerate(top3, 1):
+            o.append(f"{r}. **{v['titre']}** — {v['chaine']} — {v['vues']:,} vues — {v['date']}".replace(",", " "))
+            o.append(f"   - Vidéo : {v['url']}")
+            o.append(f"   - Miniature : {v.get('thumb_url', '')}")
+        for label, blk in (("Titres", at), ("Miniatures", am)):
+            if not blk or not isinstance(blk, dict):
+                continue
+            o += ["", f"### {label}", ""]
+            for pv in blk.get("par_video") if isinstance(blk.get("par_video"), list) else []:
+                if not isinstance(pv, dict):
+                    continue
+                detail = "; ".join(f"{k} : {', '.join(map(str, v)) if isinstance(v, list) else v}"
+                                   for k, v in pv.items() if k != "rang" and v)
+                o.append(f"- Vidéo {pv.get('rang', '?')} — {detail}")
+            if isinstance(blk.get("motifs_communs"), list) and blk["motifs_communs"]:
+                o += ["", "Motifs communs : " + " ; ".join(map(str, blk["motifs_communs"]))]
+            if blk.get("ce_qui_fait_la_difference"):
+                o += ["", f"Ce qui fait la différence : {blk['ce_qui_fait_la_difference']}"]
     return "\n".join(o) + "\n"
