@@ -35,6 +35,39 @@ def _arret_securite(signum, frame):
     raise llm.Deadline("arrêt de sécurité avant la limite du workflow : on garde ce qui est déjà produit")
 
 
+class _Journal:
+    """Copie tout ce qui s'affiche dans un fichier (JOURNAL) : même si le run est coupé, le journal est enregistré
+    avec les résultats et dit exactement où le temps est passé."""
+    def __init__(self, stream, path):
+        self.stream, self.fh, self.t0 = stream, open(path, "a", encoding="utf-8", buffering=1), time.monotonic()
+        self.debut = True
+
+    def write(self, txt):
+        try:
+            self.stream.write(txt)
+        except Exception:
+            pass
+        try:
+            for part in txt.splitlines(keepends=True):
+                if self.debut:
+                    self.fh.write(f"[{(time.monotonic() - self.t0) / 60:5.1f} min] ")
+                self.fh.write(part)
+                self.debut = part.endswith("\n")
+        except Exception:
+            pass
+        return len(txt)
+
+    def flush(self):
+        for x in (self.stream, self.fh):
+            try:
+                x.flush()
+            except Exception:
+                pass
+
+    def __getattr__(self, name):
+        return getattr(self.stream, name)
+
+
 def _installer_securite():
     import signal
     for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGALRM):
@@ -57,40 +90,99 @@ def _w(path, text):
         fh.write(text)
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--sujet", required=True)
-    ap.add_argument("--duree", type=_num, default=20, help="durée du live en minutes")
-    ap.add_argument("--these", default="", help="thèse / angle à étayer (optionnel)")
-    ap.add_argument("--langue", default="auto")
-    ap.add_argument("--wpm", type=int, default=config.WPM, help="mots par minute")
-    ap.add_argument("--no-defense", action="store_true", help="ne pas développer les faits contraires")
-    ap.add_argument("--no-verify", action="store_true", help="pas de vérification croisée des faits fragiles")
-    ap.add_argument("--no-interactions", action="store_true", help="pas d'appels au chat")
-    ap.add_argument("--out", default=os.getenv("OUT_DIR", "prompter"))
-    a = ap.parse_args()
-    a.sujet = " ".join(a.sujet.split())
-    if not a.sujet:
-        raise SystemExit("Sujet vide.")
-    if not (1 <= a.duree <= 360):
-        print(f"  ! durée {a.duree} min hors limites : ramenée entre 1 et 360 min")
-        a.duree = min(360.0, max(1.0, a.duree))
-    a.wpm = max(60, min(300, a.wpm))
+def _norm_sujet(s):
+    s = unicodedata.normalize("NFKD", str(s or "").lower()).encode("ascii", "ignore").decode()
+    return re.sub(r"[^a-z0-9]+", " ", s).strip()
 
-    t0 = time.time()
-    hard = _installer_securite()
-    lang = config.lang_cfg(a.langue, a.sujet)
-    words = round(a.duree * a.wpm)
-    ctx = {"sujet": a.sujet, "these": a.these, "lang": lang,
-           "defense": not a.no_defense, "interactions": not a.no_interactions}
-    print(f"[1/5] Cible : {a.duree} min = {words} mots ({a.wpm} mots/min), langue {lang['nom']}")
 
-    # Budget de temps : la recherche ne doit jamais manger le temps d'écriture (≈ 8 min + 1 min / 1000 mots, à réserver).
-    reserve = (8 + words / 1000) * 60
+def _trouver_reprise(a, mode="auto", jours=4):
+    """Run précédent à reprendre : recherche déjà faite (faits dans donnees.json) mais script absent.
+    mode « auto » : même sujet, moins de `jours` jours ; sinon nom (ou début de nom) d'un dossier de prompter/."""
+    mode = (mode or "auto").strip()
+    try:
+        dirs = sorted((x for x in os.listdir(a.out) if os.path.isdir(os.path.join(a.out, x))), reverse=True)
+    except OSError:
+        return None
+    limite = datetime.datetime.now() - datetime.timedelta(days=jours)
+    explicite = mode.lower() not in ("auto", "oui", "yes", "")
+    for name in dirs:
+        d = os.path.join(a.out, name)
+        if explicite and not (name == mode or name.startswith(mode)):
+            continue
+        if not explicite:
+            try:
+                if datetime.datetime.strptime(name[:16], "%Y-%m-%d_%Hh%M") < limite:
+                    continue
+            except ValueError:
+                continue
+            if os.path.exists(os.path.join(d, "script_teleprompter.txt")):
+                continue
+            try:
+                with open(os.path.join(d, "requete.json"), encoding="utf-8") as fh:
+                    if _norm_sujet(json.load(fh).get("sujet")) != _norm_sujet(a.sujet):
+                        continue
+            except (OSError, ValueError):
+                continue
+        try:
+            with open(os.path.join(d, "donnees.json"), encoding="utf-8") as fh:
+                if json.load(fh).get("faits"):
+                    return d
+        except (OSError, ValueError):
+            pass
+        if explicite:
+            print(f"   ! reprise impossible : {name} ne contient aucun fait")
+            return None
+    if explicite:
+        print(f"   ! reprise impossible : aucun dossier « {mode} » dans {a.out}/")
+    return None
 
-    def late():
-        return llm.elapsed() > llm.DEADLINE - reserve
 
+def _reprendre(a, lang, ctx, words, d):
+    """Reprise : réutilise sources et faits d'un run interrompu, saute la recherche (≈ 40 min et du quota en moins)."""
+    global _D
+    _D = d
+    with open(os.path.join(d, "donnees.json"), encoding="utf-8") as fh:
+        data = json.load(fh)
+    fields = set(collect.Source.__dataclass_fields__)
+    sources = [collect.Source(**{k: v for k, v in x.items() if k in fields}) for x in data.get("sources") or []]
+    facts = data.get("faits") or []
+    try:
+        with open(os.path.join(d, "requete.json"), encoding="utf-8") as fh:
+            br = json.load(fh)
+    except (OSError, ValueError):
+        br = {}
+    print(f"[2/5] REPRISE de {d} : {len(sources)} sources et {len(facts)} faits déjà vérifiés, recherche sautée")
+    if not br.get("points"):
+        print("   requête recomprise (1 appel IA)…")
+        br = {**br, **collect.analyse_requete(a.sujet, a.these, lang["nom"])}
+    pts, court = br.get("points") or [], br.get("court") or a.sujet[:80]
+    ctx["points"], ctx["court"] = pts, court
+    ctx["comprendre"] = {k: br.get(k) for k in ("demontrer", "raisonnement", "cibles")}
+    if not a.these and (br.get("these") or br.get("demontrer")):
+        a.these = ctx["these"] = br.get("these") or br["demontrer"]
+    ctx["vstats"] = None
+    try:
+        json.dump({"sujet": a.sujet, "these": a.these, "langue": lang["code"], "court": court,
+                   "demontrer": br.get("demontrer", ""), "raisonnement": br.get("raisonnement", []),
+                   "cibles": br.get("cibles", []), "points": pts},
+                  open(os.path.join(d, "requete.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    except Exception as e:
+        print(f"   ! requete.json non écrit ({str(e)[:80]})")
+    for f in ("STATUT.txt", "ERREUR.txt"):          # traces de l'échec précédent : remplacées par celles de ce run
+        try:
+            os.remove(os.path.join(d, f))
+        except OSError:
+            pass
+    queries = list(dict.fromkeys(q for x in pts for q in (x.get("requetes") or [])))
+    need = int(words / config.WORDS_PER_FACT)
+    short = len(facts) < need * 0.6
+    print("[3/5] Faits repris tels quels (déjà extraits et vérifiés)")
+    return d, sources, facts, pts, court, queries, short
+
+
+def _rechercher(a, lang, ctx, words, late):
+    """Étapes 2 et 3 : comprendre la requête, collecter, extraire et vérifier les faits (sauvegardés au fur et à mesure)."""
+    global _D
     print("[2/5] Collecte multi-sources…")
     br = collect.analyse_requete(a.sujet, a.these, lang["nom"])
     pts, court = br["points"], br["court"]
@@ -112,7 +204,6 @@ def main():
     print(f"   {len(sources)} sources uniques ; récupération des textes…")
     collect.enrich(sources, lang)
 
-    global _D
     _D = d = os.path.join(a.out, f"{datetime.datetime.now():%Y-%m-%d_%Hh%M}_{slug(court)}")
     os.makedirs(d, exist_ok=True)
     try:        # requête comprise : sert à cibler Vid-o-presse-finder (src/finder_link.py), lancé après ce run
@@ -199,6 +290,55 @@ def main():
     json.dump({"sources": [asdict(s) for s in sources], "faits": facts},
               open(os.path.join(d, "donnees.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
     print(f"   faits et sources sauvegardés dans {d}/donnees.json (récupérables même si la suite échoue)")
+    return d, sources, facts, pts, court, queries, short
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--sujet", required=True)
+    ap.add_argument("--duree", type=_num, default=20, help="durée du live en minutes")
+    ap.add_argument("--these", default="", help="thèse / angle à étayer (optionnel)")
+    ap.add_argument("--langue", default="auto")
+    ap.add_argument("--wpm", type=int, default=config.WPM, help="mots par minute")
+    ap.add_argument("--no-defense", action="store_true", help="ne pas développer les faits contraires")
+    ap.add_argument("--no-verify", action="store_true", help="pas de vérification croisée des faits fragiles")
+    ap.add_argument("--no-interactions", action="store_true", help="pas d'appels au chat")
+    ap.add_argument("--out", default=os.getenv("OUT_DIR", "prompter"))
+    a = ap.parse_args()
+    a.sujet = " ".join(a.sujet.split())
+    if not a.sujet:
+        raise SystemExit("Sujet vide.")
+    if not (1 <= a.duree <= 360):
+        print(f"  ! durée {a.duree} min hors limites : ramenée entre 1 et 360 min")
+        a.duree = min(360.0, max(1.0, a.duree))
+    a.wpm = max(60, min(300, a.wpm))
+
+    t0 = time.time()
+    if os.getenv("JOURNAL"):
+        try:
+            sys.stdout = _Journal(sys.stdout, os.environ["JOURNAL"])
+            sys.stderr = _Journal(sys.stderr, os.environ["JOURNAL"])
+        except OSError:
+            pass
+    hard = _installer_securite()
+    lang = config.lang_cfg(a.langue, a.sujet)
+    words = round(a.duree * a.wpm)
+    ctx = {"sujet": a.sujet, "these": a.these, "lang": lang,
+           "defense": not a.no_defense, "interactions": not a.no_interactions}
+    print(f"[1/5] Cible : {a.duree} min = {words} mots ({a.wpm} mots/min), langue {lang['nom']}")
+
+    # Budget de temps : la recherche ne doit jamais manger le temps d'écriture (≈ 8 min + 1 min / 1000 mots, à réserver).
+    reserve = (8 + words / 1000) * 60
+
+    def late():
+        return llm.elapsed() > llm.DEADLINE - reserve
+
+    rep = None if os.getenv("REPRENDRE", "auto").strip().lower() in ("non", "no", "0") else \
+        _trouver_reprise(a, os.getenv("REPRENDRE", "auto"))
+    if rep:
+        d, sources, facts, pts, court, queries, short = _reprendre(a, lang, ctx, words, rep)
+    else:
+        d, sources, facts, pts, court, queries, short = _rechercher(a, lang, ctx, words, late)
 
     print("[4/5] Écriture du script…")
     titre, secs = script.generate(ctx, facts, words)
@@ -206,22 +346,32 @@ def main():
 
     print("[5/5] Documents de sortie…")
     _STOP["protege"] = True        # le script est écrit : un arrêt de sécurité ne doit plus interrompre l'enregistrement
-    try:        # liens du commentaire épinglé : on décode les liens Google News encore codés des sources citées
-        cited = set(re.findall(r"\[(F\d+)\]", "\n".join(x["text"] for x in secs)))
-        sid = {f["source_id"] for f in facts if f["id"] in cited}
-        todo = [x for x in sources if x.id in sid and "news.google.com" in x.url]
-        for x in todo[:80]:
-            x.url = collect.resolve_gnews(x.url)
-        if todo:
-            print(f"   liens des sources citées : {sum(1 for x in todo[:80] if 'news.google.com' not in x.url)}/{len(todo[:80])} décodés")
-    except Exception as e:
-        print(f"   ! décodage final des liens ignoré ({str(e)[:80]})")
     clean_txt = "\n\n".join(script.clean(s["text"]) for s in secs)
     annot = f"# {titre}\n\n" + "\n\n".join(f"## {s['titre']}\n\n{s['text']}" for s in secs)
     final_words = len(clean_txt.split())
     stats = {"duree": a.duree, "mots": final_words, "n_sources": len(sources), "n_faits": len(facts)}
-    open(os.path.join(d, "script_teleprompter.txt"), "w", encoding="utf-8").write(clean_txt + "\n")
-    open(os.path.join(d, "script_annote.md"), "w", encoding="utf-8").write(annot + "\n")
+    # le script d'abord : plus rien d'après (liens, miniature, réseau lent) ne peut le faire perdre
+    _w(os.path.join(d, "script_teleprompter.txt"), clean_txt + "\n")
+    _w(os.path.join(d, "script_annote.md"), annot + "\n")
+    print(f"   script enregistré : {final_words} mots")
+    try:        # liens du commentaire épinglé : on décode les liens Google News des sources citées, en temps limité
+        budget = time.monotonic() + float(os.getenv("GNEWS_BUDGET_S", "150"))
+        if hard > 0:
+            budget = min(budget, llm.T0 + hard * 60 - 240)
+        cited = set(re.findall(r"\[(F\d+)\]", "\n".join(x["text"] for x in secs)))
+        sid = {f["source_id"] for f in facts if f["id"] in cited}
+        todo = [x for x in sources if x.id in sid and "news.google.com" in x.url][:60]
+        done = 0
+        for x in todo:
+            if time.monotonic() > budget:
+                print(f"   liens : temps imparti écoulé, {len(todo) - done} lien(s) laissé(s) en lien Google News")
+                break
+            x.url = collect.resolve_gnews(x.url)
+            done += 1
+        if todo:
+            print(f"   liens des sources citées : {sum(1 for x in todo if 'news.google.com' not in x.url)}/{len(todo)} décodés")
+    except Exception as e:
+        print(f"   ! décodage final des liens ignoré ({str(e)[:80]})")
     open(os.path.join(d, "commentaire_epingle.txt"), "w", encoding="utf-8").write(
         report.pinned_comment(titre, secs, facts, sources))
     open(os.path.join(d, "sources.md"), "w", encoding="utf-8").write(

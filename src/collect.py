@@ -461,27 +461,54 @@ def assign_ids(sources, start=1):
 
 
 _gn_lock = threading.Lock()
-_gn_stats = {"ok": 0, "ko": 0, "err": ""}
+_gn_stats = {"ok": 0, "ko": 0, "err": "", "t": 0.0, "stop": ""}
+_gn_cache = {}
+GN_TOTAL_S = float(os.getenv("GNEWS_TOTAL_S", "360"))   # temps total max consacré au décodage sur tout le run
 
 
 def resolve_gnews(url):
-    """Décode un lien Google News en adresse réelle. Un appel à la fois (Google bloque les rafales)."""
+    """Décode un lien Google News en adresse réelle. Un appel à la fois (Google bloque les rafales).
+    Disjoncteur : ces appels sont faits un par un ; s'ils deviennent lents ou échouent trop, on arrête de décoder
+    (le lien Google News reste utilisable) pour ne jamais bloquer la recherche ni l'écriture."""
     if "news.google.com" not in url:
         return url
+    if url in _gn_cache:
+        return _gn_cache[url]
     with _gn_lock:
-        if _gn_stats["ko"] >= 8 and _gn_stats["ok"] == 0:      # inutile d'insister si ça ne marche jamais
+        g = _gn_stats
+        if url in _gn_cache:
+            return _gn_cache[url]
+        if not g["stop"]:
+            n = g["ok"] + g["ko"]
+            if g["ko"] >= 8 and g["ok"] == 0:
+                g["stop"] = "aucun succès"
+            elif n >= 12 and g["ok"] / n < 0.25:
+                g["stop"] = "trop d'échecs"
+            elif g["t"] > GN_TOTAL_S:
+                g["stop"] = f"temps max {GN_TOTAL_S:.0f} s atteint"
+            elif n >= 10 and g["t"] / n > 8:
+                g["stop"] = "Google trop lent"
+            if g["stop"]:
+                print(f"   ! décodage des liens Google News arrêté ({g['stop']}) : liens gardés tels quels")
+        if g["stop"]:
             return url
+        t0 = time.monotonic()
+        out = url
         try:
             from googlenewsdecoder import gnewsdecoder
             d = gnewsdecoder(url, interval=1)
             if (d.get("success") or d.get("status")) and str(d.get("decoded_url", "")).startswith("http"):   # "status" = anciennes versions
-                _gn_stats["ok"] += 1
-                return d["decoded_url"]
-            _gn_stats["err"] = str(d.get("message", d))[:100]
+                g["ok"] += 1
+                out = d["decoded_url"]
+            else:
+                g["err"] = str(d.get("message", d))[:100]
         except Exception as e:
-            _gn_stats["err"] = str(e)[:100]
-        _gn_stats["ko"] += 1
-    return url
+            g["err"] = str(e)[:100]
+        if out == url:
+            g["ko"] += 1
+        g["t"] += time.monotonic() - t0
+        _gn_cache[url] = out
+    return out
 
 
 def reliability(s):
