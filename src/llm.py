@@ -65,11 +65,13 @@ def keys():
     return _KEYS
 
 
+_CALL_TIMEOUT = float(os.getenv("LLM_CALL_TIMEOUT_S", "240"))   # cause du blocage du 25/10 : un appel resté 36 min sans réponse
+
+
 def client(i=0):
     if i not in _clients:
         # délai max par appel : un appel bloqué (réseau, surcharge Google) ne peut plus geler tout le run
-        _clients[i] = genai.Client(api_key=keys()[i], http_options=types.HttpOptions(
-            timeout=int(float(os.getenv("LLM_CALL_TIMEOUT_S", "240")) * 1000)))
+        _clients[i] = genai.Client(api_key=keys()[i], http_options=types.HttpOptions(timeout=int(_CALL_TIMEOUT * 1000)))
     return _clients[i]
 
 
@@ -223,6 +225,14 @@ def ask(prompt: str, temperature: float = 0.7, json_mode: bool = False,
                 print(f"  ! quota par minute : clé n°{i + 1} / {model}, pause {pause:.0f}s sur ce modèle seulement")
                 with _lock:
                     _soft[(i, model)] = time.monotonic() + pause
+                continue
+            elif "timed out" in msg.lower() or "timeout" in type(e).__name__.lower():
+                # appel resté sans réponse (Google bloqué) : coupé par le délai max, on passe tout de suite à un autre modèle
+                print(f"  ! {model} sans réponse depuis {_CALL_TIMEOUT:.0f}s (clé n°{i + 1}) : abandonné, modèle suivant")
+                with _lock:
+                    for k in range(len(keys())):
+                        _soft[(k, model)] = time.monotonic() + SOFT_BLOCK
+                attempt += 1
                 continue
             elif "503" in msg or "UNAVAILABLE" in msg or "overloaded" in msg.lower():
                 print(f"  ! {model} surchargé (clé n°{i + 1}) : on passe au modèle suivant pendant {SOFT_BLOCK}s")
