@@ -89,6 +89,13 @@ def main():
     global _D
     _D = d = os.path.join(a.out, f"{datetime.datetime.now():%Y-%m-%d_%Hh%M}_{slug(court)}")
     os.makedirs(d, exist_ok=True)
+    try:        # requête comprise : sert à cibler Vid-o-presse-finder (src/finder_link.py), lancé après ce run
+        json.dump({"sujet": a.sujet, "these": a.these, "langue": lang["code"], "court": court,
+                   "demontrer": br.get("demontrer", ""), "raisonnement": br.get("raisonnement", []),
+                   "cibles": br.get("cibles", []), "points": pts},
+                  open(os.path.join(d, "requete.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
+    except Exception as e:
+        print(f"   ! requete.json non écrit ({str(e)[:80]})")
     json.dump({"sources": [asdict(s) for s in sources], "faits": []},
               open(os.path.join(d, "donnees.json"), "w", encoding="utf-8"), ensure_ascii=False, indent=1)
 

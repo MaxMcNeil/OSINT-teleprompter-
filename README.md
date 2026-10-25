@@ -27,6 +27,17 @@ Options : `--wpm 145` (mots par minute), `--langue fr|en|…`, `--no-defense`, `
 | `STATUT.txt` | Présent seulement s'il y a un souci : point non traité, script trop court/long, miniature manquante |
 | `donnees.json` | Toutes les sources et tous les faits collectés |
 
+## 🔗 Vid-o-presse-finder lancé automatiquement
+
+À la fin de chaque run (champ **video_finder** = `oui` par défaut), le workflow prépare 2 à 5 recherches ciblées
+(qui a parlé dans les faits cités au script, cibles, points) et lance **Vid-o-presse-finder** sur ce sujet.
+Dans le dossier du run : `FINDER.md` (recherches envoyées + ✅ lancé / ❌ raison) et `finder.json`.
+Le lot du Finder garde `ORIGINE.json` → Montage LV final se synchronise dessus.
+
+Jeton requis (une fois) : secret **`CHAINE_TOKEN`** dans ce dépôt (même jeton que la chaîne, avec
+« Contents : read and write » sur Vid-o-presse-finder) — ou la GitHub App de la chaîne (`CHAINE_APP_ID` / `CHAINE_APP_KEY`).
+Sans jeton : le script est livré normalement et `FINDER.md` contient les recherches à coller à la main.
+
 ## Comment ça marche
 
 1. **Collecte** : Google News (5 éditions), balayage de 24 médias/agences (Reuters, AP, AFP, BBC, Guardian, NYT, Le Monde…), GDELT, vraies recherches Google via Gemini, YouTube (recherche, stats, transcriptions), Reddit, Hacker News, X (si clé).
