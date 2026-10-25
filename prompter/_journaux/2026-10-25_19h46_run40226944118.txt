@@ -1,0 +1,19 @@
+[  0.0 min] [1/5] Cible : 20.0 min = 2900 mots (145 mots/min), langue français
+[  0.0 min] [MINIATURE] prompter/2026-10-25_18h06_dirigeants-europeens-famine-engrais-gaz : titre + miniature refaits (102 faits, titre du live « Famine en Europe : Comment les guerres en Ukraine et en Iran et l'impréparation de Bruxelles mènent à la pénurie »)
+[  0.0 min]    Titre + miniature (analyse du top 3 YouTube)…
+[  0.0 min]   10 clé(s) Gemini chargée(s)
+[  0.0 min]   modèles, du plus performant au moins performant : gemini-3.8-flash, gemini-3.7-flash, gemini-3.6-flash, gemini-3.5-flash, gemini-3.5-flash-lite, gemini-3.1-flash-lite, gemini-3.1-flash-lite-preview, gemini-3-flash-preview, gemini-2.5-flash, gemini-2.5-flash-lite
+[  0.0 min]   > clé n°1 / gemini-3.8-flash
+[  0.1 min]   ! gemini-3.8-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[  0.1 min]   > clé n°2 / gemini-3.7-flash
+[  1.9 min]   > clé n°3 / gemini-3.8-flash
+[  2.1 min]   ! gemini-3.8-flash surchargé (clé n°3) : on passe au modèle suivant pendant 90s
+[  2.1 min]   > clé n°4 / gemini-3.7-flash
+[  4.9 min]   > clé n°5 / gemini-3.8-flash
+[  4.9 min]   ! gemini-3.8-flash surchargé (clé n°5) : on passe au modèle suivant pendant 90s
+[  4.9 min]   > clé n°6 / gemini-3.7-flash
+[  8.1 min]    ! Pollinations (503 Server Error: Service Unavailable for url: https://image)
+[  8.1 min]    ! Pollinations (402 Client Error: Payment Required for url: https://image.po)
+[  8.1 min]    ! aucune image obtenue : miniature non fabriquée
+[  8.1 min]    titre : Europe : La Famine Inévitable | ok
+[  8.1 min] ⚠ Image de miniature non fabriquée (générateurs indisponibles) : le prompt est dans miniature.md.
