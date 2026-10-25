@@ -157,10 +157,15 @@ def gemini_image(prompt):
 
 def pollinations(prompt):
     for seed in random.sample(range(1, 99999), 2):
+        # Pollinations ajoute son logo en bas à droite malgré nologo : on demande 80 px de plus et on coupe la bande du bas
         url = ("https://image.pollinations.ai/prompt/" + urllib.parse.quote(prompt[:900])
-               + f"?width={W}&height={H}&model=flux&nologo=true&private=true&enhance=false&seed={seed}")
+               + f"?width={W}&height={H + 80}&model=flux&nologo=true&private=true&enhance=false&seed={seed}")
         try:
-            return _get_img(url, timeout=150), "pollinations / flux"
+            im = _get_img(url, timeout=150)
+            if im is not None:
+                cut = max(40, round(im.height * 80 / (H + 80)))
+                im = im.crop((0, 0, im.width, im.height - cut))
+            return im, "pollinations / flux"
         except Exception as e:
             print(f"   ! Pollinations ({str(e)[:60]})")
     return None, None
