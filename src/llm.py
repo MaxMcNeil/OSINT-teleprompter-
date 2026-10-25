@@ -51,7 +51,7 @@ def keys():
     if _KEYS is None:
         found = []
         names = ["GEMINI_API_KEY"] + [f"GEMINI_API_KEY_{i}" for i in range(2, 10)]
-        vals = [os.environ.get(n, "") for n in names] + os.environ.get("GEMINI_API_KEYS", "").split(",")
+        vals = [os.environ.get(n, "") for n in names] + (os.environ.get("GEMINI_API_KEYS", "") + "," + os.environ.get("GEMINI_API_KEYS_PLUS", "")).replace("\n", ",").split(",")
         for v in vals:
             v = v.strip()
             if v and v not in found:

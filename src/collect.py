@@ -160,7 +160,7 @@ _YT_CLIENTS = {}
 
 
 def _yt_keys():
-    raw = (os.getenv("YT_API_KEYS", "") + "," + os.getenv("YT_API_KEY", "")).replace("\n", ",").replace(" ", ",")
+    raw = ",".join(os.getenv(n, "") for n in ("YT_API_KEYS", "YT_API_KEY", "YOUTUBE_API_KEYS", "YOUTUBE_API_KEYS_PLUS")).replace("\n", ",").replace(" ", ",")
     return [k for k in dict.fromkeys(x.strip() for x in raw.split(",")) if k]
 
 

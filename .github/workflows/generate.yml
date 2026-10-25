@@ -50,8 +50,10 @@ jobs:
           GEMINI_API_KEY_5: ${{ secrets.GEMINI_API_KEY_5 }}
           # plusieurs clés possibles, séparées par des virgules (rotation automatique quand une clé est épuisée)
           GEMINI_API_KEYS: ${{ secrets.GEMINI_API_KEYS }}
+          GEMINI_API_KEYS_PLUS: ${{ secrets.GEMINI_API_KEYS_PLUS }}
           YT_API_KEY: ${{ secrets.YT_API_KEY }}
           YT_API_KEYS: ${{ secrets.YT_API_KEYS }}
+          YOUTUBE_API_KEYS_PLUS: ${{ secrets.YOUTUBE_API_KEYS_PLUS }}
           X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
           LLM_RPM: "4"
           SUJET: ${{ inputs.sujet }}
