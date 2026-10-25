@@ -21,10 +21,8 @@ Options : `--wpm 145` (mots par minute), `--langue fr|en|…`, `--no-defense`, `
 | `script_annote.md` | Même texte avec chapitres et marqueurs `[F12]` |
 | `commentaire_epingle.txt` | Liste des sources citées, avec vraies adresses, prête à coller en commentaire épinglé |
 | `sources.md` | Chaque affirmation → fait → source, date, lien, fiabilité, + points à vérifier |
-| `titre_miniature.md` | Analyse du top 3 YouTube (titres, miniatures) + titre, composition, prompt image, texte incrusté |
-| `titre.txt` | Titre (3 à 5 mots) |
-| `prompt_miniature.txt` | Prompt Midjourney/Ideogram en anglais |
-| `texte_miniature.txt` | Texte incrusté (≤3 mots), couleur, police, placement |
+| `miniature.md` | Tout pour la miniature en un seul document : titre + variantes, texte sur l'image, prompt, prompt négatif, à ne pas faire, top 3 concurrents |
+| `miniature.jpg` | Miniature 1280×720 prête à l'emploi (vraie photo libre Wikimedia en priorité, sinon image générée gratuitement), texte incrusté |
 | `couverture.md` | Ta requête décomposée en points : faits trouvés et cités par point (rien n'est oublié en silence) |
 | `STATUT.txt` | Présent seulement s'il y a un souci : point non traité, script trop court/long, miniature manquante |
 | `donnees.json` | Toutes les sources et tous les faits collectés |

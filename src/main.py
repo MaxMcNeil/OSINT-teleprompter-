@@ -12,7 +12,7 @@ import traceback
 import unicodedata
 from dataclasses import asdict
 
-from . import collect, config, facts as F, llm, report, script, thumb, verify
+from . import collect, config, facts as F, image, llm, report, script, thumb, verify
 
 
 def slug(s):
@@ -211,29 +211,30 @@ def main():
             elif len(cited) < 3:
                 problems.append(f"Point {x['id']} (« {x['intitule'][:90]} ») : peu documenté ({len(cited)} fait(s) cité(s)).")
         _w(os.path.join(d, "couverture.md"), "\n".join(rows) + "\n")
-    llm.DEADLINE = max(llm.DEADLINE, time.monotonic() - llm.T0 + 240)   # 4 min de grâce pour le titre / la miniature
+    llm.DEADLINE = max(llm.DEADLINE, time.monotonic() - llm.T0 + 420)   # 7 min de grâce pour le titre et la miniature
     print("   Titre + miniature (analyse du top 3 YouTube)…")
     try:
         top_facts = sorted(facts, key=script.score, reverse=True)[:5]
-        L, at, am, top3, note = thumb.build(ctx, sources, queries, titre, top_facts)
-        open(os.path.join(d, "titre_miniature.md"), "w", encoding="utf-8").write(
-            thumb.render(a.sujet, titre, L, at, am, top3, note))
-        if L:
-            ts = L.get("texte_miniature") or {}
-            open(os.path.join(d, "titre.txt"), "w", encoding="utf-8").write((L.get("titre") or "") + "\n")
-            open(os.path.join(d, "prompt_miniature.txt"), "w", encoding="utf-8").write((L.get("prompt_image") or "") + "\n")
-            open(os.path.join(d, "texte_miniature.txt"), "w", encoding="utf-8").write(
-                f"{ts.get('texte', '')}\nCouleur : {ts.get('couleur', '')}\nPolice : {ts.get('police', '')}\n"
-                f"Placement : {ts.get('placement', '')}\n")
-        print("   titre :", (L or {}).get("titre"), "|", note or "ok")
+        L, top3, note = thumb.build(ctx, sources, queries, titre, top_facts)
+        img = None
+        try:
+            img = image.make(L, a.sujet, os.path.join(d, "miniature.jpg"))
+        except BaseException as e:
+            if isinstance(e, KeyboardInterrupt):
+                raise
+            print(f"   ! image de miniature non fabriquée : {type(e).__name__}: {str(e)[:150]}")
+        if not img:
+            problems.append("Image de miniature non fabriquée (sources d'image indisponibles) : le prompt est dans miniature.md.")
+        _w(os.path.join(d, "miniature.md"), thumb.render(a.sujet, L, top3, note, img))
+        print("   titre :", L.get("titre"), "|", note or "ok")
     except BaseException as e:  # ne jamais perdre le script pour la miniature
         if isinstance(e, KeyboardInterrupt):
             raise
         print(f"   ! titre/miniature non générés : {type(e).__name__}: {str(e)[:150]}")
-        problems.append(f"Titre / prompt / texte de miniature NON générés : {type(e).__name__}: {str(e)[:200]}. "
+        problems.append(f"Titre / miniature NON générés : {type(e).__name__}: {str(e)[:200]}. "
                         "Relance le workflow plus tard (quota Gemini) : le script, lui, est complet.")
         try:
-            _w(os.path.join(d, "titre_miniature.md"), "# Titre et miniature\n\n⚠ Non générés : " + problems[-1] + "\n")
+            _w(os.path.join(d, "miniature.md"), "# Miniature\n\n⚠ Non générée : " + problems[-1] + "\n")
         except Exception:
             pass
 
