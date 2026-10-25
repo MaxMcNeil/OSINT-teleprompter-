@@ -67,7 +67,9 @@ def keys():
 
 def client(i=0):
     if i not in _clients:
-        _clients[i] = genai.Client(api_key=keys()[i])
+        # délai max par appel : un appel bloqué (réseau, surcharge Google) ne peut plus geler tout le run
+        _clients[i] = genai.Client(api_key=keys()[i], http_options=types.HttpOptions(
+            timeout=int(float(os.getenv("LLM_CALL_TIMEOUT_S", "240")) * 1000)))
     return _clients[i]
 
 

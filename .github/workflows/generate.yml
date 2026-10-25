@@ -33,7 +33,7 @@ concurrency:
 
 jobs:
   generate:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 90
     env:
       # clés communes à la génération et au ciblage du Finder
@@ -50,10 +50,10 @@ jobs:
       YOUTUBE_API_KEYS_PLUS: ${{ secrets.YOUTUBE_API_KEYS_PLUS }}
       X_BEARER_TOKEN: ${{ secrets.X_BEARER_TOKEN }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - name: Repère de début (pour retrouver le dossier de CE run)
         run: touch "$RUNNER_TEMP/debut"
-      - uses: actions/setup-python@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
           cache: pip
@@ -63,6 +63,9 @@ jobs:
         env:
           PYTHONUTF8: "1"
           DEADLINE_MIN: "55"
+          # arrêt de sécurité à 60 min (l'étape est coupée à 63) : le script déjà écrit est enregistré, jamais perdu
+          HARD_STOP_MIN: "60"
+          LLM_CALL_TIMEOUT_S: "240"
           PYTHONUNBUFFERED: "1"
           LLM_RPM: "4"
           SUJET: ${{ inputs.sujet }}

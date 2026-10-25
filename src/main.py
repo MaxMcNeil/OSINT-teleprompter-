@@ -21,6 +21,31 @@ def slug(s):
 
 
 _D = None          # dossier du run en cours (pour y écrire une trace d'erreur)
+_STOP = {"protege": False, "recu": False}
+
+
+def _arret_securite(signum, frame):
+    """Arrêt de sécurité (minuterie HARD_STOP_MIN ou annulation GitHub) : plus aucun appel IA, et on écrit
+    ce qui est déjà produit au lieu d'être tué net et de tout perdre."""
+    llm.DEADLINE = 0
+    if _STOP["protege"] or _STOP["recu"]:      # écriture des fichiers en cours / signal répété : on laisse finir
+        return
+    _STOP["recu"] = True
+    print(f"\n   ! arrêt de sécurité (signal {signum}) : on garde et on enregistre ce qui est déjà écrit")
+    raise llm.Deadline("arrêt de sécurité avant la limite du workflow : on garde ce qui est déjà produit")
+
+
+def _installer_securite():
+    import signal
+    for sig in (signal.SIGTERM, signal.SIGINT, signal.SIGALRM):
+        try:
+            signal.signal(sig, _arret_securite)
+        except (ValueError, OSError):
+            pass
+    hard = float(os.getenv("HARD_STOP_MIN", "0") or 0)
+    if hard > 0:
+        signal.alarm(int(hard * 60))
+    return hard
 
 
 def _num(s):
@@ -53,6 +78,7 @@ def main():
     a.wpm = max(60, min(300, a.wpm))
 
     t0 = time.time()
+    hard = _installer_securite()
     lang = config.lang_cfg(a.langue, a.sujet)
     words = round(a.duree * a.wpm)
     ctx = {"sujet": a.sujet, "these": a.these, "lang": lang,
@@ -179,6 +205,7 @@ def main():
     titre = " ".join(str(titre).split()) or a.sujet
 
     print("[5/5] Documents de sortie…")
+    _STOP["protege"] = True        # le script est écrit : un arrêt de sécurité ne doit plus interrompre l'enregistrement
     try:        # liens du commentaire épinglé : on décode les liens Google News encore codés des sources citées
         cited = set(re.findall(r"\[(F\d+)\]", "\n".join(x["text"] for x in secs)))
         sid = {f["source_id"] for f in facts if f["id"] in cited}
@@ -218,7 +245,12 @@ def main():
             elif len(cited) < 3:
                 problems.append(f"Point {x['id']} (« {x['intitule'][:90]} ») : peu documenté ({len(cited)} fait(s) cité(s)).")
         _w(os.path.join(d, "couverture.md"), "\n".join(rows) + "\n")
-    llm.DEADLINE = max(llm.DEADLINE, time.monotonic() - llm.T0 + 420)   # 7 min de grâce pour le titre et la miniature
+    if not _STOP["recu"]:          # 7 min de grâce pour le titre et la miniature, sans dépasser l'arrêt de sécurité
+        grace = time.monotonic() - llm.T0 + 420
+        if hard > 0:
+            grace = min(grace, hard * 60 - 90)
+        llm.DEADLINE = max(llm.DEADLINE, grace)
+    _STOP["protege"] = False       # miniature : interrompable (elle est facultative, protégée par son propre try)
     print("   Titre + miniature (analyse du top 3 YouTube)…")
     try:
         top_facts = sorted(facts, key=script.score, reverse=True)[:5]
@@ -245,6 +277,7 @@ def main():
         except Exception:
             pass
 
+    _STOP["protege"] = True
     if final_words < words * 0.85:
         problems.append(f"Script plus court que la cible : {final_words} mots au lieu de {words} "
                         "(quota ou délai atteint pendant l'écriture, ou matière insuffisante).")
