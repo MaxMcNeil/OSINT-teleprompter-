@@ -1,0 +1,78 @@
+{
+ "recherches": [
+  {
+   "cible": "Donald Trump",
+   "sujet": "calls for 1.5 trillion dollar defense budget dream army",
+   "type": "personne",
+   "point": "P1"
+  },
+  {
+   "cible": "Sergueï Lavrov",
+   "sujet": "no pause in special military operation at UN Security Council",
+   "type": "personne",
+   "point": "P2"
+  },
+  {
+   "cible": "Friedrich Merz",
+   "sujet": "Bundeswehr zur stärksten konventionellen Armee in Europa machen",
+   "type": "personne",
+   "point": "P3"
+  },
+  {
+   "cible": "Parlement français",
+   "sujet": "adoption de la loi de programmation militaire 436 milliards d'euros",
+   "type": "entite",
+   "point": "P4"
+  }
+ ],
+ "envoye": {
+  "recherches": "Donald Trump | calls for 1.5 trillion dollar defense budget dream army | personne ; Sergueï Lavrov | no pause in special military operation at UN Security Council | personne ; Friedrich Merz | Bundeswehr zur stärksten konventionellen Armee in Europa machen | personne ; Parlement français | adoption de la loi de programmation militaire 436 milliards d'euros | entite",
+  "reglages": {
+   "type_par_defaut": "auto",
+   "locuteurs": "auto",
+   "autorite": "forte",
+   "videos_par_recherche": "8",
+   "articles_par_recherche": "6",
+   "langs": "fr,en",
+   "depuis": "2026-02-28",
+   "telecharger_extraits": false,
+   "en_parallele": "2"
+  },
+  "origine": {
+   "depot": "MaxMcNeil/OSINT-teleprompter-",
+   "run_id": "40398213168",
+   "run_url": "https://github.com/MaxMcNeil/OSINT-teleprompter-/actions/runs/40398213168",
+   "dossier": "2026-10-26_20h55_preparatifs-guerre-usa-russie-allemagne-france",
+   "sujet": "Ils préparent la guerre",
+   "court": "préparatifs guerre USA Russie Allemagne France",
+   "demontrer": "Les gouvernements des États-Unis, du Royaume-Uni, de la Russie, de l'Allemagne et de la France augmentent leurs budgets et leurs capacités militaires pour préparer un conflit mondial",
+   "langue": "fr",
+   "cibles": [
+    "Gouvernement des États-Unis",
+    "Gouvernement du Royaume-Uni",
+    "Gouvernement de la Fédération de Russie",
+    "Gouvernement fédéral d'Allemagne",
+    "Gouvernement de la République française"
+   ],
+   "points": [
+    {
+     "id": "P1",
+     "intitule": "Les États-Unis et le Royaume-Uni intensifient leurs dépenses de défense et leurs alliances militaires"
+    },
+    {
+     "id": "P2",
+     "intitule": "La Russie réoriente massivement son industrie et son budget vers l'effort de guerre"
+    },
+    {
+     "id": "P3",
+     "intitule": "L'Allemagne opère un tournant historique en se réarmant massivement"
+    },
+    {
+     "id": "P4",
+     "intitule": "La France accélère sa transition vers une économie de guerre via la loi de programmation militaire"
+    }
+   ]
+  }
+ },
+ "ciblage": "IA"
+}

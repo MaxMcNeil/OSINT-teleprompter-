@@ -1,0 +1,410 @@
+[  0.0 min] [1/5] Cible : 20.0 min = 2900 mots (145 mots/min), langue français
+[  0.0 min] [2/5] Collecte multi-sources…
+[  0.0 min]   10 clé(s) Gemini chargée(s)
+[  0.0 min]   modèles, du plus performant au moins performant : gemini-3.8-flash, gemini-3.7-flash, gemini-3.6-flash, gemini-3.5-flash, gemini-3.5-flash-lite, gemini-3.1-flash-lite, gemini-3.1-flash-lite-preview, gemini-3-flash-preview, gemini-2.5-flash, gemini-2.5-flash-lite
+[  0.0 min]   > clé n°1 / gemini-3.8-flash
+[  4.0 min]   ! LLM: 504 DEADLINE_EXCEEDED. {'error': {'code': 504, 'message': 'Deadline expired before operation could complete.', 'status': -> nouvel essai dans 3s
+[  4.0 min]   > clé n°2 / gemini-3.8-flash
+[  4.1 min]   ! gemini-3.8-flash surchargé (clé n°2) : on passe au modèle suivant pendant 90s
+[  4.1 min]   > clé n°3 / gemini-3.7-flash
+[  4.3 min]   ! gemini-3.7-flash surchargé (clé n°3) : on passe au modèle suivant pendant 90s
+[  4.3 min]   > clé n°4 / gemini-3.6-flash
+[  4.5 min]    raisonnement : Augmentation continue et massive des budgets de défense dans ces cinq nations -> Réorientation des industries nationales vers une économie de guerre et la production d'armement -> Multiplication des exercices militaires et renforcement des positions stratégiques -> Escalade verbale et précarisation des traités de non-prolifération et de sécurité
+[  4.5 min]    requête décomposée en 4 point(s) ; recherche courte : « préparatifs guerre USA Russie Allemagne France »
+[  4.5 min]      P1 : Les États-Unis et le Royaume-Uni intensifient leurs dépenses de défense et leurs alliances militaires.
+[  4.5 min]      P2 : La Russie réoriente massivement son industrie et son budget vers l'effort de guerre.
+[  4.5 min]      P3 : L'Allemagne opère un tournant historique en se réarmant massivement.
+[  4.5 min]      P4 : La France accélère sa transition vers une économie de guerre via la loi de programmation militaire.
+[  4.5 min]   > clé n°5 / gemini-3.6-flash
+[  4.6 min]    requêtes : budget défense états-unis royaume-uni hausse | Russie budget militaire économie de guerre | Allemagne réarmement fonds spécial Bundeswehr | France loi programmation militaire hausse budget | accords défense aukus dépenses militaires | US UK military spending budget increase | US UK defense posture force deployment | hausse production armement russe chiffres | Russia war economy military expenditure | оборонный бюджет России военная экономика | hausse budget défense allemand Zeitenwende | Germany military rearmament spending | Bundeswehr Sondervermögen Aufrüstung | économie de guerre France production munitions | France war economy military budget increase | loi programmation militaire budget armées | augmentation budget armee france 2024 | rapport preparation conflit haute intensite | controverses rearmement france reactions twitter | US UK defense spending expansion 2024 | NATO war readiness official report | Bundeswehr Kriegstüchtigkeit Beschaffung 2024
+[  4.6 min]   > clé n°6 / gemini-3.6-flash
+[  4.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  4.6 min]   ! quota par minute : clé n°6 / gemini-3.6-flash, pause 20s sur ce modèle seulement
+[  4.6 min]   > clé n°7 / gemini-3.6-flash
+[  4.6 min]   > clé n°8 / gemini-3.6-flash
+[  4.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  4.6 min]   ! quota par minute : clé n°7 / gemini-3.6-flash, pause 20s sur ce modèle seulement
+[  4.6 min]   > clé n°9 / gemini-3.6-flash
+[  4.6 min]   > clé n°10 / gemini-3.6-flash
+[  4.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  4.6 min]   ! quota par minute : clé n°8 / gemini-3.6-flash, pause 20s sur ce modèle seulement
+[  4.6 min]   > clé n°1 / gemini-3.6-flash
+[  4.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  4.6 min]   ! quota par minute : clé n°9 / gemini-3.6-flash, pause 20s sur ce modèle seulement
+[  4.6 min]   > clé n°2 / gemini-3.6-flash
+[  4.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  4.6 min]   ! quota par minute : clé n°1 / gemini-3.6-flash, pause 20s sur ce modèle seulement
+[  4.6 min]   > clé n°3 / gemini-3.6-flash
+[  4.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  4.6 min]   ! quota par minute : clé n°10 / gemini-3.6-flash, pause 20s sur ce modèle seulement
+[  4.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  4.6 min]   ! quota par minute : clé n°2 / gemini-3.6-flash, pause 20s sur ce modèle seulement
+[  4.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  4.6 min]   ! quota par minute : clé n°3 / gemini-3.6-flash, pause 20s sur ce modèle seulement
+[  4.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  4.6 min]   ! quota par minute : clé n°4 / gemini-3.6-flash, pause 20s sur ce modèle seulement
+[  4.7 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  4.7 min]   ! quota par minute : clé n°5 / gemini-3.6-flash, pause 20s sur ce modèle seulement
+[  4.9 min]   > clé n°6 / gemini-3.5-flash
+[  4.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  4.9 min]   ! quota par minute : clé n°6 / gemini-3.5-flash, pause 20s sur ce modèle seulement
+[  4.9 min]   > clé n°7 / gemini-3.5-flash
+[  4.9 min]   > clé n°8 / gemini-3.5-flash
+[  4.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  4.9 min]   ! quota par minute : clé n°7 / gemini-3.5-flash, pause 20s sur ce modèle seulement
+[  4.9 min]   > clé n°9 / gemini-3.5-flash
+[  4.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  4.9 min]   ! quota par minute : clé n°8 / gemini-3.5-flash, pause 20s sur ce modèle seulement
+[  4.9 min]   > clé n°10 / gemini-3.5-flash
+[  4.9 min]   > clé n°1 / gemini-3.5-flash
+[  4.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  4.9 min]   ! quota par minute : clé n°9 / gemini-3.5-flash, pause 20s sur ce modèle seulement
+[  4.9 min]   > clé n°2 / gemini-3.5-flash
+[  4.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  4.9 min]   ! quota par minute : clé n°1 / gemini-3.5-flash, pause 20s sur ce modèle seulement
+[  4.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  4.9 min]   ! quota par minute : clé n°10 / gemini-3.5-flash, pause 20s sur ce modèle seulement
+[  4.9 min]   > clé n°3 / gemini-3.5-flash
+[  4.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  4.9 min]   ! quota par minute : clé n°2 / gemini-3.5-flash, pause 20s sur ce modèle seulement
+[  4.9 min]   > clé n°4 / gemini-3.5-flash
+[  4.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  4.9 min]   ! quota par minute : clé n°3 / gemini-3.5-flash, pause 20s sur ce modèle seulement
+[  4.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  4.9 min]   ! quota par minute : clé n°4 / gemini-3.5-flash, pause 20s sur ce modèle seulement
+[  5.0 min]   > clé n°5 / gemini-3.5-flash
+[  5.0 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  5.0 min]   ! quota par minute : clé n°5 / gemini-3.5-flash, pause 20s sur ce modèle seulement
+[  5.1 min]   > clé n°6 / gemini-3.5-flash-lite
+[  5.1 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  5.1 min]   ! quota par minute : clé n°6 / gemini-3.5-flash-lite, pause 20s sur ce modèle seulement
+[  5.1 min]   > clé n°7 / gemini-3.5-flash-lite
+[  5.1 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  5.1 min]   ! quota par minute : clé n°7 / gemini-3.5-flash-lite, pause 20s sur ce modèle seulement
+[  5.1 min]   > clé n°8 / gemini-3.5-flash-lite
+[  5.1 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  5.1 min]   ! quota par minute : clé n°8 / gemini-3.5-flash-lite, pause 20s sur ce modèle seulement
+[  5.1 min]   ! quota inutilisable : clé n°9 / gemini-3.6-flash (recherche Google) : écarté pour ce run
+[  5.1 min]   ! quota inutilisable : clé n°1 / gemini-3.6-flash (recherche Google) : écarté pour ce run
+[  5.1 min]   ! quota inutilisable : clé n°10 / gemini-3.6-flash (recherche Google) : écarté pour ce run
+[  5.1 min]   ! quota inutilisable : clé n°2 / gemini-3.6-flash (recherche Google) : écarté pour ce run
+[  5.1 min]   ! quota inutilisable : clé n°3 / gemini-3.6-flash (recherche Google) : écarté pour ce run
+[  5.1 min]   ! quota inutilisable : clé n°4 / gemini-3.6-flash (recherche Google) : écarté pour ce run
+[  5.2 min]   ! quota inutilisable : clé n°5 / gemini-3.6-flash (recherche Google) : écarté pour ce run
+[  5.4 min]   ! quota inutilisable : clé n°6 / gemini-3.6-flash (recherche Google) : écarté pour ce run
+[  5.4 min]   ! quota inutilisable : clé n°7 / gemini-3.6-flash (recherche Google) : écarté pour ce run
+[  5.4 min]   ! quota inutilisable : clé n°8 / gemini-3.6-flash (recherche Google) : écarté pour ce run
+[  5.4 min]   ! quota inutilisable : clé n°9 / gemini-3.5-flash (recherche Google) : écarté pour ce run
+[  5.4 min]   ! quota inutilisable : clé n°1 / gemini-3.5-flash (recherche Google) : écarté pour ce run
+[  5.4 min]   ! quota inutilisable : clé n°2 / gemini-3.5-flash (recherche Google) : écarté pour ce run
+[  5.4 min]   ! quota inutilisable : clé n°10 / gemini-3.5-flash (recherche Google) : écarté pour ce run
+[  5.4 min]   ! quota inutilisable : clé n°3 / gemini-3.5-flash (recherche Google) : écarté pour ce run
+[  5.4 min]   ! quota inutilisable : clé n°4 / gemini-3.5-flash (recherche Google) : écarté pour ce run
+[  5.5 min]   ! quota inutilisable : clé n°5 / gemini-3.5-flash (recherche Google) : écarté pour ce run
+[  5.6 min]   ! quota inutilisable : clé n°6 / gemini-3.5-flash (recherche Google) : écarté pour ce run
+[  5.6 min]   ! quota inutilisable : clé n°7 / gemini-3.5-flash (recherche Google) : écarté pour ce run
+[  5.6 min]   > clé n°9 / gemini-3.5-flash-lite
+[  5.6 min]   ! quota inutilisable : clé n°8 / gemini-3.5-flash (recherche Google) : écarté pour ce run
+[  5.6 min]   > clé n°10 / gemini-3.8-flash
+[  5.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  5.6 min]   ! quota par minute : clé n°9 / gemini-3.5-flash-lite, pause 20s sur ce modèle seulement
+[  5.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  5.6 min]   ! quota par minute : clé n°1 / gemini-3.8-flash, pause 20s sur ce modèle seulement
+[  5.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  5.6 min]   ! quota par minute : clé n°10 / gemini-3.8-flash, pause 20s sur ce modèle seulement
+[  5.6 min]   > clé n°3 / gemini-3.8-flash
+[  5.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  5.6 min]   ! quota par minute : clé n°2 / gemini-3.8-flash, pause 20s sur ce modèle seulement
+[  5.6 min]   > clé n°4 / gemini-3.8-flash
+[  5.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  5.6 min]   ! quota par minute : clé n°3 / gemini-3.8-flash, pause 20s sur ce modèle seulement
+[  5.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  5.6 min]   ! quota par minute : clé n°4 / gemini-3.8-flash, pause 20s sur ce modèle seulement
+[  5.7 min]   > clé n°5 / gemini-3.8-flash
+[  5.7 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  5.7 min]   ! quota par minute : clé n°5 / gemini-3.8-flash, pause 20s sur ce modèle seulement
+[  5.9 min]   > clé n°6 / gemini-3.8-flash
+[  5.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  5.9 min]   ! quota par minute : clé n°6 / gemini-3.8-flash, pause 20s sur ce modèle seulement
+[  5.9 min]   > clé n°7 / gemini-3.8-flash
+[  5.9 min]   > clé n°8 / gemini-3.8-flash
+[  5.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  5.9 min]   ! quota par minute : clé n°7 / gemini-3.8-flash, pause 20s sur ce modèle seulement
+[  5.9 min]   > clé n°9 / gemini-3.8-flash
+[  5.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  5.9 min]   ! quota par minute : clé n°8 / gemini-3.8-flash, pause 20s sur ce modèle seulement
+[  5.9 min]   > clé n°10 / gemini-3.7-flash
+[  5.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  5.9 min]   ! quota par minute : clé n°9 / gemini-3.8-flash, pause 20s sur ce modèle seulement
+[  5.9 min]   > clé n°1 / gemini-3.7-flash
+[  5.9 min]   > clé n°2 / gemini-3.7-flash
+[  5.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  5.9 min]   ! quota par minute : clé n°1 / gemini-3.7-flash, pause 20s sur ce modèle seulement
+[  5.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  5.9 min]   ! quota par minute : clé n°10 / gemini-3.7-flash, pause 20s sur ce modèle seulement
+[  5.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  5.9 min]   ! quota par minute : clé n°2 / gemini-3.7-flash, pause 20s sur ce modèle seulement
+[  5.9 min]   > clé n°4 / gemini-3.7-flash
+[  5.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  5.9 min]   ! quota par minute : clé n°3 / gemini-3.7-flash, pause 20s sur ce modèle seulement
+[  5.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  5.9 min]   ! quota par minute : clé n°4 / gemini-3.7-flash, pause 20s sur ce modèle seulement
+[  6.0 min]   > clé n°5 / gemini-3.7-flash
+[  6.0 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  6.0 min]   ! quota par minute : clé n°5 / gemini-3.7-flash, pause 20s sur ce modèle seulement
+[  6.1 min]   > clé n°6 / gemini-3.7-flash
+[  6.1 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  6.1 min]   ! quota par minute : clé n°6 / gemini-3.7-flash, pause 20s sur ce modèle seulement
+[  6.1 min]   > clé n°7 / gemini-3.7-flash
+[  6.1 min]   > clé n°8 / gemini-3.7-flash
+[  6.1 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  6.1 min]   ! quota par minute : clé n°7 / gemini-3.7-flash, pause 20s sur ce modèle seulement
+[  6.1 min]   > clé n°9 / gemini-3.7-flash
+[  6.1 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  6.1 min]   ! quota par minute : clé n°8 / gemini-3.7-flash, pause 20s sur ce modèle seulement
+[  6.1 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  6.1 min]   ! quota par minute : clé n°9 / gemini-3.7-flash, pause 20s sur ce modèle seulement
+[  6.1 min]   ! quota inutilisable : clé n°1 / gemini-3.8-flash (recherche Google) : écarté pour ce run
+[  6.1 min]   ! quota inutilisable : clé n°2 / gemini-3.8-flash (recherche Google) : écarté pour ce run
+[  6.1 min]   ! quota inutilisable : clé n°10 / gemini-3.8-flash (recherche Google) : écarté pour ce run
+[  6.1 min]   ! quota inutilisable : clé n°3 / gemini-3.8-flash (recherche Google) : écarté pour ce run
+[  6.1 min]   ! quota inutilisable : clé n°4 / gemini-3.8-flash (recherche Google) : écarté pour ce run
+[  6.2 min]   ! quota inutilisable : clé n°5 / gemini-3.8-flash (recherche Google) : écarté pour ce run
+[  6.4 min]   ! quota inutilisable : clé n°6 / gemini-3.5-flash-lite (recherche Google) : écarté pour ce run
+[  6.4 min]   ! quota inutilisable : clé n°7 / gemini-3.5-flash-lite (recherche Google) : écarté pour ce run
+[  6.4 min]   ! quota inutilisable : clé n°9 / gemini-3.8-flash (recherche Google) : écarté pour ce run
+[  6.4 min]   ! quota inutilisable : clé n°8 / gemini-3.5-flash-lite (recherche Google) : écarté pour ce run
+[  6.4 min]   ! quota inutilisable : clé n°1 / gemini-3.7-flash (recherche Google) : écarté pour ce run
+[  6.4 min]   ! quota inutilisable : clé n°10 / gemini-3.7-flash (recherche Google) : écarté pour ce run
+[  6.4 min]   ! quota inutilisable : clé n°2 / gemini-3.7-flash (recherche Google) : écarté pour ce run
+[  6.4 min]   ! quota inutilisable : clé n°3 / gemini-3.7-flash (recherche Google) : écarté pour ce run
+[  6.4 min]   ! quota inutilisable : clé n°4 / gemini-3.7-flash (recherche Google) : écarté pour ce run
+[  6.5 min]   ! quota inutilisable : clé n°5 / gemini-3.7-flash (recherche Google) : écarté pour ce run
+[  6.6 min]   ! quota inutilisable : clé n°6 / gemini-3.8-flash (recherche Google) : écarté pour ce run
+[  6.6 min]   ! quota inutilisable : clé n°7 / gemini-3.8-flash (recherche Google) : écarté pour ce run
+[  6.6 min]   ! quota inutilisable : clé n°8 / gemini-3.8-flash (recherche Google) : écarté pour ce run
+[  6.6 min]   > clé n°10 / gemini-3.5-flash-lite
+[  6.6 min]   ! quota inutilisable : clé n°9 / gemini-3.7-flash (recherche Google) : écarté pour ce run
+[  6.6 min]   > clé n°1 / gemini-3.5-flash-lite
+[  6.6 min]   > clé n°2 / gemini-3.5-flash-lite
+[  6.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  6.6 min]   ! quota par minute : clé n°10 / gemini-3.5-flash-lite, pause 20s sur ce modèle seulement
+[  6.6 min]   > clé n°3 / gemini-3.5-flash-lite
+[  6.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  6.6 min]   ! quota par minute : clé n°2 / gemini-3.5-flash-lite, pause 20s sur ce modèle seulement
+[  6.6 min]   > clé n°4 / gemini-3.5-flash-lite
+[  6.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  6.6 min]   ! quota par minute : clé n°1 / gemini-3.5-flash-lite, pause 20s sur ce modèle seulement
+[  6.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  6.6 min]   ! quota par minute : clé n°3 / gemini-3.5-flash-lite, pause 20s sur ce modèle seulement
+[  6.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  6.6 min]   ! quota par minute : clé n°4 / gemini-3.5-flash-lite, pause 20s sur ce modèle seulement
+[  6.7 min]   > clé n°5 / gemini-3.5-flash-lite
+[  6.7 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  6.7 min]   ! quota par minute : clé n°5 / gemini-3.5-flash-lite, pause 20s sur ce modèle seulement
+[  6.9 min]   ! quota inutilisable : clé n°6 / gemini-3.7-flash (recherche Google) : écarté pour ce run
+[  6.9 min]   ! quota inutilisable : clé n°7 / gemini-3.7-flash (recherche Google) : écarté pour ce run
+[  6.9 min]   ! quota inutilisable : clé n°8 / gemini-3.7-flash (recherche Google) : écarté pour ce run
+[  6.9 min]   > clé n°10 / gemini-3.1-flash-lite
+[  6.9 min]   > clé n°1 / gemini-3.1-flash-lite
+[  6.9 min]   ! quota inutilisable : clé n°9 / gemini-3.5-flash-lite (recherche Google) : écarté pour ce run
+[  6.9 min]   > clé n°2 / gemini-3.1-flash-lite
+[  6.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  6.9 min]   ! quota par minute : clé n°10 / gemini-3.1-flash-lite, pause 20s sur ce modèle seulement
+[  6.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  6.9 min]   ! quota par minute : clé n°1 / gemini-3.1-flash-lite, pause 20s sur ce modèle seulement
+[  6.9 min]   > clé n°3 / gemini-3.1-flash-lite
+[  6.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  6.9 min]   ! quota par minute : clé n°2 / gemini-3.1-flash-lite, pause 20s sur ce modèle seulement
+[  6.9 min]   > clé n°4 / gemini-3.1-flash-lite
+[  6.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  6.9 min]   ! quota par minute : clé n°3 / gemini-3.1-flash-lite, pause 20s sur ce modèle seulement
+[  6.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  6.9 min]   ! quota par minute : clé n°4 / gemini-3.1-flash-lite, pause 20s sur ce modèle seulement
+[  7.0 min]   > clé n°5 / gemini-3.1-flash-lite
+[  7.0 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  7.0 min]   ! quota par minute : clé n°5 / gemini-3.1-flash-lite, pause 20s sur ce modèle seulement
+[  7.1 min]   > clé n°6 / gemini-3.1-flash-lite
+[  7.1 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  7.1 min]   ! quota par minute : clé n°6 / gemini-3.1-flash-lite, pause 20s sur ce modèle seulement
+[  7.1 min]   > clé n°7 / gemini-3.1-flash-lite
+[  7.1 min]   > clé n°8 / gemini-3.1-flash-lite
+[  7.1 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  7.1 min]   ! quota par minute : clé n°7 / gemini-3.1-flash-lite, pause 20s sur ce modèle seulement
+[  7.1 min]   > clé n°9 / gemini-3.1-flash-lite
+[  7.1 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  7.1 min]   ! quota par minute : clé n°8 / gemini-3.1-flash-lite, pause 20s sur ce modèle seulement
+[  7.1 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  7.1 min]   ! quota par minute : clé n°9 / gemini-3.1-flash-lite, pause 20s sur ce modèle seulement
+[  7.1 min]   ! quota inutilisable : clé n°2 / gemini-3.5-flash-lite (recherche Google) : écarté pour ce run
+[  7.1 min]   ! quota inutilisable : clé n°1 / gemini-3.5-flash-lite (recherche Google) : écarté pour ce run
+[  7.1 min]   ! quota inutilisable : clé n°10 / gemini-3.5-flash-lite (recherche Google) : écarté pour ce run
+[  7.1 min]   ! quota inutilisable : clé n°4 / gemini-3.5-flash-lite (recherche Google) : écarté pour ce run
+[  7.1 min]   ! quota inutilisable : clé n°3 / gemini-3.5-flash-lite (recherche Google) : écarté pour ce run
+[  7.2 min]   ! quota inutilisable : clé n°5 / gemini-3.5-flash-lite (recherche Google) : écarté pour ce run
+[  7.4 min]   > clé n°6 / gemini-3.1-flash-lite-preview
+[  7.4 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  7.4 min]   ! quota par minute : clé n°6 / gemini-3.1-flash-lite-preview, pause 20s sur ce modèle seulement
+[  7.4 min]   > clé n°7 / gemini-3.1-flash-lite-preview
+[  7.4 min]   > clé n°8 / gemini-3.1-flash-lite-preview
+[  7.4 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  7.4 min]   ! quota par minute : clé n°7 / gemini-3.1-flash-lite-preview, pause 20s sur ce modèle seulement
+[  7.4 min]   > clé n°9 / gemini-3.1-flash-lite-preview
+[  7.4 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  7.4 min]   ! quota par minute : clé n°8 / gemini-3.1-flash-lite-preview, pause 20s sur ce modèle seulement
+[  7.4 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  7.4 min]   ! quota par minute : clé n°9 / gemini-3.1-flash-lite-preview, pause 20s sur ce modèle seulement
+[  7.4 min]   ! quota inutilisable : clé n°10 / gemini-3.1-flash-lite (recherche Google) : écarté pour ce run
+[  7.4 min]   ! quota inutilisable : clé n°1 / gemini-3.1-flash-lite (recherche Google) : écarté pour ce run
+[  7.4 min]   ! quota inutilisable : clé n°2 / gemini-3.1-flash-lite (recherche Google) : écarté pour ce run
+[  7.4 min]   ! quota inutilisable : clé n°3 / gemini-3.1-flash-lite (recherche Google) : écarté pour ce run
+[  7.4 min]   ! quota inutilisable : clé n°4 / gemini-3.1-flash-lite (recherche Google) : écarté pour ce run
+[  7.5 min]   ! quota inutilisable : clé n°5 / gemini-3.1-flash-lite (recherche Google) : écarté pour ce run
+[  7.6 min]   > clé n°6 / gemini-3-flash-preview
+[  7.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  7.6 min]   ! quota par minute : clé n°6 / gemini-3-flash-preview, pause 20s sur ce modèle seulement
+[  7.6 min]   > clé n°7 / gemini-3-flash-preview
+[  7.6 min]   > clé n°8 / gemini-3-flash-preview
+[  7.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  7.6 min]   ! quota par minute : clé n°7 / gemini-3-flash-preview, pause 20s sur ce modèle seulement
+[  7.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  7.6 min]   ! quota par minute : clé n°8 / gemini-3-flash-preview, pause 20s sur ce modèle seulement
+[  7.6 min]   ! quota inutilisable : clé n°9 / gemini-3.1-flash-lite (recherche Google) : écarté pour ce run
+[  7.6 min]   > clé n°10 / gemini-3.1-flash-lite-preview
+[  7.6 min]   > clé n°1 / gemini-3.1-flash-lite-preview
+[  7.6 min]   > clé n°2 / gemini-3.1-flash-lite-preview
+[  7.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  7.6 min]   ! quota par minute : clé n°1 / gemini-3.1-flash-lite-preview, pause 20s sur ce modèle seulement
+[  7.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  7.6 min]   ! quota par minute : clé n°10 / gemini-3.1-flash-lite-preview, pause 20s sur ce modèle seulement
+[  7.6 min]   > clé n°3 / gemini-3.1-flash-lite-preview
+[  7.6 min]   > clé n°4 / gemini-3.1-flash-lite-preview
+[  7.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  7.6 min]   ! quota par minute : clé n°2 / gemini-3.1-flash-lite-preview, pause 20s sur ce modèle seulement
+[  7.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  7.6 min]   ! quota par minute : clé n°3 / gemini-3.1-flash-lite-preview, pause 20s sur ce modèle seulement
+[  7.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  7.6 min]   ! quota par minute : clé n°4 / gemini-3.1-flash-lite-preview, pause 20s sur ce modèle seulement
+[  7.7 min]   > clé n°5 / gemini-3.1-flash-lite-preview
+[  7.7 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  7.7 min]   ! quota par minute : clé n°5 / gemini-3.1-flash-lite-preview, pause 20s sur ce modèle seulement
+[  7.9 min]   ! quota inutilisable : clé n°6 / gemini-3.1-flash-lite (recherche Google) : écarté pour ce run
+[  7.9 min]   ! quota inutilisable : clé n°7 / gemini-3.1-flash-lite (recherche Google) : écarté pour ce run
+[  7.9 min]   ! quota inutilisable : clé n°8 / gemini-3.1-flash-lite (recherche Google) : écarté pour ce run
+[  7.9 min]   ! quota inutilisable : clé n°9 / gemini-3.1-flash-lite-preview (recherche Google) : écarté pour ce run
+[  7.9 min]   > clé n°10 / gemini-3-flash-preview
+[  7.9 min]   > clé n°1 / gemini-3-flash-preview
+[  7.9 min]   > clé n°2 / gemini-3-flash-preview
+[  7.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  7.9 min]   ! quota par minute : clé n°1 / gemini-3-flash-preview, pause 20s sur ce modèle seulement
+[  7.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  7.9 min]   ! quota par minute : clé n°10 / gemini-3-flash-preview, pause 20s sur ce modèle seulement
+[  7.9 min]   > clé n°3 / gemini-3-flash-preview
+[  7.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  7.9 min]   ! quota par minute : clé n°2 / gemini-3-flash-preview, pause 20s sur ce modèle seulement
+[  7.9 min]   > clé n°4 / gemini-3-flash-preview
+[  7.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  7.9 min]   ! quota par minute : clé n°3 / gemini-3-flash-preview, pause 20s sur ce modèle seulement
+[  7.9 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  7.9 min]   ! quota par minute : clé n°4 / gemini-3-flash-preview, pause 20s sur ce modèle seulement
+[  8.0 min]   > clé n°5 / gemini-3-flash-preview
+[  8.0 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  8.0 min]   ! quota par minute : clé n°5 / gemini-3-flash-preview, pause 20s sur ce modèle seulement
+[  8.1 min]   ! quota inutilisable : clé n°6 / gemini-3.1-flash-lite-preview (recherche Google) : écarté pour ce run
+[  8.1 min]   ! quota inutilisable : clé n°7 / gemini-3.1-flash-lite-preview (recherche Google) : écarté pour ce run
+[  8.1 min]   > clé n°9 / gemini-3-flash-preview
+[  8.1 min]   ! quota inutilisable : clé n°8 / gemini-3.1-flash-lite-preview (recherche Google) : écarté pour ce run
+[  8.1 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://ai.google.dev/gemini-api/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. )
+[  8.1 min]   ! quota par minute : clé n°9 / gemini-3-flash-preview, pause 20s sur ce modèle seulement
+[  8.1 min]   ! quota inutilisable : clé n°1 / gemini-3.1-flash-lite-preview (recherche Google) : écarté pour ce run
+[  8.1 min]   ! quota inutilisable : clé n°10 / gemini-3.1-flash-lite-preview (recherche Google) : écarté pour ce run
+[  8.1 min]   ! quota inutilisable : clé n°2 / gemini-3.1-flash-lite-preview (recherche Google) : écarté pour ce run
+[  8.1 min]   ! quota inutilisable : clé n°3 / gemini-3.1-flash-lite-preview (recherche Google) : écarté pour ce run
+[  8.1 min]   ! quota inutilisable : clé n°4 / gemini-3.1-flash-lite-preview (recherche Google) : écarté pour ce run
+[  8.2 min]   ! quota inutilisable : clé n°5 / gemini-3.1-flash-lite-preview (recherche Google) : écarté pour ce run
+[  8.4 min]   ! quota inutilisable : clé n°6 / gemini-3-flash-preview (recherche Google) : écarté pour ce run
+[  8.4 min]   ! quota inutilisable : clé n°7 / gemini-3-flash-preview (recherche Google) : écarté pour ce run
+[  8.4 min]   > clé n°9 / gemini-2.5-flash
+[  8.4 min]   ! quota inutilisable : clé n°8 / gemini-3-flash-preview (recherche Google) : écarté pour ce run
+[  8.4 min]   ! gemini-2.5-flash introuvable (clé n°9), suivant
+[  8.4 min]   ! quota inutilisable : clé n°1 / gemini-3-flash-preview (recherche Google) : écarté pour ce run
+[  8.4 min]   ! quota inutilisable : clé n°10 / gemini-3-flash-preview (recherche Google) : écarté pour ce run
+[  8.4 min]   ! quota inutilisable : clé n°2 / gemini-3-flash-preview (recherche Google) : écarté pour ce run
+[  8.4 min]   ! quota inutilisable : clé n°3 / gemini-3-flash-preview (recherche Google) : écarté pour ce run
+[  8.4 min]   ! quota inutilisable : clé n°4 / gemini-3-flash-preview (recherche Google) : écarté pour ce run
+[  8.5 min]   ! quota inutilisable : clé n°5 / gemini-3-flash-preview (recherche Google) : écarté pour ce run
+[  8.6 min]   > clé n°6 / gemini-2.5-flash
+[  8.6 min]   ! gemini-2.5-flash introuvable (clé n°6), suivant
+[  8.6 min]   > clé n°7 / gemini-2.5-flash
+[  8.6 min]   ! gemini-2.5-flash introuvable (clé n°7), suivant
+[  8.6 min]   > clé n°8 / gemini-2.5-flash
+[  8.6 min]   > clé n°10 / gemini-2.5-flash
+[  8.6 min]   ! quota inutilisable : clé n°9 / gemini-3-flash-preview (recherche Google) : écarté pour ce run
+[  8.6 min]   > clé n°1 / gemini-2.5-flash
+[  8.6 min]   ! gemini-2.5-flash introuvable (clé n°8), suivant
+[  8.6 min]   > clé n°2 / gemini-2.5-flash
+[  8.6 min]   ! gemini-2.5-flash introuvable (clé n°10), suivant
+[  8.6 min]   > clé n°3 / gemini-2.5-flash
+[  8.6 min]   > clé n°4 / gemini-2.5-flash
+[  8.6 min]   ! gemini-2.5-flash introuvable (clé n°3), suivant
+[  8.6 min]   ! gemini-2.5-flash introuvable (clé n°4), suivant
+[  8.7 min]   > clé n°5 / gemini-2.5-flash
+[  8.7 min]   ! gemini-2.5-flash introuvable (clé n°5), suivant
+[  8.9 min]   > clé n°6 / gemini-2.5-flash-lite
+[  8.9 min]   ! gemini-2.5-flash-lite introuvable (clé n°6), suivant
+[  8.9 min]   > clé n°7 / gemini-2.5-flash-lite
+[  8.9 min]   ! gemini-2.5-flash-lite introuvable (clé n°7), suivant
+[  9.1 min]   ! collecte: The read operation timed out
+[ 11.1 min]    collecte brute : presse 140, bing 61, web 44, youtube 24
+[ 11.1 min]    253 sources uniques ; récupération des textes…
+[ 11.2 min]    textes complets récupérés : 96/253 sources
+[ 11.3 min] [3/5] Extraction et vérification des faits…
+[ 11.3 min]   ! gemini-3.8-flash surchargé (clé n°9) : on passe au modèle suivant pendant 90s
+[ 13.8 min]   ! gemini-3.8-flash surchargé (clé n°7) : on passe au modèle suivant pendant 90s
+[ 16.9 min]   ! gemini-3.8-flash surchargé (clé n°8) : on passe au modèle suivant pendant 90s
+[ 16.9 min]   ! gemini-3.8-flash surchargé (clé n°10) : on passe au modèle suivant pendant 90s
+[ 16.9 min]   ! gemini-3.7-flash surchargé (clé n°3) : on passe au modèle suivant pendant 90s
+[ 17.5 min]   ! gemini-3.6-flash surchargé (clé n°6) : on passe au modèle suivant pendant 90s
+[ 18.3 min]   ! gemini-3.5-flash surchargé (clé n°2) : on passe au modèle suivant pendant 90s
+[ 18.4 min]   ! gemini-3.8-flash surchargé (clé n°5) : on passe au modèle suivant pendant 90s
+[ 18.4 min]   ! gemini-3.7-flash surchargé (clé n°6) : on passe au modèle suivant pendant 90s
+[ 20.4 min]    95 faits retenus (10 chiffres corrigés d'après la source, 2 écartés car introuvables)
+[ 20.4 min]    Vérification croisée des faits fragiles (source faible, allégation)…
+[ 21.4 min]    liens Google News décodés : 42 réussis, 0 échecs
+[ 21.4 min]    textes complets récupérés : 30/57 sources
+[ 21.4 min]   ! gemini-3.8-flash surchargé (clé n°8) : on passe au modèle suivant pendant 90s
+[ 21.4 min]   ! gemini-3.8-flash surchargé (clé n°2) : on passe au modèle suivant pendant 90s
+[ 21.4 min]   ! gemini-3.7-flash surchargé (clé n°9) : on passe au modèle suivant pendant 90s
+[ 21.8 min]   ! gemini-3.7-flash surchargé (clé n°10) : on passe au modèle suivant pendant 90s
+[ 21.8 min]   ! gemini-3.6-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 21.8 min]   ! gemini-3.5-flash surchargé (clé n°9) : on passe au modèle suivant pendant 90s
+[ 25.3 min]   ! LLM: 504 DEADLINE_EXCEEDED. {'error': {'code': 504, 'message': 'Deadline expired before operation could complete.', 'status': -> nouvel essai dans 3s
+[ 28.0 min]    13 faits fragiles vérifiés : 1 confirmés par une autre source, 0 contredits, 12 non corroborés, 0 non vérifiés
+[ 28.0 min]    faits et sources sauvegardés dans prompter/2026-10-26_20h55_preparatifs-guerre-usa-russie-allemagne-france/donnees.json (récupérables même si la suite échoue)
+[ 28.0 min] [4/5] Écriture du script…
+[ 28.0 min]    76 faits retenus pour 2900 mots (19 en réserve)
+[ 32.0 min]   ! LLM: 504 DEADLINE_EXCEEDED. {'error': {'code': 504, 'message': 'Deadline expired before operation could complete.', 'status': -> nouvel essai dans 3s
+[ 32.1 min]   ! gemini-3.8-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 32.1 min]   ! gemini-3.7-flash surchargé (clé n°2) : on passe au modèle suivant pendant 90s
+[ 32.5 min]    écriture : Ouverture (145 mots)
+[ 32.9 min]    écriture : États-Unis et Royaume-Uni : L'escalade budgétaire et le pari atomique (1107 mots)
+[ 32.9 min]   ! gemini-3.6-flash surchargé (clé n°10) : on passe au modèle suivant pendant 90s
+[ 33.8 min]   ! gemini-3.5-flash surchargé (clé n°3) : on passe au modèle suivant pendant 90s
+[ 33.9 min]   ! gemini-3.8-flash surchargé (clé n°4) : on passe au modèle suivant pendant 90s
+[ 33.9 min]   ! gemini-3.7-flash surchargé (clé n°5) : on passe au modèle suivant pendant 90s
+[ 34.0 min]    écriture : Russie : L'économie cannibalisée par l'effort de guerre (290 mots)
+[ 34.1 min]    écriture : Allemagne : Le grand tournant du réarmement massif (745 mots)
+[ 34.1 min]    écriture : France : La loi de programmation militaire et la fiction de la haute intensité (410 mots)
+[ 34.2 min]    écriture : Conclusion (203 mots)
+[ 34.3 min]    calage 1: 3065/2900 mots
+[ 34.3 min]    coupe des phrases les moins utiles : 3065 -> 2941 mots
+[ 34.3 min] [5/5] Documents de sortie…
+[ 34.3 min]    script enregistré : 2941 mots
+[ 34.3 min]    liens des sources citées : 1/1 décodés
+[ 34.3 min]    Titre + miniature (analyse du top 3 YouTube)…
+[ 34.5 min]    titre : ILS PRÉPARENT LA GUERRE | ok
+[ 34.5 min] 
+[ 34.5 min] ILS PRÉPARENT LA GUERRE MONDIALE : L'ENGRENAGE FATAL DES 5 PUISSANCES
+[ 34.5 min] 
+[ 34.5 min] Script : 2941 mots ≈ 20.3 min (cible 20.0) · 310 sources · 95 faits vérifiés · 2067 s
+[ 34.5 min] Fichiers : prompter/2026-10-26_20h55_preparatifs-guerre-usa-russie-allemagne-france

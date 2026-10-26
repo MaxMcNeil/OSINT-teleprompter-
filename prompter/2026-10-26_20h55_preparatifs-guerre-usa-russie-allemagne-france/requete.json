@@ -1,0 +1,62 @@
+{
+ "sujet": "Ils préparent la guerre",
+ "these": "USA, UK, Russie, Allemagne, france",
+ "langue": "fr",
+ "court": "préparatifs guerre USA Russie Allemagne France",
+ "demontrer": "Les gouvernements des États-Unis, du Royaume-Uni, de la Russie, de l'Allemagne et de la France augmentent leurs budgets et leurs capacités militaires pour préparer un conflit mondial.",
+ "raisonnement": [
+  "Augmentation continue et massive des budgets de défense dans ces cinq nations",
+  "Réorientation des industries nationales vers une économie de guerre et la production d'armement",
+  "Multiplication des exercices militaires et renforcement des positions stratégiques",
+  "Escalade verbale et précarisation des traités de non-prolifération et de sécurité"
+ ],
+ "cibles": [
+  "Gouvernement des États-Unis",
+  "Gouvernement du Royaume-Uni",
+  "Gouvernement de la Fédération de Russie",
+  "Gouvernement fédéral d'Allemagne",
+  "Gouvernement de la République française"
+ ],
+ "points": [
+  {
+   "id": "P1",
+   "intitule": "Les États-Unis et le Royaume-Uni intensifient leurs dépenses de défense et leurs alliances militaires.",
+   "requetes": [
+    "budget défense états-unis royaume-uni hausse",
+    "accords défense aukus dépenses militaires",
+    "US UK military spending budget increase",
+    "US UK defense posture force deployment"
+   ]
+  },
+  {
+   "id": "P2",
+   "intitule": "La Russie réoriente massivement son industrie et son budget vers l'effort de guerre.",
+   "requetes": [
+    "Russie budget militaire économie de guerre",
+    "hausse production armement russe chiffres",
+    "Russia war economy military expenditure",
+    "оборонный бюджет России военная экономика"
+   ]
+  },
+  {
+   "id": "P3",
+   "intitule": "L'Allemagne opère un tournant historique en se réarmant massivement.",
+   "requetes": [
+    "Allemagne réarmement fonds spécial Bundeswehr",
+    "hausse budget défense allemand Zeitenwende",
+    "Germany military rearmament spending",
+    "Bundeswehr Sondervermögen Aufrüstung"
+   ]
+  },
+  {
+   "id": "P4",
+   "intitule": "La France accélère sa transition vers une économie de guerre via la loi de programmation militaire.",
+   "requetes": [
+    "France loi programmation militaire hausse budget",
+    "économie de guerre France production munitions",
+    "France war economy military budget increase",
+    "loi programmation militaire budget armées"
+   ]
+  }
+ ]
+}
