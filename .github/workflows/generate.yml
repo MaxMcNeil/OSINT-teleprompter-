@@ -31,6 +31,10 @@ on:
         type: choice
         options: [oui, non]
         default: oui
+      finder_depuis:
+        description: "Finder : seulement les vidéos/articles publiés après cette date — AAAA-MM-JJ (ou 30j, 6m, 1a). Vide = toutes dates"
+        required: false
+        default: ""
 
 permissions:
   contents: write
@@ -98,6 +102,7 @@ jobs:
           DEADLINE_MIN: "6"
           LLM_RPM: "4"
           FINDER_MAX: "5"
+          FINDER_DEPUIS: ${{ inputs.finder_depuis }}
         run: |
           D=$(find prompter -mindepth 2 -maxdepth 2 -name requete.json -newer "$RUNNER_TEMP/debut" -printf '%T@ %h\n' 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2-)
           if [ -z "$D" ]; then

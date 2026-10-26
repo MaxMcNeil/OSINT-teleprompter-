@@ -175,6 +175,33 @@ def build(d):
     return {"mode": mode, "req": req, "n_cites": len(cited)}, out
 
 
+def depuis(v):
+    """Date « à partir de » pour le Finder, toujours rendue en AAAA-MM-JJ (le Finder compare des dates texte).
+    Accepte : 2026-03-01, 01/03/2026, 1-3-2026, 30j, 8 semaines, 6m / 6 mois, 1a / 1 an. Vide ou illisible -> ''."""
+    import datetime as dt
+    v = " ".join(str(v or "").lower().split())
+    if not v:
+        return "", ""
+    m = re.fullmatch(r"(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})", v)
+    if m:
+        y, mo, d = map(int, m.groups())
+    else:
+        m = re.fullmatch(r"(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})", v)
+        if m:
+            d, mo, y = map(int, m.groups())
+    if m:
+        try:
+            return dt.date(y, mo, d).isoformat(), ""
+        except ValueError:
+            return "", f"date « {v} » impossible : aucun filtre de date appliqué"
+    m = re.fullmatch(r"(\d{1,4})\s*(j|jours?|d|days?|s|sem|semaines?|w|weeks?|m|mois|months?|a|ans?|y|years?)", v)
+    if m:
+        n, u = int(m.group(1)), m.group(2)[0]
+        days = n * {"j": 1, "d": 1, "s": 7, "w": 7, "m": 30, "a": 365, "y": 365}[u]
+        return (dt.date.today() - dt.timedelta(days=days)).isoformat(), ""
+    return "", f"date « {v} » illisible (attendu AAAA-MM-JJ, JJ/MM/AAAA, 30j, 6m ou 1a) : aucun filtre de date appliqué"
+
+
 def langs(code):
     code = (code or "fr").lower()[:2]
     return ",".join(dict.fromkeys([code, "fr", "en"]))
@@ -189,6 +216,9 @@ def main():
         print("Aucune recherche Finder à lancer (pas de matière exploitable dans ce run).")
         sys.exit(3)
     req = info["req"]
+    since, warn = depuis(os.getenv("FINDER_DEPUIS", ""))
+    if warn:
+        print(f"::warning::{warn}")
     run_url = ""
     if os.getenv("GITHUB_RUN_ID"):
         run_url = f"{os.getenv('GITHUB_SERVER_URL', 'https://github.com')}/{os.getenv('GITHUB_REPOSITORY')}/actions/runs/{os.getenv('GITHUB_RUN_ID')}"
@@ -201,7 +231,7 @@ def main():
                "cibles": [_clean(c, 80) for c in (req.get("cibles") or [])][:8],
                "points": [{"id": p.get("id"), "intitule": _clean(p.get("intitule"), 200)} for p in (req.get("points") or [])][:8]}
     reglages = {"type_par_defaut": "auto", "locuteurs": "auto", "autorite": "forte", "videos_par_recherche": "8",
-                "articles_par_recherche": "6", "langs": langs(req.get("langue")), "depuis": "",
+                "articles_par_recherche": "6", "langs": langs(req.get("langue")), "depuis": since,
                 "telecharger_extraits": False, "en_parallele": "2"}
     payload = {"event_type": "osint-finder",
                "client_payload": {"recherches": chaine, "reglages": reglages, "origine": origine}}
@@ -212,7 +242,9 @@ def main():
                   ensure_ascii=False, indent=1)
     md = ["# Vid-o-presse-finder lancé automatiquement", "",
           f"Ciblage {info['mode']} à partir de ce run ({info['n_cites']} faits cités au script). "
-          f"Langues : {reglages['langs']}.", "",
+          f"Langues : {reglages['langs']}. "
+          + (f"Vidéos et articles publiés **à partir du {since}** seulement." if since else "Toutes dates.")
+          + (f" ⚠ {warn}" if warn else ""), "",
           "| # | Cible | Ce qu'on cherche | Type | Point du script |", "|---|---|---|---|---|"]
     md += [f"| {i} | {r['cible']} | {r['sujet']} | {r['type']} | {r['point'] or '—'} |" for i, r in enumerate(rech, 1)]
     md += ["", "Résultats : dépôt Vid-o-presse-finder, dossier `results/<lot>/` — le lot contient `ORIGINE.json` "
