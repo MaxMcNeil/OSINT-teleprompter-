@@ -26,15 +26,6 @@ on:
         description: "Refaire SEULEMENT le document titre + miniature d'un live déjà écrit : nom (ou début) du dossier prompter/ — vide sinon"
         required: false
         default: ""
-      video_finder:
-        description: "Lancer ensuite Vid-o-presse-finder, ciblé sur ce sujet (vidéos + articles pour le montage)"
-        type: choice
-        options: [oui, non]
-        default: oui
-      finder_depuis:
-        description: "Finder : seulement les vidéos/articles publiés après cette date — AAAA-MM-JJ (ou 30j, 6m, 1a). Vide = toutes dates"
-        required: false
-        default: ""
 
 permissions:
   contents: write
@@ -89,69 +80,8 @@ jobs:
           JOURNAL: ${{ runner.temp }}/journal.txt
           OUT_DIR: prompter
         run: python -m src.main --sujet "$SUJET" --duree "$DUREE" --these "$THESE" --langue "$LANGUE"
-      # 🔎 Vid-o-presse-finder : recherches ciblées sur CE sujet (personnes qui ont parlé, cibles, points du script).
-      # Lancé par ce run uniquement (aucun cron). Le lot du Finder garde ORIGINE.json -> le montage s'y synchronise.
-      - name: Vid-o-presse-finder — préparer les recherches ciblées
-        id: vpf
-        if: always() && inputs.video_finder != 'non' && inputs.miniature_seule == ''
-        continue-on-error: true
-        timeout-minutes: 10
-        env:
-          PYTHONUTF8: "1"
-          PYTHONUNBUFFERED: "1"
-          DEADLINE_MIN: "6"
-          LLM_RPM: "4"
-          FINDER_MAX: "5"
-          FINDER_DEPUIS: ${{ inputs.finder_depuis }}
-        run: |
-          D=$(find prompter -mindepth 2 -maxdepth 2 -name requete.json -newer "$RUNNER_TEMP/debut" -printf '%T@ %h\n' 2>/dev/null | sort -n | tail -1 | cut -d' ' -f2-)
-          if [ -z "$D" ]; then
-            echo "::warning::Vid-o-presse-finder non lancé : ce run n'a produit aucune recherche exploitable (voir l'étape Générer)"
-            exit 0
-          fi
-          echo "dossier=$D" >> "$GITHUB_OUTPUT"
-          set +e
-          python -m src.finder_link "$D" "$RUNNER_TEMP/finder_payload.json"
-          rc=$?
-          set -e
-          if [ "$rc" = 0 ] && [ -s "$RUNNER_TEMP/finder_payload.json" ]; then echo "ok=1" >> "$GITHUB_OUTPUT"
-          else echo "::warning::Vid-o-presse-finder non lancé : aucune recherche ciblée possible pour ce sujet"; fi
-
-      - name: Vid-o-presse-finder — jeton GitHub App
-        id: vpf_tok
-        if: always() && steps.vpf.outputs.ok == '1' && vars.CHAINE_APP_ID != ''
-        continue-on-error: true
-        uses: actions/create-github-app-token@v2
-        with:
-          app-id: ${{ vars.CHAINE_APP_ID }}
-          private-key: ${{ secrets.CHAINE_APP_KEY }}
-          owner: ${{ github.repository_owner }}
-          repositories: Vid-o-presse-finder
-
-      - name: Vid-o-presse-finder — lancer
-        if: always() && steps.vpf.outputs.ok == '1'
-        continue-on-error: true
-        env:
-          GH_TOKEN: ${{ steps.vpf_tok.outputs.token || secrets.CHAINE_TOKEN || secrets.FINDER_TOKEN }}
-          CIBLE: ${{ vars.FINDER_REPO || format('{0}/Vid-o-presse-finder', github.repository_owner) }}
-          D: ${{ steps.vpf.outputs.dossier }}
-        run: |
-          note() { printf '\n%s\n' "$1" >> "$D/FINDER.md"; echo "$1" >> "$GITHUB_STEP_SUMMARY"; }
-          if [ -z "${GH_TOKEN:-}" ]; then
-            note "❌ **Finder NON lancé** : aucun jeton. Ajoute le secret CHAINE_TOKEN (même jeton que la chaîne, droit « Contents : read and write » sur Vid-o-presse-finder) dans ce dépôt. Les recherches ci-dessus sont prêtes : colle-les dans le champ « recherches » de Find quotes."
-            echo "::warning::Vid-o-presse-finder non lancé : secret CHAINE_TOKEN absent dans ce dépôt"
-            exit 0
-          fi
-          for i in 1 2 3 4; do
-            if gh api "repos/$CIBLE/dispatches" --input "$RUNNER_TEMP/finder_payload.json" >/dev/null 2>"$RUNNER_TEMP/vpf.err"; then
-              note "✅ **Finder lancé** sur [$CIBLE](https://github.com/$CIBLE/actions/workflows/find-quotes.yml) — $(date -u '+%Y-%m-%d %H:%M') UTC. Le lot portera ORIGINE.json → ce dossier."
-              exit 0
-            fi
-            echo "::warning::lancement du Finder : essai $i échoué ($(tail -1 "$RUNNER_TEMP/vpf.err"))"; sleep $((i * 10))
-          done
-          note "❌ **Finder NON lancé** : $(tail -1 "$RUNNER_TEMP/vpf.err" | cut -c1-200). Le jeton a-t-il « Contents : read and write » sur Vid-o-presse-finder ? Recherches prêtes ci-dessus (champ « recherches » de Find quotes)."
-          echo "::warning::Vid-o-presse-finder non lancé (voir FINDER.md)"
-
+      # 🔒 Vid-o-presse-finder n'est plus lancé automatiquement (Gemini réservé au script) : tu fournis toi-même
+      #    articles, vidéos et photos au montage.
       - name: Enregistrer les fichiers dans prompter/ (branche main)
         if: always()
         env:
