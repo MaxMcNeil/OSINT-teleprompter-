@@ -193,7 +193,12 @@ def ask(prompt, temperature: float = 0.7, json_mode: bool = False,
         if not _gemini_dispo():
             continue
         try:
-            return _ask_gemini(prompt, temperature, json_mode, False, retries, False)
+            r = _ask_gemini(prompt, temperature, json_mode, False, retries, False)
+            if not relais.refus(text(r)) and (text(r) or src == ordre[-1]):
+                return r
+            erreurs.append("Gemini : réponse vide ou refus")
+            print("  ! Gemini : réponse bloquée ou refus : relais gratuits")
+            continue
         except Deadline:
             raise
         except (RuntimeError, SystemExit) as e:

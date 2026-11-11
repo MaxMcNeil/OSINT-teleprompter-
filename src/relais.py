@@ -140,6 +140,18 @@ def _nettoyer(t):
     return t.strip()
 
 
+_REFUS = re.compile(
+    r"^\W*(je (suis désolé|ne peux pas|ne suis pas en mesure|refuse)|désolé,? (mais )?je ne|i('m| am) sorry,? but|"
+    r"i (can't|cannot|won't|am unable to)|i'm (not able|unable) to|as an ai|en tant qu'(ia|intelligence artificielle)|"
+    r"mi dispiace,? ma|non posso|lo siento,? pero|no puedo|عذر[اً]|لا أستطيع|لا يمكنني|آسف)", re.I)
+
+
+def refus(texte):
+    """Réponse de refus/censure du modèle (et pas le texte demandé) : on passe au modèle suivant."""
+    t = (texte or "").strip()
+    return bool(t) and len(t) < 1200 and bool(_REFUS.search(t[:200]))
+
+
 def ask(prompt, temperature=0.7, json_mode=False, deadline=None):
     """Essaie tous les relais gratuits. Retourne une Reponse, ou None si aucun n'a pu répondre."""
     vision = not isinstance(prompt, str)
@@ -161,6 +173,11 @@ def ask(prompt, temperature=0.7, json_mode=False, deadline=None):
                         return None
                     r = _appel(f, c, m, msgs, temperature, json_mode)
                     if isinstance(r, Reponse):
+                        if refus(r.text):         # le modèle s'autocensure : un autre modèle écrit à sa place
+                            print(f"  ! {f['nom']} {m} : refus du modèle (« {r.text[:60]}… ») : modèle suivant")
+                            USAGE[f"refus {m.split('/')[-1]}"] += 1
+                            r = "refus"
+                            break
                         USAGE[f"{f['nom']} {m.split('/')[-1]}"] += 1
                         return r
                     if r == "attendre":
@@ -169,7 +186,7 @@ def ask(prompt, temperature=0.7, json_mode=False, deadline=None):
                 if r == "trop_gros":
                     with _lock:
                         _taille_max[(f["nom"], m)] = min(_taille_max.get((f["nom"], m), 10 ** 9), taille)
-                if r in ("trop_gros", "pause", "modele_ko"):
+                if r in ("trop_gros", "pause", "modele_ko", "refus"):
                     break               # inutile d'essayer ce modèle avec une autre clé
     return None
 
