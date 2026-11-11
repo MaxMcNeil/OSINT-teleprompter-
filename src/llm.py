@@ -57,7 +57,7 @@ def keys():
             if v and v not in found:
                 found.append(v)
         if not found:
-            raise SystemExit("Aucune clé Gemini : ajoute le secret GEMINI_API_KEY (et GEMINI_API_KEY_2…5 si tu en as).")
+            raise SystemExit("Aucune clé Gemini : ajoute le secret GEMINI_API_KEY (la recherche Google intégrée en a besoin).")
         _KEYS = found
         for i in range(len(found)):
             _next[i] = 0.0
@@ -150,9 +150,75 @@ def _quota_info(msg: str) -> str:
     return f"{m.group(1).split('/')[-1]} (limite {m.group(2)})" if m else msg[:160]
 
 
-def ask(prompt: str, temperature: float = 0.7, json_mode: bool = False,
-        search: bool = False, retries: int = 8, fatal: bool = True):
-    """fatal=False : une panne de quota lève RuntimeError (récupérable) au lieu d'arrêter tout le run."""
+# Priorité des IA : « relais » (défaut, 100 % gratuit) = relais gratuits d'abord (Groq, Cerebras, OpenRouter) et la clé
+# Gemini gardée pour ce qu'elle seule sait faire (recherche Google, vérification de la citation, lecture des captures) ;
+# « gemini » = Gemini d'abord (à choisir si la clé passe un jour en facturation).
+PRIORITE = os.getenv("LLM_PRIORITE", "relais").strip().lower()
+USAGE_GEMINI = [0]
+
+
+def relais_d_abord() -> bool:
+    from . import relais
+    return PRIORITE != "gemini" and bool(relais.actifs())
+
+
+def usage() -> str:
+    from . import relais
+    parts = ([relais.resume()] if relais.USAGE else []) + ([f"Gemini ×{USAGE_GEMINI[0]}"] if USAGE_GEMINI[0] else [])
+    return ", ".join(p for p in parts if p)
+
+
+def ask(prompt, temperature: float = 0.7, json_mode: bool = False,
+        search: bool = False, retries: int = 8, fatal: bool = True, gemini_d_abord: bool = False):
+    """Aiguillage : recherche Google -> Gemini seul ; le reste -> relais gratuits puis Gemini (ou l'inverse si
+    LLM_PRIORITE=gemini). fatal=False : tout en panne lève RuntimeError (récupérable) au lieu d'arrêter le run."""
+    from . import relais
+    if search:
+        return _ask_gemini(prompt, temperature, json_mode, search, retries, fatal)
+    image = not isinstance(prompt, str)
+    # gemini_d_abord : tâches courtes où Gemini fait nettement mieux (lecture des captures, document miniature)
+    ordre = ["relais", "gemini"] if (relais_d_abord() and not gemini_d_abord) or (image and not _gemini_dispo()) \
+        else ["gemini", "relais"]
+    erreurs = []
+    for src in ordre:
+        if time.monotonic() - T0 > DEADLINE:
+            raise Deadline(f"délai global de {DEADLINE / 60:.0f} min atteint : on garde ce qui est déjà produit")
+        if src == "relais":
+            r = relais.ask(prompt, temperature, json_mode, deadline=lambda: time.monotonic() - T0 > DEADLINE)
+            if r is not None:
+                return r
+            if relais.actifs():
+                erreurs.append("relais gratuits épuisés ou indisponibles")
+            continue
+        if not _gemini_dispo():
+            continue
+        try:
+            return _ask_gemini(prompt, temperature, json_mode, False, retries, False)
+        except Deadline:
+            raise
+        except (RuntimeError, SystemExit) as e:
+            erreurs.append(f"Gemini : {str(e)[:200]}")
+    msg = "Aucune IA disponible : " + (" ; ".join(erreurs) or "aucune clé (ni Gemini, ni Groq/Cerebras/OpenRouter)")
+    if fatal:
+        raise SystemExit(msg)
+    raise RuntimeError(msg)
+
+
+def _gemini_dispo() -> bool:
+    try:
+        return bool(keys()) and len(_badkeys) < len(keys())
+    except SystemExit:
+        return False
+
+
+def _ask_gemini(prompt, temperature: float = 0.7, json_mode: bool = False,
+                search: bool = False, retries: int = 8, fatal: bool = True):
+    """Appel Gemini (rotation des clés et des modèles)."""
+    if not _gemini_dispo():
+        msg = "Aucune clé Gemini utilisable."
+        if fatal:
+            raise SystemExit(msg)
+        raise RuntimeError(msg)
     cfg = {"safety_settings": SAFETY, "temperature": temperature}
     if json_mode:
         cfg["response_mime_type"] = "application/json"
@@ -187,6 +253,7 @@ def ask(prompt: str, temperature: float = 0.7, json_mode: bool = False,
                 config=types.GenerateContentConfig(**cfg),
             )
             _strikes.pop((i, model, bool(search)), None)
+            USAGE_GEMINI[0] += 1
             return r
         except Exception as e:  # réseau, quota, surcharge
             last = e

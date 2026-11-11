@@ -43,7 +43,7 @@ def titres_captures(dossier):
          'Réponds en JSON : [{"titre": str, "chapo": str, "media": str}]')
     for essai in range(2):
         try:
-            r = llm.ask(imgs + [p], temperature=0.0, json_mode=True, retries=4, fatal=False)
+            r = llm.ask(imgs + [p], temperature=0.0, json_mode=True, retries=4, fatal=False, gemini_d_abord=True)
             j = llm.parse_json(llm.text(r))
         except Exception as e:
             print(f"   ! lecture de la capture impossible ({str(e)[:90]})")

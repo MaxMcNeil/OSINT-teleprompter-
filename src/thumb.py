@@ -169,7 +169,7 @@ def build(ctx, sources, queries, titre_live, top_facts):
     j = None
     for attempt_parts in ([parts, []] if parts else [[]]):     # si les images posent problème, on réessaie sans
         try:
-            resp = llm.ask([prompt] + attempt_parts, temperature=0.8, json_mode=True, fatal=False)
+            resp = llm.ask([prompt] + attempt_parts, temperature=0.8, json_mode=True, fatal=False, gemini_d_abord=True)
             j = llm.parse_json(llm.text(resp))
             if isinstance(j, dict) and isinstance(j.get("livrables"), dict):
                 break

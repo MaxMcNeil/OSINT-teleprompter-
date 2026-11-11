@@ -74,10 +74,13 @@ def extract(sources, sujet, these, start_id=1, points=()):
     by_id = {s.id: s for s in sources}
     pts_ids = tuple(x["id"].lower() for x in points)
     ordered = sorted(sources, key=lambda s: ({"haute": 0, "moyenne": 1, "faible": 2}[s.meta["fiab"]], -len(s.text)))
+    # relais gratuits : limites par requête plus basses que Gemini -> lots plus petits
+    relais = llm.relais_d_abord()
+    cap, per = (16000, 5) if relais else (48000, 14)
     batches, cur, size = [], [], 0
     for s in ordered[:90]:
         n = min(len(s.text), 5000)
-        if cur and (size + n > 48000 or len(cur) >= 14):
+        if cur and (size + n > cap or len(cur) >= per):
             batches.append(cur)
             cur, size = [], 0
         cur.append(s)
@@ -92,7 +95,7 @@ def extract(sources, sujet, these, start_id=1, points=()):
             print(f"   ! lot de {len(b)} sources ignoré : {str(e)[:120]}")
             return []
 
-    with ThreadPoolExecutor(4) as ex:
+    with ThreadPoolExecutor(2 if relais else 4) as ex:
         results = list(ex.map(safe_batch, batches))
 
     facts, seen = [], set()

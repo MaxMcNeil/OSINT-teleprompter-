@@ -508,6 +508,7 @@ def main():
     est = final_words / a.wpm
     msg = (f"**{titre}**\n\nScript : {final_words} mots ≈ {est:.1f} min (cible {a.duree}) · "
            f"{len(sources)} sources · {len(facts)} faits vérifiés · {round(time.time() - t0)} s"
+           + (f"\n\nIA utilisées : {llm.usage()}" if llm.usage() else "")
            + ("\n\n⚠ Matière limitée sur ce sujet." if short else "")
            + "".join("\n\n⚠ " + x for x in problems))
     print("\n" + msg.replace("**", ""))

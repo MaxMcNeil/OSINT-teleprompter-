@@ -64,6 +64,14 @@ jobs:
       # plusieurs clés possibles, séparées par des virgules (rotation automatique quand une clé est épuisée)
       GEMINI_API_KEYS: ${{ secrets.GEMINI_API_KEYS }}
       GEMINI_API_KEYS_PLUS: ${{ secrets.GEMINI_API_KEYS_PLUS }}
+      # relais IA gratuits (facultatifs, mêmes noms que dans Montage LV) : l'écriture passe par eux, la clé Gemini
+      # est gardée pour la recherche Google, la citation, les captures et la miniature
+      GROQ_API_KEYS: ${{ secrets.GROQ_API_KEYS }}
+      GROQ_API_KEY: ${{ secrets.GROQ_API_KEY }}
+      GROQ_API_KEYS_PLUS: ${{ secrets.GROQ_API_KEYS_PLUS }}
+      CEREBRAS_API_KEYS: ${{ secrets.CEREBRAS_API_KEYS }}
+      OPENROUTER_API_KEYS: ${{ secrets.OPENROUTER_API_KEYS }}
+      LLM_PRIORITE: relais
       YT_API_KEY: ${{ secrets.YT_API_KEY }}
       YT_API_KEYS: ${{ secrets.YT_API_KEYS }}
       YOUTUBE_API_KEYS_PLUS: ${{ secrets.YOUTUBE_API_KEYS_PLUS }}

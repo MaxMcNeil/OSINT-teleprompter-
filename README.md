@@ -10,6 +10,12 @@ Tu tapes un sujet et une durée. Le dépôt cherche, vérifie, écrit le script 
    - **titres** (revue de presse) : plusieurs titres séparés par `|`. Un acte par titre, puis « je relie les points ».
    - **capture** : mets ta ou tes captures d'écran (FT, etc.) dans une Release, puis tape son tag (ou `derniere` pour la Release la plus récente) : Gemini lit les titres lui-même. Titres tapés et capture se cumulent. Avec titres ou capture, le sujet devient facultatif ; la langue (auto) est le français, sauf si tu la choisis.
 
+### IA 100 % gratuites
+
+L'écriture (analyse, faits, plan, script, description) passe par des relais gratuits : **Groq**, puis **Cerebras**, puis **OpenRouter** (modèles gratuits), chacun facultatif (secrets `GROQ_API_KEYS`, `CEREBRAS_API_KEYS`, `OPENROUTER_API_KEYS`, plusieurs clés séparées par des virgules). Les modèles sont choisis en direct chez chaque fournisseur (un modèle retiré ne casse rien).
+La clé Gemini est gardée pour ce qu'elle seule fait bien : recherche Google intégrée, vérification de la citation, lecture des captures, document miniature. Si les relais tombent, Gemini reprend ; si Gemini est épuisé, les relais prennent le reste (captures lues par Llama 4 Scout chez Groq).
+Le résumé de chaque run indique quelles IA ont écrit. Pour repasser Gemini en premier (clé en facturation) : `LLM_PRIORITE: gemini` dans `.github/workflows/generate.yml`.
+
 ### Style expert (par défaut)
 
 Squelette imposé : **hook ultra-choc** → **citation** d'un auteur réel (vérifiée par recherche web ; sinon citation d'une liste sûre) → « Bienvenue dans le Journal du NON, et la réponse est Non. » + programme (le meilleur gardé pour la fin) → **actes** (fait dur → analyse d'expert → punchline noire) → **je relie les points** → conclusion qui reprend la citation + signature de la chaîne.
