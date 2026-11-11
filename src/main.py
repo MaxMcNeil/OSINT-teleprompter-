@@ -12,7 +12,7 @@ import traceback
 import unicodedata
 from dataclasses import asdict
 
-from . import collect, config, facts as F, llm, report, script, thumb, verify
+from . import collect, config, facts as F, llm, report, revue, script, thumb, verify, youtube
 
 
 def slug(s):
@@ -154,7 +154,7 @@ def _reprendre(a, lang, ctx, words, d):
     print(f"[2/5] REPRISE de {d} : {len(sources)} sources et {len(facts)} faits déjà vérifiés, recherche sautée")
     if not br.get("points"):
         print("   requête recomprise (1 appel IA)…")
-        br = {**br, **collect.analyse_requete(a.sujet, a.these, lang["nom"])}
+        br = {**br, **collect.analyse_requete(a.sujet, a.these, lang["nom"], ctx.get("titres") or ())}
     pts, court = br.get("points") or [], br.get("court") or a.sujet[:80]
     ctx["points"], ctx["court"] = pts, court
     ctx["comprendre"] = {k: br.get(k) for k in ("demontrer", "raisonnement", "cibles")}
@@ -184,7 +184,12 @@ def _rechercher(a, lang, ctx, words, late):
     """Étapes 2 et 3 : comprendre la requête, collecter, extraire et vérifier les faits (sauvegardés au fur et à mesure)."""
     global _D
     print("[2/5] Collecte multi-sources…")
-    br = collect.analyse_requete(a.sujet, a.these, lang["nom"])
+    br = collect.analyse_requete(a.sujet, a.these, lang["nom"], ctx.get("titres") or ())
+    if ctx.get("titres") and len(br["points"]) < len(ctx["titres"]):      # un titre oublié : un point par titre, sans exception
+        print(f"   ! analyse : {len(br['points'])} point(s) pour {len(ctx['titres'])} titres -> un point par titre")
+        br["points"] = revue.points_secours(ctx["titres"])
+    if ctx.get("titres") and br["court"].lower().startswith(("revue de presse", "revue")):     # analyse en panne : le 1er titre nomme le dossier
+        br["court"] = " ".join(re.sub(r"\s*\(.*?\)\s*$", "", ctx["titres"][0].split(" — ")[0]).split()[:7])
     pts, court = br["points"], br["court"]
     ctx["points"], ctx["court"] = pts, court
     ctx["comprendre"] = {k: br.get(k) for k in ("demontrer", "raisonnement", "cibles")}
@@ -313,6 +318,19 @@ def _miniature(a, ctx, sources, facts, queries, titre, d, problems):
             pass
 
 
+def _description(ctx, titre, secs, facts, sources, d, problems):
+    """Titres provocateurs + description YouTube (tags et hashtags inclus). Ne fait jamais échouer le run."""
+    print("   Titres + description YouTube…")
+    try:
+        _w(os.path.join(d, "description.txt"), youtube.build(ctx, titre, secs, facts, sources))
+        print("   description.txt écrit")
+    except BaseException as e:      # jamais perdre le reste pour la description
+        if isinstance(e, KeyboardInterrupt):
+            raise
+        problems.append(f"Description YouTube NON générée : {type(e).__name__}: {str(e)[:200]}")
+        print("   ! " + problems[-1])
+
+
 def _refaire_miniature(a, lang, ctx, nom):
     """Refait seulement le titre et la miniature d'un live déjà écrit (dossier ou début de nom de dossier)."""
     global _D
@@ -350,7 +368,10 @@ def _refaire_miniature(a, lang, ctx, nom):
 
 def main():
     ap = argparse.ArgumentParser()
-    ap.add_argument("--sujet", required=True)
+    ap.add_argument("--sujet", default="")
+    ap.add_argument("--titres", default="", help="revue de presse : titres séparés par « | »")
+    ap.add_argument("--captures", default="", help="dossier de captures d'écran d'actualité (titres lus par Gemini)")
+    ap.add_argument("--style", default=os.getenv("STYLE", "expert"), help="expert (défaut) ou satirique")
     ap.add_argument("--duree", type=_num, default=20, help="durée du live en minutes")
     ap.add_argument("--these", default="", help="thèse / angle à étayer (optionnel)")
     ap.add_argument("--langue", default="auto")
@@ -361,8 +382,7 @@ def main():
     ap.add_argument("--out", default=os.getenv("OUT_DIR", "prompter"))
     a = ap.parse_args()
     a.sujet = " ".join(a.sujet.split())
-    if not a.sujet:
-        raise SystemExit("Sujet vide.")
+    a.style = "satirique" if a.style.strip().lower().startswith("sat") else "expert"
     if not (1 <= a.duree <= 360):
         print(f"  ! durée {a.duree} min hors limites : ramenée entre 1 et 360 min")
         a.duree = min(360.0, max(1.0, a.duree))
@@ -376,11 +396,28 @@ def main():
         except OSError:
             pass
     hard = _installer_securite()
+    titres = []
+    if (a.titres.strip() or a.captures.strip()) and not os.getenv("MINIATURE_SEULE", "").strip():
+        print("[0/5] Revue de presse : lecture des titres…")
+        titres = revue.assembler(a.titres, a.captures)
+        for i, t in enumerate(titres, 1):
+            print(f"     {i}. {t}")
+        if not titres and a.captures.strip() and not a.sujet:
+            raise SystemExit("Capture illisible et aucun titre ni sujet saisi : tape les titres dans « titres » (séparés par | ) ou un sujet.")
+        if titres:
+            if (a.langue or "auto").lower() == "auto":        # titres souvent en anglais (FT, Reuters) : la langue suit TON sujet, sinon français
+                a.langue = config.lang_cfg("auto", a.sujet)["code"] if a.sujet else "fr"
+            a.sujet = revue.sujet_revue(titres, a.sujet)
+    if not a.sujet and os.getenv("MINIATURE_SEULE", "").strip():      # miniature seule : le sujet est relu dans requete.json
+        a.sujet = os.environ["MINIATURE_SEULE"].strip()
+    if not a.sujet:
+        raise SystemExit("Sujet vide : saisis un sujet, des titres (séparés par | ) ou une capture.")
     lang = config.lang_cfg(a.langue, a.sujet)
     words = round(a.duree * a.wpm)
-    ctx = {"sujet": a.sujet, "these": a.these, "lang": lang,
+    ctx = {"sujet": a.sujet, "these": a.these, "lang": lang, "style": a.style, "titres": titres,
            "defense": not a.no_defense, "interactions": not a.no_interactions}
-    print(f"[1/5] Cible : {a.duree} min = {words} mots ({a.wpm} mots/min), langue {lang['nom']}")
+    print(f"[1/5] Cible : {a.duree} min = {words} mots ({a.wpm} mots/min), langue {lang['nom']}, style {a.style}"
+          + (f", revue de presse ({len(titres)} titres)" if titres else ""))
 
     # Budget de temps : la recherche ne doit jamais manger le temps d'écriture (≈ 8 min + 1 min / 1000 mots, à réserver).
     reserve = (8 + words / 1000) * 60
@@ -459,6 +496,7 @@ def main():
         llm.DEADLINE = max(llm.DEADLINE, grace)
     _STOP["protege"] = False       # miniature : interrompable (elle est facultative, protégée par son propre try)
     _miniature(a, ctx, sources, facts, queries, titre, d, problems)
+    _description(ctx, titre, secs, facts, sources, d, problems)
     _STOP["protege"] = True
     if final_words < words * 0.85:
         problems.append(f"Script plus court que la cible : {final_words} mots au lieu de {words} "

@@ -349,16 +349,19 @@ def expand_queries(sujet, these, lang_nom, avoid=(), n=None):
     return qs[:n] or ([sujet] if not avoid else [])
 
 
-def analyse_requete(sujet, these, lang_nom):
+def analyse_requete(sujet, these, lang_nom, titres=()):
     """Comprend la requête (souvent une longue phrase) : ce qu'elle veut démontrer, son raisonnement, ses cibles,
     puis la décompose en POINTS distincts pour qu'aucun ne soit oublié.
     Retourne {"court", "points": [{"id","intitule","requetes"}], "demontrer", "raisonnement", "cibles"}."""
     long = len(sujet.split()) > 25
-    p = f"""REQUÊTE DE L'UTILISATEUR (lis-la ENTIÈREMENT, jusqu'au dernier mot) :
+    revue = ("" if not titres else
+             f"\nMODE REVUE DE PRESSE : la requête liste {len(titres)} titres d'actualité. Crée EXACTEMENT un point par titre, dans le même ordre "
+             "(intitulé = l'affaire du titre, reformulée nettement), et cherche les LIENS entre ces affaires pour \"demontrer\" et \"raisonnement\".\n")
+    p = f"""{revue}REQUÊTE DE L'UTILISATEUR (lis-la ENTIÈREMENT, jusqu'au dernier mot) :
 \"\"\"{sujet}\"\"\"
 THÈSE / ANGLE DONNÉ À PART : {these or '(aucune : déduis-la de la requête)'}
 
-Tu prépares un live satirique d'investigation. Avant tout, COMPRENDS la requête comme un rédacteur en chef :
+Tu prépares un live d'analyse et d'investigation. Avant tout, COMPRENDS la requête comme un rédacteur en chef :
 1. "demontrer" : en une phrase directe, ce que l'auteur veut prouver au public (sa thèse, même implicite), dans SES termes, sans l'adoucir.
 2. "raisonnement" : la chaîne logique de la requête, 2 à 6 étapes courtes dans l'ordre (ex. cause -> mécanisme -> conséquence -> responsables).
    Repère les liens « à cause de », « donc », « alors que », « pendant que », les contradictions et sous-entendus.

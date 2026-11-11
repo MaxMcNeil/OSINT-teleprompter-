@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import re
 
-from . import config, llm
+from . import config, llm, structure
 
 MARK = re.compile(r"\[F\d+\]")
 
@@ -108,8 +108,17 @@ def select_facts(facts, words, point_ids=()):
 
 
 # ------------------------------------------------------------------ plan
+REVUE = ("MODE REVUE DE PRESSE : chaque point correspond à un titre d'actualité. Consacre AU MOINS un chapitre (« acte ») à CHAQUE titre, "
+         "puis ordonne les actes pour que l'un éclaire le suivant (espionnage -> politique -> argent -> conséquences pour le public…).")
+ORDRE = ("ORDRE DE RÉTENTION : le premier acte est le plus explosif ; le DERNIER acte est celui qui touche le plus directement le public "
+         "du live (son pays, son argent, sa vie) — c'est la révélation promise en ouverture.")
+
+
 def plan(ctx, chosen, words):
+    expert = ctx.get("style", "expert") != "satirique"
     n_ch = max(1, min(40, round(words / 700)))
+    if ctx.get("titres"):
+        n_ch = max(n_ch, len(ctx.get("points") or []))
     listing = "\n".join(f"{f['id']} | imp {f['importance']} | choc {f['choc']} | {f['pertinence_these']} | {f['fact'][:180]}"
                         for f in chosen)
     p = f"""Tu es rédacteur en chef d'un live YouTube d'investigation. SUJET : {ctx['sujet']}
@@ -118,9 +127,10 @@ THÈSE : {ctx['these'] or '(aucune)'}
 {('POINTS DE LA REQUÊTE : ils DOIVENT TOUS être traités. Chaque point a au moins un chapitre qui lui est consacré (ou une partie clairement identifiable), et le titre_live doit refléter la requête sans l\'édulcorer :' + chr(10) + points_text(ctx)) if ctx.get('points') else ''}
 Construis le conducteur : {n_ch} chapitre(s) (davantage si nécessaire pour couvrir tous les points), chacun avec un ANGLE distinct (pas de redite, pas de hors-sujet),
 dans un ordre qui SUIT LE RAISONNEMENT de la requête (cause -> mécanisme -> conséquences -> responsables -> chute), en faisant monter la tension.
-Chaque angle doit être une idée-force satirique, pas une simple rubrique (« Bruxelles organise la pénurie avec un tableur », pas « Les importations »). Répartis TOUS les faits ci-dessous (chacun dans un seul chapitre),
-en regroupant ceux qui se répondent.
-Réponds en JSON : {{"titre_live": str, "chapitres": [{{"titre": str, "angle": str, "points": ["P1"], "fact_ids": ["F1","F2"]}}]}}
+Chaque angle doit être une idée-force {'d\'analyste (« Pékin n\'a même pas besoin de gagner : il attend que l\'Occident se paralyse »)' if expert else 'satirique (« Bruxelles organise la pénurie avec un tableur »)'}, pas une simple rubrique (pas « Les importations »). Répartis TOUS les faits ci-dessous (chacun dans un seul chapitre),
+en regroupant ceux qui se répondent.{chr(10) + REVUE if ctx.get('titres') else ''}{chr(10) + ORDRE if expert else ''}
+Réponds en JSON : {{"titre_live": str, "teaser": str, "chapitres": [{{"titre": str, "angle": str, "points": ["P1"], "fact_ids": ["F1","F2"]}}]}}
+("teaser" : une phrase qui annonce, sans la dévoiler, la révélation du DERNIER chapitre, pour garder le public jusqu'au bout.)
 
 FAITS :
 {listing}"""
@@ -145,6 +155,7 @@ FAITS :
     leftovers = [f["id"] for f in chosen if f["id"] not in used]
     for k, i in enumerate(leftovers):
         chapters[k % len(chapters)]["fact_ids"].append(i)
+    ctx["teaser"] = " ".join(str(j.get("teaser") or "").split())[:300]
     titre = j.get("titre_live")
     return (titre.strip() if isinstance(titre, str) and titre.strip() else ctx["sujet"]), chapters
 
@@ -165,11 +176,12 @@ def _tidy(text, allowed):
     return re.sub(r"\n{3,}", "\n\n", text).strip()
 
 
-def write_section(ctx, sec, budget, facts_by_id, prev_tail="", done_titles=(), extra_ids=(), device=""):
+def write_section(ctx, sec, budget, facts_by_id, prev_tail="", done_titles=(), extra_ids=(), device="", said=()):
     ids = list(sec["fact_ids"]) + list(extra_ids)
     sel = [facts_by_id[i] for i in ids if i in facts_by_id]
     kind = sec["kind"]
-    role = {
+    expert = ctx.get("style", "expert") != "satirique"
+    role = structure.role(kind, sec, ctx, device) if expert else {
         "hook": "OUVERTURE : les 20 premières secondes décident de tout. Aucune source citée ici. Commence par le fait le plus violent suivi d'une punchline noire, puis annonce l'angle EXACT "
                 "de la requête presque mot pour mot, avec un fait dur pour CHAQUE personne ou point en jeu, et promets ce que le live va démontrer. "
                 "Aucune phrase qui relativise ou détourne l'angle. Puis lance le premier chapitre.",
@@ -178,6 +190,9 @@ def write_section(ctx, sec, budget, facts_by_id, prev_tail="", done_titles=(), e
                  "chute la plus noire et la plus drôle du live, phrase de sortie mémorable, appel court et sarcastique à s'abonner et partager. Pas de nouveau fait hors liste.",
     }[kind]
     extras = []
+    if said:
+        extras.append("FORMULES ET PUNCHLINES DÉJÀ UTILISÉES DANS CE LIVE (interdit de les reprendre, même reformulées : invente du neuf) : "
+                      + " | ".join(said))
     if ctx["interactions"] and kind == "chapter":
         extras.append("Intègre un appel naturel au chat (question ou vote) sans casser le rythme.")
     if not ctx["defense"]:
@@ -194,7 +209,7 @@ def write_section(ctx, sec, budget, facts_by_id, prev_tail="", done_titles=(), e
         fil = ("\nFIL DE LA REQUÊTE (le live doit honorer chacun de ces points, sans rien inventer ni édulcorer"
                + (f" ; ce chapitre porte surtout sur : {', '.join(sec['points'])}" if sec.get("points") else "") + ") :\n"
                + points_text(ctx) + "\n")
-    p = f"""{STYLE}
+    p = f"""{structure.STYLE_EXPERT if expert else STYLE}
 
 {TRUTH}
 
@@ -280,19 +295,10 @@ def dedup_attributions(secs):
 # ------------------------------------------------------------------ orchestration
 def generate(ctx, facts, words):
     by_id = {f["id"]: f for f in facts}
+    expert = ctx.get("style", "expert") != "satirique"
     chosen, unused = select_facts(facts, words, [x["id"] for x in ctx.get("points") or []])
-    print(f"   {len(chosen)} faits retenus pour {words} mots ({len(unused)} en réserve)")
+    print(f"   {len(chosen)} faits retenus pour {words} mots ({len(unused)} en réserve) — style {'expert' if expert else 'satirique'}")
     titre, chapters = plan(ctx, chosen, words)
-
-    hook_w = max(45, round(words * 0.05))
-    outro_w = max(55, round(words * 0.07))
-    body = max(80, words - hook_w - outro_w)
-    for c in chapters:
-        c["kind"] = "chapter"
-        c["weight"] = sum(score(by_id[i]) for i in c["fact_ids"]) + 1
-    tot = sum(c["weight"] for c in chapters)
-    for c in chapters:
-        c["budget"] = round(body * c["weight"] / tot)
 
     top = sorted(chosen, key=score, reverse=True)[:5]
     best = sorted(chosen, key=score, reverse=True)
@@ -300,33 +306,83 @@ def generate(ctx, facts, words):
     per_point = [f["id"] for f in per_point if f]
     hook_ids = list(dict.fromkeys(per_point + [f["id"] for f in top[:2]]))[:6]       # un fait dur par point dans l'ouverture
     outro_ids = list(dict.fromkeys(per_point + [f["id"] for f in top[:3]]))[:6]
-    secs = [{"kind": "hook", "titre": "Ouverture", "fact_ids": hook_ids, "budget": hook_w}]
-    secs += chapters
-    secs += [{"kind": "outro", "titre": "Conclusion", "fact_ids": outro_ids, "budget": outro_w}]
+
+    fixed = 0          # mots écrits à l'identique (citation, accueil) : décomptés du budget
+    pre, post = [], []
+    if expert:
+        cit = None
+        try:
+            cit = structure.citation(ctx)
+        except Exception as e:                      # jamais bloquant : le live part sans citation
+            print(f"   ! citation d'ouverture indisponible ({str(e)[:80]})")
+        ctx["citation"] = cit
+        accueil = structure.chaine(ctx["lang"]["code"]).get("accueil", "")
+        fixed = (len(structure.citation_text(cit, ctx["lang"]["code"]).split()) if cit else 0) + len(accueil.split())
+        actes = [c["titre"] for c in chapters]
+        pre = [{"kind": "hook", "titre": "Hook", "fact_ids": hook_ids[:3], "budget": max(35, round(words * 0.035))}]
+        if cit:
+            pre.append({"kind": "citation", "titre": "Citation", "fact_ids": [], "budget": 45})
+        pre.append({"kind": "programme", "titre": "Accueil et programme", "fact_ids": [], "budget": max(50, round(words * 0.045)),
+                    "actes": actes, "teaser": ctx.get("teaser", ""), "accueil": accueil})
+        if len(chapters) > 1 or ctx.get("titres"):
+            post.append({"kind": "liens", "titre": "Je relie les points", "fact_ids": per_point or [f["id"] for f in top[:4]],
+                         "budget": max(70, round(words * 0.08)), "actes": actes})
+        post.append({"kind": "outro", "titre": "Conclusion", "fact_ids": [], "budget": max(60, round(words * 0.06))})
+    else:
+        pre = [{"kind": "hook", "titre": "Ouverture", "fact_ids": hook_ids, "budget": max(45, round(words * 0.05))}]
+        post = [{"kind": "outro", "titre": "Conclusion", "fact_ids": outro_ids, "budget": max(55, round(words * 0.07))}]
+
+    body = max(80, words - fixed - sum(x["budget"] for x in pre + post))
+    for c in chapters:
+        c["kind"] = "chapter"
+        c["weight"] = sum(score(by_id[i]) for i in c["fact_ids"]) + 1
+    tot = sum(c["weight"] for c in chapters)
+    for c in chapters:
+        c["budget"] = round(body * c["weight"] / tot)
+    secs = pre + chapters + post
+    devices = structure.DEVICES_EXPERT if expert else DEVICES
 
     tail, titles = "", []
     for k, s in enumerate(secs):
         print(f"   écriture : {s['titre']} ({s['budget']} mots)")
         try:
             s["text"] = write_section(ctx, s, s["budget"], by_id, tail, titles,
-                                      device=DEVICES[k % len(DEVICES)])
+                                      device=devices[k % len(devices)], said=structure.deja_dit(secs[:k]))
         except (SystemExit, RuntimeError) as e:     # quota/délai : on garde ce qui est déjà écrit
             print(f"   ! écriture interrompue ({str(e)[:110]}) : {len(secs) - k} section(s) non écrite(s)")
             for rest in secs[k:]:
                 rest.setdefault("text", "")
             break
+        if s["kind"] == "citation":                 # la citation est posée mot pour mot, l'IA n'écrit que le pont
+            s["text"] = structure.citation_text(ctx["citation"], ctx["lang"]["code"]) + "\n\n" + s["text"]
+        if s["kind"] == "programme" and s.get("accueil"):
+            s["text"] = s["accueil"] + " " + s["text"]
         tail = clean(s["text"])
         titles.append(s["titre"])
+    for s in secs:             # citation / accueil écrits même si l'IA a échoué sur leur section
+        if s["kind"] == "citation" and not s.get("text", "").strip() and ctx.get("citation"):
+            s["text"] = structure.citation_text(ctx["citation"], ctx["lang"]["code"])
+        if s["kind"] == "programme" and not s.get("text", "").strip() and s.get("accueil"):
+            s["text"] = s["accueil"]
     secs = [s for s in secs if s.get("text", "").strip()]
-    if not secs:
+    if not any(s["kind"] == "chapter" for s in secs):
         raise SystemExit("Aucune section n'a pu être écrite (quota ou délai) : les faits et sources restent dans donnees.json.")
 
+    ch = structure.chaine(ctx["lang"]["code"])
+    protect = (ch.get("accueil"), ch.get("signature"),
+               structure.citation_text(ctx["citation"], ctx["lang"]["code"]) if ctx.get("citation") else "")
     dedup_attributions(secs)
-    try:
-        fit(ctx, secs, words, by_id, unused)
-    except (SystemExit, RuntimeError) as e:
-        print(f"   ! calage final interrompu ({str(e)[:100]}) : on garde le texte déjà écrit")
-    dedup_attributions(secs)
+    structure.anti_repetition(secs, protect=protect)
+    for passe in range(2):          # le calage peut réintroduire une formule : on nettoie, et on recale une fois si ça a trop raccourci
+        try:
+            fit(ctx, secs, words, by_id, unused)
+        except (SystemExit, RuntimeError) as e:
+            print(f"   ! calage final interrompu ({str(e)[:100]}) : on garde le texte déjà écrit")
+            break
+        dedup_attributions(secs)
+        structure.anti_repetition(secs, protect=protect)
+        if sum(wc(s["text"]) for s in secs) >= words * 0.95:
+            break
     return titre, secs
 
 
@@ -396,7 +452,8 @@ def fit(ctx, secs, target, by_id, unused, tol=0.03, rounds=5):
             for f in extra:
                 by_id[f["id"]] = f
             old = s["text"]
-            new = write_section(ctx, s, want, by_id, extra_ids=[f["id"] for f in extra])
+            new = write_section(ctx, s, want, by_id, extra_ids=[f["id"] for f in extra],
+                                said=structure.deja_dit([x for x in secs if x is not s], 30))
             if abs(wc(new) - want) < abs(wc(old) - want):
                 s["text"] = new
                 s["fact_ids"] = s["fact_ids"] + [f["id"] for f in extra]

@@ -6,6 +6,14 @@ Tu tapes un sujet et une durée. Le dépôt cherche, vérifie, écrit le script 
 
 1. **Settings → Secrets and variables → Actions** : ajoute `GEMINI_API_KEY` et `YT_API_KEY`. Clés Gemini supplémentaires (comptes/projets distincts) : `GEMINI_API_KEY_2` … `GEMINI_API_KEY_5`. Le script utilise le meilleur modèle sur toutes les clés, puis descend au suivant quand le quota du jour est épuisé. Optionnel : `X_BEARER_TOKEN` (API X payante, 7 derniers jours).
 2. **Actions → Générer le script du live → Run workflow** : sujet, durée en minutes, thèse (optionnelle).
+   - **style** : `expert` (par défaut) ou `satirique` (l'ancien style).
+   - **titres** (revue de presse) : plusieurs titres séparés par `|`. Un acte par titre, puis « je relie les points ».
+   - **capture** : mets ta ou tes captures d'écran (FT, etc.) dans une Release, puis tape son tag (ou `derniere` pour la Release la plus récente) : Gemini lit les titres lui-même. Titres tapés et capture se cumulent. Avec titres ou capture, le sujet devient facultatif ; la langue (auto) est le français, sauf si tu la choisis.
+
+### Style expert (par défaut)
+
+Squelette imposé : **hook ultra-choc** → **citation** d'un auteur réel (vérifiée par recherche web ; sinon citation d'une liste sûre) → « Bienvenue dans le Journal du NON, et la réponse est Non. » + programme (le meilleur gardé pour la fin) → **actes** (fait dur → analyse d'expert → punchline noire) → **je relie les points** → conclusion qui reprend la citation + signature de la chaîne.
+Ton : expert géopolitique, humour noir et alarmiste. Une même vanne ou formule n'est jamais répétée (contrôle automatique). L'accueil et la signature suivent la langue du live : Journal du NON en français, Gulf think-tank en arabe, sans nom de chaîne dans les autres langues (à compléter dans `src/structure.py`, `CHAINES`).
 3. Les fichiers sont enregistrés automatiquement dans le dossier `prompter/` de la branche `main` (un sous-dossier par run : `date_heure_sujet`). Plus d'artefact à télécharger. Le nom du dossier se change en un seul endroit : `OUT_DIR` dans `.github/workflows/generate.yml` (deux occurrences).
 
 En local : `pip install -r requirements.txt`, puis
@@ -17,10 +25,11 @@ Options : `--wpm 145` (mots par minute), `--langue fr|en|…`, `--no-defense`, `
 
 | Fichier | Contenu |
 |---|---|
-| `script_teleprompter.txt` | Texte propre à lire |
+| `script_teleprompter.txt` | Texte propre à lire, prêt à coller dans le prompteur (sans marqueurs, sans titres, sans timestamps) |
 | `script_annote.md` | Même texte avec chapitres et marqueurs `[F12]` |
 | `commentaire_epingle.txt` | Liste des sources citées, avec vraies adresses, prête à coller en commentaire épinglé |
 | `sources.md` | Chaque affirmation → fait → source, date, lien, fiabilité, + points à vérifier |
+| `description.txt` | 4 titres provocateurs + description YouTube prête à coller (accroche, « dans ce live », sources, mention juridique, **tags et hashtags inclus**) |
 | `miniature.md` | Tout pour la miniature en un seul document : titre + variantes, texte sur l'image, prompt, prompt négatif, à ne pas faire, top 3 concurrents |
 | `miniature.jpg` | Miniature 1280×720 prête à l'emploi (vraie photo libre Wikimedia en priorité, sinon image générée gratuitement), texte incrusté |
 | `couverture.md` | Ta requête décomposée en points : faits trouvés et cités par point (rien n'est oublié en silence) |

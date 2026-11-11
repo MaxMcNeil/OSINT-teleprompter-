@@ -4,8 +4,24 @@ on:
   workflow_dispatch:
     inputs:
       sujet:
-        description: "Sujet du live"
-        required: true
+        description: "Sujet du live (facultatif si tu donnes des titres ou une capture)"
+        required: false
+        default: ""
+      titres:
+        description: "Revue de presse : titres séparés par | (facultatif)"
+        required: false
+        default: ""
+      capture:
+        description: "Capture(s) d'écran des titres : tag de la Release qui les contient, ou « derniere » (vide = aucune)"
+        required: false
+        default: ""
+      style:
+        description: "Style du script"
+        type: choice
+        options:
+          - expert
+          - satirique
+        default: expert
       duree:
         description: "Durée du live en minutes"
         required: true
@@ -61,6 +77,22 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
+      - name: Capture(s) d'écran des titres (Release)
+        if: inputs.capture != ''
+        continue-on-error: true      # capture introuvable : le run continue avec les titres/sujet tapés (et le dit)
+        env:
+          GH_TOKEN: ${{ github.token }}
+          TAG: ${{ inputs.capture }}
+        run: |
+          mkdir -p "$RUNNER_TEMP/captures"
+          T="$TAG"
+          case "$(echo "$T" | tr '[:upper:]' '[:lower:]')" in derniere|dernière|latest|last) T="";; esac
+          for p in '*.jpg' '*.jpeg' '*.png' '*.webp' '*.JPG' '*.JPEG' '*.PNG' '*.WEBP'; do
+            gh release download $T -R "$GITHUB_REPOSITORY" -p "$p" -D "$RUNNER_TEMP/captures" --clobber 2>/dev/null || true
+          done
+          ls -la "$RUNNER_TEMP/captures"
+          n=$(find "$RUNNER_TEMP/captures" -type f | wc -l)
+          if [ "$n" -eq 0 ]; then echo "::warning::Aucune image trouvée dans la Release « $TAG » : le script se base sur les titres/sujet tapés"; fi
       - name: Générer
         timeout-minutes: 63
         env:
@@ -72,6 +104,9 @@ jobs:
           PYTHONUNBUFFERED: "1"
           LLM_RPM: "4"
           SUJET: ${{ inputs.sujet }}
+          TITRES: ${{ inputs.titres }}
+          STYLE: ${{ inputs.style || 'expert' }}
+          CAPTURES: ${{ inputs.capture != '' && format('{0}/captures', runner.temp) || '' }}
           DUREE: ${{ inputs.duree }}
           THESE: ${{ inputs.these }}
           LANGUE: ${{ inputs.langue }}
@@ -79,13 +114,13 @@ jobs:
           MINIATURE_SEULE: ${{ inputs.miniature_seule }}
           JOURNAL: ${{ runner.temp }}/journal.txt
           OUT_DIR: prompter
-        run: python -m src.main --sujet "$SUJET" --duree "$DUREE" --these "$THESE" --langue "$LANGUE"
+        run: python -m src.main --sujet "$SUJET" --titres "$TITRES" --captures "$CAPTURES" --style "$STYLE" --duree "$DUREE" --these "$THESE" --langue "$LANGUE"
       # 🔒 Vid-o-presse-finder n'est plus lancé automatiquement (Gemini réservé au script) : tu fournis toi-même
       #    articles, vidéos et photos au montage.
       - name: Enregistrer les fichiers dans prompter/ (branche main)
         if: always()
         env:
-          SUJET: ${{ inputs.sujet }}
+          SUJET: ${{ inputs.sujet || inputs.titres || 'revue de presse (capture)' }}
           OUT_DIR: prompter
         run: |
           git config user.name "github-actions[bot]"
