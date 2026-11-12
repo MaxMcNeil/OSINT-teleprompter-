@@ -1,0 +1,189 @@
+[  0.0 min] [1/5] Cible : 35.0 min = 5075 mots (145 mots/min), langue العربية, style expert
+[  0.0 min] [2/5] Collecte multi-sources…
+[  0.0 min]   relais Groq : openai/gpt-oss-120b, openai/gpt-oss-20b
+[  0.0 min]    raisonnement : فوز الديمقراطيين في الانتخابات الأمريكية يغير سياسات الشرق الأوسط -> التغيّر في السياسة الأمريكية سيؤدي إلى ضغط على السعودية لتقليل دعمها للنفط -> تقليل الدعم سيؤثر على اقتصاد السعودية الذي يعتمد على النفط -> الاقتصاد المتضرر سيؤدي إلى اضطرابات اجتماعية وسياسية داخل السعودية
+[  0.0 min]    requête décomposée en 5 point(s) ; recherche courte : « السعودية أيام عصيبة بعد فوز الديمقراطيين »
+[  0.0 min]      P1 : تغيير سياسة الولايات المتحدة تجاه النفط بعد فوز الديمقراطيين
+[  0.0 min]      P2 : تأثير تقليل الدعم الأمريكي على إيرادات السعودية النفطية
+[  0.0 min]      P3 : الآثار الاقتصادية الداخلية في السعودية نتيجة انخفاض أسعار النفط
+[  0.0 min]      P4 : الاحتجاجات الاجتماعية المحتملة في السعودية بسبب الأزمات الاقتصادية
+[  0.0 min]      P5 : دور الشركات النفطية السعودية في التكيف مع السياسات الأمريكية الجديدة
+[  0.0 min]    requêtes : سياسة النفط الأمريكية الديمقراطيين | إيرادات النفط السعودية بعد الضغط الأمريكي | تأثير انخفاض أسعار النفط على الاقتصاد السعودي | احتجاجات سعودية بسبب الأزمات الاقتصادية | استراتيجية أرامكو بعد فوز الديمقراطيين | تغيّر دعم النفط الأمريكي | US oil policy Democrats | politica petroliera USA democratici | تراجع عائدات النفط السعودية | Saudi oil revenue decline | ricavi petroliferi Arabia Saudita | الاقتصاد السعودي بعد انخفاض النفط | Saudi economy oil price drop | economia saudita prezzo petrolio | تظاهرات في السعودية 2024 | Saudi protests 2024 | proteste Arabia Saudita 2024 | خطط شركات النفط السعودية | Aramco strategy Democrats | strategia Aramco democratici | الإحصاءات الرسمية السعودية بعد الانتخابات الأمريكية | تواريخ اتخاذ القرار السعودي | تقارير وزارة الخارجية السعودية حول الديمقراطيين | Saudi Arabia reaction to US Democratic win X | Saudi Arabia official statements on US election | البيانات الرسمية السعودية بعد فوز الديمقراطيين
+[  0.1 min]   1 clé(s) Gemini chargée(s)
+[  0.1 min]   modèles, du plus performant au moins performant : gemini-3.8-flash, gemini-3.7-flash, gemini-3.6-flash, gemini-3.5-flash, gemini-3.5-flash-lite, gemini-3.1-flash-lite, gemini-2.5-flash, gemini-2.5-flash-lite
+[  0.1 min]   > clé n°1 / gemini-3.8-flash
+[  0.1 min]   modèles, du plus performant au moins performant : gemini-3.8-flash, gemini-3.7-flash, gemini-3.6-flash, gemini-3.5-flash, gemini-3.5-flash-lite, gemini-3.1-flash-lite, gemini-2.5-flash, gemini-2.5-flash-lite
+[  0.1 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://aistudio.google.com/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. ', 's)
+[  0.1 min]   ! quota par minute : clé n°1 / gemini-3.8-flash, pause 20s sur ce modèle seulement
+[  0.3 min]   ! quota inutilisable : clé n°1 / gemini-3.8-flash (recherche Google) : écarté pour ce run
+[  0.6 min]   ! quota inutilisable : clé n°1 / gemini-3.8-flash (recherche Google) : écarté pour ce run
+[  0.6 min]   > clé n°1 / gemini-3.7-flash
+[  0.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://aistudio.google.com/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. ', 's)
+[  0.6 min]   ! quota par minute : clé n°1 / gemini-3.7-flash, pause 20s sur ce modèle seulement
+[  0.6 min]   ! quota inutilisable : clé n°1 / gemini-3.7-flash (recherche Google) : écarté pour ce run
+[  0.8 min]   ! quota inutilisable : clé n°1 / gemini-3.7-flash (recherche Google) : écarté pour ce run
+[  1.1 min]   ! quota inutilisable : clé n°1 / gemini-3.7-flash (recherche Google) : écarté pour ce run
+[  1.1 min]   > clé n°1 / gemini-3.6-flash
+[  1.1 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://aistudio.google.com/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. ', 's)
+[  1.1 min]   ! quota par minute : clé n°1 / gemini-3.6-flash, pause 20s sur ce modèle seulement
+[  1.1 min]   ! quota inutilisable : clé n°1 / gemini-3.6-flash (recherche Google) : écarté pour ce run
+[  1.3 min]   ! quota inutilisable : clé n°1 / gemini-3.6-flash (recherche Google) : écarté pour ce run
+[  1.6 min]   > clé n°1 / gemini-3.5-flash
+[  1.6 min]   ! quota inutilisable : clé n°1 / gemini-3.6-flash (recherche Google) : écarté pour ce run
+[  1.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://aistudio.google.com/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. ', 's)
+[  1.6 min]   ! quota par minute : clé n°1 / gemini-3.5-flash, pause 20s sur ce modèle seulement
+[  1.6 min]   ! quota inutilisable : clé n°1 / gemini-3.5-flash (recherche Google) : écarté pour ce run
+[  1.8 min]   ! quota inutilisable : clé n°1 / gemini-3.5-flash (recherche Google) : écarté pour ce run
+[  2.1 min]   > clé n°1 / gemini-3.5-flash-lite
+[  2.1 min]   ! quota inutilisable : clé n°1 / gemini-3.5-flash (recherche Google) : écarté pour ce run
+[  2.1 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://aistudio.google.com/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. ', 's)
+[  2.1 min]   ! quota par minute : clé n°1 / gemini-3.5-flash-lite, pause 20s sur ce modèle seulement
+[  2.1 min]   ! quota inutilisable : clé n°1 / gemini-3.5-flash-lite (recherche Google) : écarté pour ce run
+[  2.3 min]   ! quota inutilisable : clé n°1 / gemini-3.5-flash-lite (recherche Google) : écarté pour ce run
+[  2.6 min]   > clé n°1 / gemini-3.1-flash-lite
+[  2.6 min]   ! quota inutilisable : clé n°1 / gemini-3.5-flash-lite (recherche Google) : écarté pour ce run
+[  2.6 min]     (429 brut : 429 RESOURCE_EXHAUSTED. {'error': {'code': 429, 'message': 'You exceeded your current quota, please check your plan and billing details. For more information on this error, head to: https://aistudio.google.com/docs/rate-limits. To monitor your current usage, head to: https://ai.dev/rate-limit. ', 's)
+[  2.6 min]   ! quota par minute : clé n°1 / gemini-3.1-flash-lite, pause 20s sur ce modèle seulement
+[  2.6 min]   ! quota inutilisable : clé n°1 / gemini-3.1-flash-lite (recherche Google) : écarté pour ce run
+[  2.8 min]   ! quota inutilisable : clé n°1 / gemini-3.1-flash-lite (recherche Google) : écarté pour ce run
+[  3.1 min]   > clé n°1 / gemini-2.5-flash
+[  3.1 min]   ! quota inutilisable : clé n°1 / gemini-3.1-flash-lite (recherche Google) : écarté pour ce run
+[  3.1 min]   ! gemini-2.5-flash introuvable (clé n°1), suivant
+[  3.1 min]   ! gemini-2.5-flash introuvable (clé n°1), suivant
+[  3.3 min]   ! gemini-2.5-flash introuvable (clé n°1), suivant
+[  3.6 min]   > clé n°1 / gemini-2.5-flash-lite
+[  3.6 min]   ! gemini-2.5-flash introuvable (clé n°1), suivant
+[  3.6 min]   ! gemini-2.5-flash-lite introuvable (clé n°1), suivant
+[  3.6 min]   ! collecte: Quota JOURNALIER épuisé sur tous les modèles et toutes les clés (gemini-3.8-flash, gemini-3.7-flash,
+[  3.6 min]   ! gemini-2.5-flash-lite introuvable (clé n°1), suivant
+[  3.8 min]   ! gemini-2.5-flash-lite introuvable (clé n°1), suivant
+[  3.8 min]   ! collecte: Quota JOURNALIER épuisé sur tous les modèles et toutes les clés (gemini-3.8-flash, gemini-3.7-flash,
+[  4.1 min]   ! gemini-2.5-flash-lite introuvable (clé n°1), suivant
+[  4.1 min]   ! collecte: Quota JOURNALIER épuisé sur tous les modèles et toutes les clés (gemini-3.8-flash, gemini-3.7-flash,
+[  4.1 min]   ! collecte: Quota JOURNALIER épuisé sur tous les modèles et toutes les clés (gemini-3.8-flash, gemini-3.7-flash,
+[  4.1 min]   ! collecte: [SSL: DECRYPTION_FAILED_OR_BAD_RECORD_MAC] decryption failed or bad record mac (_ssl.c:2581)
+[  7.0 min]    collecte brute : presse 114, bing 44, youtube 16
+[  7.0 min]    171 sources uniques ; récupération des textes…
+[  7.3 min]    liens Google News décodés : 1 réussis, 0 échecs
+[  7.3 min]    textes complets récupérés : 56/171 sources
+[  7.4 min] [3/5] Extraction et vérification des faits…
+[  7.4 min]   ! Groq openai/gpt-oss-120b : requête trop grosse pour ce modèle : modèle suivant
+[  7.4 min]   ! Groq openai/gpt-oss-20b : requête trop grosse pour ce modèle : modèle suivant
+[  7.4 min]   ! JSON invalide (Extra data: line 1 column 303 (char 302)), nouvel essai
+[  7.5 min]   ! Groq openai/gpt-oss-20b : requête trop grosse pour ce modèle : modèle suivant
+[  8.0 min]   ! Groq openai/gpt-oss-120b : requête trop grosse pour ce modèle : modèle suivant
+[  8.0 min]   ! JSON invalide (Extra data: line 1 column 271 (char 270)), nouvel essai
+[  8.0 min]   ! Groq openai/gpt-oss-20b : requête trop grosse pour ce modèle : modèle suivant
+[  8.5 min]   ! Groq openai/gpt-oss-120b : requête trop grosse pour ce modèle : modèle suivant
+[  8.5 min]   ! JSON invalide (Extra data: line 1 column 285 (char 284)), nouvel essai
+[  8.5 min]   ! JSON invalide (Extra data: line 1 column 255 (char 254)), nouvel essai
+[  8.5 min]   ! Groq openai/gpt-oss-120b : requête trop grosse pour ce modèle : modèle suivant
+[  8.5 min]   ! JSON invalide (Extra data: line 1 column 225 (char 224)), nouvel essai
+[  8.6 min]   ! JSON invalide (Extra data: line 1 column 225 (char 224)), nouvel essai
+[  8.6 min]   ! Groq openai/gpt-oss-120b : requête trop grosse pour ce modèle : modèle suivant
+[  8.6 min]   ! Groq openai/gpt-oss-20b : requête trop grosse pour ce modèle : modèle suivant
+[  9.9 min]   ! Groq openai/gpt-oss-120b : requête trop grosse pour ce modèle : modèle suivant
+[  9.9 min]   ! JSON invalide (Extra data: line 1 column 246 (char 245)), nouvel essai
+[  9.9 min]   ! JSON invalide (Extra data: line 1 column 246 (char 245)), nouvel essai
+[ 15.4 min]   ! LLM: 504 DEADLINE_EXCEEDED. {'error': {'code': 504, 'message': 'Deadline expired before operation could complete.', 'status': -> nouvel essai dans 3s
+[ 15.6 min]   ! LLM: 504 DEADLINE_EXCEEDED. {'error': {'code': 504, 'message': 'Deadline expired before operation could complete.', 'status': -> nouvel essai dans 3s
+[ 16.6 min]   ! gemini-3.8-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 16.6 min]   ! gemini-3.8-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 16.7 min]   ! gemini-3.7-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 17.0 min]   ! gemini-3.7-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 17.2 min]   ! gemini-3.6-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 17.8 min]    94 faits retenus (3 chiffres corrigés d'après la source, 3 écartés car introuvables)
+[ 17.8 min]    matière insuffisante (94/133) -> recherche approfondie 1/2
+[ 17.8 min]   ! collecte: Quota JOURNALIER épuisé sur tous les modèles et toutes les clés (gemini-3.8-flash, gemini-3.7-flash,
+[ 17.8 min]   ! collecte: Quota JOURNALIER épuisé sur tous les modèles et toutes les clés (gemini-3.8-flash, gemini-3.7-flash,
+[ 17.8 min]   ! collecte: Quota JOURNALIER épuisé sur tous les modèles et toutes les clés (gemini-3.8-flash, gemini-3.7-flash,
+[ 17.8 min]   ! collecte: Quota JOURNALIER épuisé sur tous les modèles et toutes les clés (gemini-3.8-flash, gemini-3.7-flash,
+[ 17.9 min]   ! collecte: [SSL: DECRYPTION_FAILED_OR_BAD_RECORD_MAC] decryption failed or bad record mac (_ssl.c:2581)
+[ 17.9 min]   ! collecte: [SSL: DECRYPTION_FAILED_OR_BAD_RECORD_MAC] decryption failed or bad record mac (_ssl.c:2581)
+[ 20.7 min]    collecte brute : presse 24, bing 14
+[ 21.2 min]    liens Google News décodés : 24 réussis, 0 échecs
+[ 21.2 min]    textes complets récupérés : 29/37 sources
+[ 21.5 min]   ! gemini-3.8-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 21.8 min]   ! gemini-3.7-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 22.0 min]   ! gemini-3.6-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 22.2 min]   ! gemini-3.5-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 22.5 min]   ! gemini-3.5-flash-lite surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 27.2 min]   ! LLM: 504 DEADLINE_EXCEEDED. {'error': {'code': 504, 'message': 'Deadline expired before operation could complete.', 'status': -> nouvel essai dans 3s
+[ 27.4 min]   ! LLM: 504 DEADLINE_EXCEEDED. {'error': {'code': 504, 'message': 'Deadline expired before operation could complete.', 'status': -> nouvel essai dans 3s
+[ 27.5 min]   ! gemini-3.8-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 28.5 min]   ! gemini-3.7-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 28.6 min]   ! gemini-3.6-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 28.8 min]   ! gemini-3.5-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 29.0 min]   ! gemini-3.5-flash-lite surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 29.6 min]   ! gemini-3.8-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 30.1 min]   ! gemini-3.8-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 30.4 min]   ! gemini-3.7-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 30.9 min]   ! gemini-3.7-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 30.9 min]   ! gemini-3.6-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 35.1 min]   ! LLM: 504 DEADLINE_EXCEEDED. {'error': {'code': 504, 'message': 'Deadline expired before operation could complete.', 'status': -> nouvel essai dans 3s
+[ 35.3 min]   ! LLM: 504 DEADLINE_EXCEEDED. {'error': {'code': 504, 'message': 'Deadline expired before operation could complete.', 'status': -> nouvel essai dans 6s
+[ 35.4 min]   ! quota journalier épuisé : clé n°1 / gemini-3.8-flash
+[ 35.4 min]   ! gemini-3.8-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 35.7 min]   ! quota journalier épuisé : clé n°1 / gemini-3.7-flash
+[ 35.9 min]   ! quota journalier épuisé : clé n°1 / gemini-3.7-flash
+[ 36.9 min]   ! JSON invalide (Extra data: line 1 column 208 (char 207)), nouvel essai
+[ 36.9 min]   ! JSON invalide (Extra data: line 1 column 296 (char 295)), nouvel essai
+[ 40.1 min]   ! LLM: 504 DEADLINE_EXCEEDED. {'error': {'code': 504, 'message': 'Deadline expired before operation could complete.', 'status': -> nouvel essai dans 12s
+[ 40.4 min]   ! gemini-3.6-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 40.9 min]    49 faits retenus (0 chiffres corrigés d'après la source, 0 écartés car introuvables)
+[ 40.9 min]    Vérification croisée des faits fragiles (source faible, allégation)…
+[ 41.8 min]    liens Google News décodés : 65 réussis, 0 échecs
+[ 41.8 min]    textes complets récupérés : 29/47 sources
+[ 42.3 min]   ! quota journalier épuisé : clé n°1 / gemini-3.5-flash
+[ 42.3 min]   ! quota journalier épuisé : clé n°1 / gemini-3.5-flash
+[ 43.3 min]   ! quota journalier épuisé : clé n°1 / gemini-3.6-flash
+[ 44.0 min]   ! gemini-3.5-flash-lite surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 44.6 min]    14 faits fragiles vérifiés : 2 confirmés par une autre source, 0 contredits, 12 non corroborés, 0 non vérifiés
+[ 44.6 min]    faits et sources sauvegardés dans prompter/2026-11-12_19h41_live/donnees.json (récupérables même si la suite échoue)
+[ 44.6 min] [4/5] Écriture du script…
+[ 44.6 min]    133 faits retenus pour 5075 mots (10 en réserve) — style expert
+[ 45.2 min]    ! vérification de la citation impossible (Quota JOURNALIER épuisé sur tous les modèles et toutes les c)
+[ 45.2 min]    citation (liste sûre) : « كل حرب تقوم على الخداع. » — Sun Tzu
+[ 45.2 min]    écriture : Hook (178 mots)
+[ 45.5 min]    écriture : Citation (45 mots)
+[ 45.9 min]    écriture : Accueil et programme (228 mots)
+[ 46.0 min]   ! gemini-3.5-flash-lite surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 46.3 min]    écriture : الزلزال السياسي: واشنطن تغير قواعد اللعبة (600 mots)
+[ 46.6 min]    écriture : شريان النفط تحت المجهر: نهاية عصر الأسعار المرتفعة (542 mots)
+[ 46.8 min]    écriture : أرامكو في مواجهة العاصفة: تهاوي الإيرادات (585 mots)
+[ 47.1 min]    écriture : عجز الموازنة: حينما تصبح الأرقام كابوساً (594 mots)
+[ 47.4 min]    écriture : الاستهداف المزدوج: التهديدات الأمنية تضاعف الأزمة (620 mots)
+[ 47.6 min]    écriture : الاقتصاد الوطني في حالة انكماش: هل انتهى زمن الرخاء؟ (519 mots)
+[ 47.9 min]    écriture : الاضطرابات الاجتماعية: الفاتورة التي سيدفعها المواطن (436 mots)
+[ 48.1 min]    écriture : Je relie les points (406 mots)
+[ 48.4 min]    écriture : Conclusion (304 mots)
+[ 48.6 min]    anti-répétition : 1 formule(s) déjà dite(s) supprimée(s)
+[ 48.6 min]    calage 1: 3758/5075 mots
+[ 48.9 min]   ! gemini-3.5-flash-lite surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 49.0 min]   ! gemini-3.1-flash-lite surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 50.5 min]    réécriture écartée (elle s'éloignait de la cible)
+[ 51.3 min]    réécriture écartée (elle s'éloignait de la cible)
+[ 51.6 min]    réécriture écartée (elle s'éloignait de la cible)
+[ 51.9 min]    calage 2: 4033/5075 mots
+[ 52.2 min]    réécriture écartée (elle s'éloignait de la cible)
+[ 52.5 min]   ! gemini-3.5-flash-lite surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 52.9 min]   ! gemini-3.1-flash-lite surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 54.1 min]    réécriture écartée (elle s'éloignait de la cible)
+[ 54.3 min]   ! gemini-3.5-flash-lite surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 55.1 min]    ! calage final interrompu (délai global de 55 min atteint : on garde ce qui est déjà produit) : on garde le texte déjà écrit
+[ 55.1 min] [5/5] Documents de sortie…
+[ 55.1 min]    script enregistré : 4241 mots
+[ 55.2 min]    liens des sources citées : 7/7 décodés
+[ 55.2 min]    Titre + miniature (analyse du top 3 YouTube)…
+[ 55.6 min]    titre : السعودية: انهيار اقتصادي وشيك؟ | ok
+[ 55.6 min]    Titres + description YouTube…
+[ 55.8 min]    description.txt écrit
+[ 55.8 min] 
+[ 55.8 min] السعودية في مهب الريح: كيف سيغير فوز الديمقراطيين مستقبل المملكة الاقتصادي؟
+[ 55.8 min] 
+[ 55.8 min] Script : 4241 mots ≈ 29.2 min (cible 35.0) · 255 sources · 143 faits vérifiés · 3349 s
+[ 55.8 min] 
+[ 55.8 min] IA utilisées : Groq gpt-oss-120b ×23, Groq gpt-oss-20b ×10, Gemini ×52
+[ 55.8 min] 
+[ 55.8 min] ⚠ Script plus court que la cible : 4241 mots au lieu de 5075 (quota ou délai atteint pendant l'écriture, ou matière insuffisante).
+[ 55.8 min] Fichiers : prompter/2026-11-12_19h41_live
