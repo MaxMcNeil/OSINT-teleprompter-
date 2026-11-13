@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from collections import Counter
 
-from . import llm, script, structure
+from . import langue, llm, script, structure
 
 MENTION = {
     "fr": ("Les accusations évoquées sont rapportées par la presse et n'ont pas valeur de condamnation. Toute personne citée "
@@ -92,6 +92,13 @@ Format : {{"titres": [str], "accroche": str, "decouvrir": [str], "tags": [str], 
                 vals = [" ".join(x.split()) for x in v if isinstance(x, str) and x.strip()]
                 if vals:
                     base[k] = vals
+    if not langue.paragraphe_ok(base["accroche"], code):       # accroche dans une autre langue : on la traduit
+        try:
+            t = llm.text(llm.ask(f"Traduis en {ctx['lang']['nom']}, rien d'autre :\n{base['accroche']}", temperature=0.2, fatal=False))
+            if t and langue.paragraphe_ok(t, code):
+                base["accroche"] = " ".join(t.split())
+        except Exception:
+            pass
     titres = list(dict.fromkeys(t.strip() for t in base["titres"] if 10 <= len(t.strip()) <= 100))[:4] or [titre]
     tags = list(dict.fromkeys(t.strip(" #,") for t in base["tags"] if t.strip(" #,")))
     if ch.get("nom") and ch["nom"] not in tags:

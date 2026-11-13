@@ -98,6 +98,10 @@ def modeles(f, vision=False):
         print(f"  ! {f['nom']} : liste des modèles indisponible ({str(e)[:60]}), liste par défaut")
     prefs = f["vision"] if vision else f["pref"]
     choix = _classer(ids or f["defaut"], prefs) if prefs else []
+    if not vision and ids:          # modèles de discussion non prévus (nouveautés du fournisseur) : en dernier recours
+        reste = [i for i in ids if i not in choix and not _EXCLURE.search(i)
+                 and not re.search(r"vision|scout|maverick|ocr|image|audio|speech|rerank|moderation", i, re.I)]
+        choix += sorted(reste, key=lambda i: -max([int(x) for x in re.findall(r"(\d+)b", i.lower())] or [0]))
     _modeles[k] = choix
     if choix:
         print(f"  relais {f['nom']}{' (images)' if vision else ''} : " + ", ".join(choix[:5]))
@@ -251,6 +255,12 @@ def _appel(f, cle, m, msgs, temperature, json_mode):
     print(f"  ! {f['nom']} {m} : erreur {r.status_code} ({' '.join(txt.split())[:120]}) : modèle suivant")
     _pause[(f["nom"], m)] = time.monotonic() + 90
     return "pause"
+
+
+def trop_gros(taille):
+    """True si TOUS les modèles texte des relais ont déjà refusé une requête de cette taille (limite par requête)."""
+    ms = [(f["nom"], m) for f in actifs() for m in _modeles.get(f["nom"], [])]
+    return bool(ms) and all(taille >= _taille_max.get(k, 10 ** 9) for k in ms)
 
 
 def resume():

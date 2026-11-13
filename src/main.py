@@ -498,6 +498,11 @@ def main():
     _miniature(a, ctx, sources, facts, queries, titre, d, problems)
     _description(ctx, titre, secs, facts, sources, d, problems)
     _STOP["protege"] = True
+    lc = ctx.get("langue_corrections")
+    if lc and (lc[0] or lc[1]):
+        problems.append(f"Langue : l'IA avait écrit des passages hors {lang['nom']} : {lc[0]} paragraphe(s) traduit(s)"
+                        + (f", {lc[1]} retiré(s) faute de traduction fiable" if lc[1] else "") + ". Le script final est entièrement en "
+                        f"{lang['nom']}.")
     if final_words < words * 0.85:
         problems.append(f"Script plus court que la cible : {final_words} mots au lieu de {words} "
                         "(quota ou délai atteint pendant l'écriture, ou matière insuffisante).")

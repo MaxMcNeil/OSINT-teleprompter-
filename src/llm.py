@@ -236,7 +236,9 @@ def _ask_gemini(prompt, temperature: float = 0.7, json_mode: bool = False,
             raise Deadline(f"délai global de {DEADLINE / 60:.0f} min atteint : on garde ce qui est déjà produit")
         i, model, wait = _pick(search)
         if i is None and wait is None:
-            if len(_badkeys) >= len(keys()):
+            if search:
+                msg = "Recherche Google intégrée indisponible (pas de quota de recherche sur la clé Gemini) : collecte presse seule."
+            elif len(_badkeys) >= len(keys()):
                 msg = "Toutes les clés Gemini sont refusées par Google (invalides, expirées ou sans droit) : vérifie les secrets."
             else:
                 msg = ("Quota JOURNALIER épuisé sur tous les modèles et toutes les clés (" + ", ".join(models())
@@ -284,6 +286,19 @@ def _ask_gemini(prompt, temperature: float = 0.7, json_mode: bool = False,
                     _dead.add((i, model, bool(search)))
                     continue
                 m = re.search(r"retry(?:Delay)?\D{0,20}(\d+(?:\.\d+)?)\s*s", msg, re.I)
+                if search and not m:
+                    # recherche Google sans quota (palier gratuit sans recherche intégrée) : inutile d'essayer chaque
+                    # modèle avec 20 s de pause (3,6 min perdues par recherche le 12/11) : recherche coupée pour le run
+                    print("  ! recherche Google intégrée sans quota sur cette clé : désactivée pour ce run (la collecte presse continue)")
+                    with _lock:
+                        for k_ in range(len(keys())):
+                            for m_ in models():
+                                _dead.add((k_, m_, True))
+                    continue
+                if re.search(r"limit:\s*0\b", msg):          # quota nul sur ce modèle : inutile d'attendre
+                    print(f"  ! quota nul : clé n°{i + 1} / {model}" + (" (recherche Google)" if search else "") + " : écarté")
+                    _dead.add((i, model, bool(search)))
+                    continue
                 k = (i, model, bool(search))
                 _strikes[k] = _strikes.get(k, 0) + 1
                 if _strikes[k] == 1:

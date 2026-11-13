@@ -3,7 +3,7 @@ from __future__ import annotations
 
 import re
 
-from . import config, llm, structure
+from . import config, langue, llm, structure
 
 MARK = re.compile(r"\[F\d+\]")
 
@@ -228,12 +228,53 @@ FIN DU PASSAGE PRÉCÉDENT (enchaîne naturellement) : {prev_tail[-350:] or '(d�
 FAITS À UTILISER :
 {facts_text(sel) or '(aucun fait spécifique : reprends et mets en perspective ceux déjà cités)'}
 {mode}
+RAPPEL FINAL — LANGUE : écris TOUT le texte en {ctx['lang']['nom']} et UNIQUEMENT en {ctx['lang']['nom']} (consignes et exemples ci-dessus = registre, pas langue).
 Écris maintenant le texte, rien d'autre."""
     out = _tidy(llm.text(llm.ask(p, temperature=0.95)), set(ids))
     if not current and len(out.split()) < max(8, budget * 0.25):      # réponse vide / bloquée / tronquée : un second essai
         out2 = _tidy(llm.text(llm.ask(p, temperature=1.0)), set(ids))
         if len(out2.split()) > len(out.split()):
             out = out2
+    return controle_langue(ctx, out, p, set(ids))
+
+
+def _traducteur(ctx):
+    nom = ctx["lang"]["nom"]
+
+    def traduire(par):
+        q = (f"Traduis ce paragraphe de script parlé en {nom}, fidèlement, avec le même ton et le même rythme oral. "
+             "Garde EXACTEMENT les marqueurs de source comme [F12], les chiffres et les noms propres. "
+             f"Réponds uniquement par le paragraphe traduit, en {nom}.\n\n{par}")
+        return llm.text(llm.ask(q, temperature=0.2, fatal=False)).strip()
+    return traduire
+
+
+def controle_langue(ctx, out, prompt, allowed):
+    """Un passage écrit dans une autre langue que celle du live : réécriture (2 essais), puis traduction des
+    paragraphes fautifs, puis retrait en dernier recours. Jamais de script en deux langues."""
+    code, nom = ctx["lang"]["code"], ctx["lang"]["nom"]
+    bad = langue.mauvais(out, code)
+    for essai in range(2):
+        if not bad:
+            return out
+        print(f"   ! langue : {len(bad)} paragraphe(s) hors {nom} -> réécriture ({essai + 1}/2)")
+        try:
+            out2 = _tidy(llm.text(llm.ask(prompt + f"\n\nATTENTION : ta réponse précédente contenait des paragraphes dans une "
+                                                    f"autre langue. Cette fois, CHAQUE phrase en {nom}, sans exception.",
+                                          temperature=0.7)), allowed)
+        except (SystemExit, RuntimeError) as e:
+            print(f"   ! réécriture impossible ({str(e)[:80]})")
+            break
+        bad2 = langue.mauvais(out2, code)
+        if len(out2.split()) >= len(out.split()) * 0.6 and len(bad2) < len(bad):
+            out, bad = out2, bad2
+    if bad:
+        out, tr, rm = langue.corriger(out, code, nom, _traducteur(ctx))
+        out = _tidy(out, allowed)
+        ctx.setdefault("langue_corrections", [0, 0])
+        ctx["langue_corrections"][0] += tr
+        ctx["langue_corrections"][1] += rm
+        print(f"   langue : {tr} paragraphe(s) traduit(s), {rm} retiré(s)")
     return out
 
 
@@ -383,6 +424,15 @@ def generate(ctx, facts, words):
         structure.anti_repetition(secs, protect=protect)
         if sum(wc(s["text"]) for s in secs) >= words * 0.95:
             break
+    # contrôle final de la langue sur tout le script (citation et accueil compris) : rien ne passe
+    code, nom = ctx["lang"]["code"], ctx["lang"]["nom"]
+    for sec in secs:
+        if langue.mauvais(sec["text"], code):
+            sec["text"], tr, rm = langue.corriger(sec["text"], code, nom, _traducteur(ctx))
+            ctx.setdefault("langue_corrections", [0, 0])
+            ctx["langue_corrections"][0] += tr
+            ctx["langue_corrections"][1] += rm
+            print(f"   ! langue (contrôle final, {sec['titre']}) : {tr} traduit(s), {rm} retiré(s)")
     return titre, secs
 
 

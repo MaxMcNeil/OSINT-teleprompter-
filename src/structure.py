@@ -27,7 +27,9 @@ def chaine(code):
     return CHAINES.get(code) or {}
 
 
-STYLE_EXPERT = """STYLE — tu es un EXPERT GÉOPOLITIQUE et analyste chevronné qui présente un live choc, pas un journaliste de dépêche :
+STYLE_EXPERT = """LANGUE DE SORTIE : uniquement la LANGUE DU LIVE indiquée plus bas. Ces consignes et leurs exemples sont en français
+pour décrire le REGISTRE : n'écris JAMAIS en français si le live est dans une autre langue, et ne mélange jamais deux langues.
+STYLE — tu es un EXPERT GÉOPOLITIQUE et analyste chevronné qui présente un live choc, pas un journaliste de dépêche :
 - Chaque paragraphe suit la mécanique : FAIT DUR (daté, chiffré, nommé) -> ANALYSE D'EXPERT (pourquoi, comment, à qui ça profite, quel précédent, quelle conséquence en chaîne) -> PUNCHLINE d'humour noir ou alarmiste qui claque. Zéro paragraphe neutre.
 - Tu montres ton niveau : corrélations, interconnexions, rapports de force, intérêts cachés, effets de second ordre. Tu relies une affaire à une autre quand les faits le permettent.
 - Humour noir ET alarmiste : ironie glaciale, image absurde, chute qui fait rire jaune, mais toujours au service de l'analyse. Pas de vulgarité gratuite.
@@ -95,7 +97,12 @@ ATTRIB = {
 
 
 def _norm(t):
-    return re.sub(r"[^a-z0-9 ]+", " ", unicodedata.normalize("NFKD", str(t).lower()).encode("ascii", "ignore").decode())
+    """Normalisation valable pour TOUTES les écritures (latin, arabe…) : minuscules, sans accents ni signes diacritiques
+    arabes, sans tatweel, variantes de lettres arabes unifiées."""
+    t = unicodedata.normalize("NFKD", str(t).lower())
+    t = "".join(c for c in t if not unicodedata.combining(c)).replace("ـ", "")
+    t = t.translate(str.maketrans({"ى": "ي", "ة": "ه", "ؤ": "و", "ئ": "ي"}))
+    return re.sub(r"[^\w ]+|_", " ", t)
 
 
 def _repli(ctx):
@@ -106,12 +113,14 @@ def _repli(ctx):
     c = dict(best)
     if ctx["lang"]["code"] != "fr":
         try:
-            j = llm.ask_json(f"Traduis fidèlement en {ctx['lang']['nom']} (traduction usuelle si elle existe). "
-                             f"JSON {{\"citation\": str, \"source\": str}}.\nCitation : {c['citation']}\nŒuvre : {c['source']}",
+            j = llm.ask_json(f"Traduis fidèlement en {ctx['lang']['nom']} (traduction usuelle si elle existe), nom de l'auteur compris "
+                             f"(graphie usuelle dans cette langue). JSON {{\"citation\": str, \"auteur\": str, \"source\": str}}.\n"
+                             f"Citation : {c['citation']}\nAuteur : {c['auteur']}\nŒuvre : {c['source']}",
                              temperature=0.1)
             if isinstance(j, dict) and isinstance(j.get("citation"), str) and j["citation"].strip():
                 c["citation"] = j["citation"].strip()
                 c["source"] = str(j.get("source") or c["source"]).strip()
+                c["auteur"] = str(j.get("auteur") or c["auteur"]).strip()
         except Exception as e:
             print(f"   ! traduction de la citation indisponible ({str(e)[:60]})")
             return None
@@ -149,7 +158,7 @@ Propose 3 citations célèbres pour OUVRIR le live et annoncer la couleur (chic,
 - citations RÉELLES, mot pour mot, d'auteurs réels, attribution certaine et vérifiable (classiques, philosophes, stratèges, écrivains,
   hommes d'État). Aucune citation apocryphe, « attribuée à », ni inventée. Moins de 30 mots chacune.
 - pas d'auteur vivant cité sur sa propre affaire ; pas de paroles de chanson ni de poème entier.
-- "citation" écrite en {ctx['lang']['nom']} (traduction usuelle si l'original est dans une autre langue).
+- "citation", "auteur" et "source" écrits en {ctx['lang']['nom']} (traduction usuelle, graphie usuelle du nom de l'auteur).
 Réponds en JSON : [{{"citation": str, "auteur": str, "source": "œuvre ou circonstance (+ année si connue)", "pourquoi": str}}]"""
     try:
         cands = llm.ask_json(p, temperature=0.7)
@@ -199,14 +208,14 @@ def role(kind, sec, ctx, device=""):
         return ("PROGRAMME (juste après l'accueil de la chaîne, déjà écrit, ne le répète pas) : en 4 à 7 phrases rapides, annonce "
                 "ce que le live va révéler, acte par acte, comme des titres choc (sans numéroter « acte 1 »)"
                 + (f", et garde le meilleur pour la fin : « {sec['teaser']} »" if sec.get("teaser") else ", et garde la révélation la plus forte pour la fin")
-                + ". Termine par « restez jusqu'au bout, tout est lié » (dans la langue du live). Pas de salutation.\nACTES :\n" + acts)
+                + ". Termine par l'équivalent, dans la langue du live, de « restez jusqu'au bout, tout est lié ». Pas de salutation.\nACTES :\n" + acts)
     if kind == "chapter":
         return (f"ACTE « {sec['titre']} » — angle : {sec.get('angle', '')}. Procédé : {device}. "
-                "Ouvre l'acte par une transition qui accroche (« Deuxième acte… », « Pendant ce temps… », « Et maintenant, l'argent. »), "
+                "Ouvre l'acte par une transition qui accroche, dans la langue du live (sur le modèle de « Deuxième acte… », « Pendant ce temps… »), "
                 "termine par une relance vers la suite.")
     if kind == "liens":
-        return ("JE RELIE LES POINTS : le passage qui montre ton niveau d'analyste. Annonce-le (« Et maintenant, je relie les points, "
-                "parce que c'est là que tout prend son sens »), puis « Premier point… Deuxième point… Troisième point… » : les "
+        return ("JE RELIE LES POINTS : le passage qui montre ton niveau d'analyste. Annonce-le dans la langue du live (sur le modèle de « Et maintenant, je relie les points »), puis "
+                "« premier point… deuxième point… troisième point… » (traduits) : les "
                 "corrélations, interconnexions, causes communes, à qui tout cela profite, le fil rouge qui unit les actes du live. "
                 "Uniquement des liens logiques entre les faits fournis (marqués) — aucun fait nouveau. Finis sur une phrase choc.\n"
                 "ACTES DU LIVE :\n" + "\n".join(f"- {t}" for t in sec.get("actes") or []))
@@ -225,7 +234,9 @@ def role(kind, sec, ctx, device=""):
 _SENT = re.compile(r"(?<=[.!?…])\s+")
 _MARK = re.compile(r"\[F\d+\]")
 _STOP = set("le la les de des du un une et a à au aux en dans pour sur par que qui quoi ce cet cette ces il elle ils elles on nous vous "
-            "est sont pas ne plus se sa son ses leur leurs y d l s n qu c j m t the of and to in is are a an que".split())
+            "est sont pas ne plus se sa son ses leur leurs y d l s n qu c j m t the of and to in is are a an que "
+            "il lo gli della di da che non per con una e un "
+            "في من علي الي عن مع هذا هذه ذلك تلك التي الذي ان او لا ما هو هي كل قد لم لن ثم بل كان كانت و ف ب ل ال".split())
 
 
 def _key(s):
@@ -247,6 +258,7 @@ def anti_repetition(secs, locked=(), protect=()):
     employée. Jamais touchées : les phrases porteuses de faits, la citation, l'accueil et la signature de la chaîne (protect)."""
     keep_always = {_key(x) for p in protect if p for x in _SENT.split(p) if x.strip()}
     seen_sent, seen_gram, openers, punch, removed = set(), set(), {}, [], 0
+    longues = []            # phrases longues déjà dites (même avec faits) : un quasi-doublon (≥ 80 % de mots communs) est retiré
     for s in secs:
         paras = re.split(r"\n\s*\n", s.get("text") or "")
         newp = []
@@ -268,6 +280,14 @@ def anti_repetition(secs, locked=(), protect=()):
                 if dup and not _MARK.search(sent) and s.get("kind") not in locked and k not in keep_always:
                     removed += 1
                     continue
+                if len(toks) >= 8 and k not in keep_always:
+                    st = set(toks)
+                    # quasi-doublon : 80 % des mots de la plus courte des deux phrases déjà dits ensemble (la conclusion
+                    # et le hook peuvent rappeler un fait : seuls les actes et « je relie les points » sont nettoyés)
+                    if s.get("kind") in ("chapter", "liens") and any(len(st & x) / min(len(st), len(x)) >= 0.8 for x in longues):
+                        removed += 1
+                        continue
+                    longues.append(st)
                 seen_sent.add(k)
                 seen_gram |= grams
                 if opener and not _MARK.search(sent):

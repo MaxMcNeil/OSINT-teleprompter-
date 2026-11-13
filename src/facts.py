@@ -76,10 +76,17 @@ def extract(sources, sujet, these, start_id=1, points=()):
     ordered = sorted(sources, key=lambda s: ({"haute": 0, "moyenne": 1, "faible": 2}[s.meta["fiab"]], -len(s.text)))
     # relais gratuits : limites par requête plus basses que Gemini -> lots plus petits
     relais = llm.relais_d_abord()
-    cap, per = (16000, 5) if relais else (48000, 14)
+    # lots calés sur une estimation des JETONS (l'arabe en consomme 2 à 3 fois plus par caractère que le français) :
+    # les relais gratuits refusent les requêtes trop grosses (12/11 : lots arabes de 16 000 caractères refusés par Groq)
+    def jetons(s):
+        t = s.text[:5000]
+        nl = sum(1 for c in t if ord(c) > 0x24F)
+        return (len(t) - nl) / 4 + nl / 1.8
+
+    cap, per = (4000, 5) if relais else (13000, 14)
     batches, cur, size = [], [], 0
     for s in ordered[:90]:
-        n = min(len(s.text), 5000)
+        n = jetons(s)
         if cur and (size + n > cap or len(cur) >= per):
             batches.append(cur)
             cur, size = [], 0
@@ -89,6 +96,12 @@ def extract(sources, sujet, these, start_id=1, points=()):
         batches.append(cur)
 
     def safe_batch(b):
+        # paquet déjà refusé par tous les relais pour sa taille : on le coupe en deux plutôt que de le donner à Gemini
+        if relais and len(b) > 1:
+            from . import relais as R
+            if R.trop_gros(sum(len(_block(x)) for x in b) + 2500):
+                print(f"   paquet de {len(b)} sources trop gros pour les relais : coupé en deux")
+                return safe_batch(b[:len(b) // 2]) + safe_batch(b[len(b) // 2:])
         try:
             return _extract_batch(b, sujet, these, points)
         except (Exception, SystemExit) as e:      # un lot perdu ne doit pas faire perdre les autres
