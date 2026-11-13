@@ -53,6 +53,8 @@ def langue_paragraphe(p):
 def paragraphe_ok(p, code):
     if len(p.split()) < 6:              # titres, chutes courtes : on ne juge pas
         return True
+    if code == "ar":                    # noms propres et marques en lettres latines (Gulf think-tank, Aramco…) : ignorés
+        p = re.sub(r"\b[A-Z][\w\-]*(?:\s+[a-z][\w\-]*-[\w\-]+)?", " ", p)
     ar, lat, autre = _ecritures(p)
     if code == "ar":
         return ar >= 0.6 and autre < 0.2        # noms propres en latin tolérés

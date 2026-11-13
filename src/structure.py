@@ -253,9 +253,10 @@ def deja_dit(secs, n=25):
     return out[-n:]
 
 
-def anti_repetition(secs, locked=(), protect=()):
+def anti_repetition(secs, locked=("outro",), protect=()):
     """Supprime les phrases SANS FAIT qui répètent une phrase déjà dite, une formule (5 mots consécutifs) ou une vanne déjà
-    employée. Jamais touchées : les phrases porteuses de faits, la citation, l'accueil et la signature de la chaîne (protect)."""
+    employée. Jamais touchées : les phrases porteuses de faits, la citation, l'accueil, la signature de la chaîne (protect)
+    et la conclusion (sa chute finale doit rester)."""
     keep_always = {_key(x) for p in protect if p for x in _SENT.split(p) if x.strip()}
     seen_sent, seen_gram, openers, punch, removed = set(), set(), {}, [], 0
     longues = []            # phrases longues déjà dites (même avec faits) : un quasi-doublon (≥ 80 % de mots communs) est retiré
