@@ -11,7 +11,7 @@ on:
           - commentaire d'une vidéo
         default: live
       video_commentee:
-        description: "Mode commentaire : VIDE = la vidéo est prise toute seule dans Drive montage-joints. Sinon lien direct vers la vidéo (.mp4, release GitHub…)"
+        description: "Mode commentaire : VIDE = la vidéo est prise toute seule dans Drive montage-joints. Sinon lien direct vers la vidéo (.mp4, release GitHub…), ou nom d'un fichier de montage-joints (rempli tout seul par le partage Termux)"
         required: false
         default: ""
       sujet:
@@ -115,6 +115,17 @@ jobs:
             echo "DRIVE_DEST=$R:$DOSSIER" >> "$GITHUB_ENV"
           fi
           mkdir -p "$RUNNER_TEMP/commentee"
+          case "$LIEN" in http*) ;; *)
+            if [ -n "$LIEN" ]; then    # nom d'un fichier de montage-joints (partage Termux) : CETTE vidéo, pas la plus lourde
+              [ -n "$R" ] || { echo "::error title=Accès Drive manquant::secret RCLONE_CONF absent : impossible de lire « $LIEN » dans Drive."; exit 1; }
+              NOM="$(basename "$LIEN")"
+              rclone copyto "$R:$DOSSIER/$NOM" "$RUNNER_TEMP/commentee/$NOM" --retries 5 -q \
+                || { echo "::error title=Vidéo introuvable::« $NOM » absent du dossier Drive « $DOSSIER »."; exit 1; }
+              { echo "VIDEO_COMMENTEE=$RUNNER_TEMP/commentee/$NOM"; echo "VIDEO_COMMENTEE_NOM=$NOM"; } >> "$GITHUB_ENV"
+              echo "### 🎬 Vidéo commentée : $NOM (Drive « $DOSSIER », laissée en place)" >> "$GITHUB_STEP_SUMMARY"
+              exit 0
+            fi ;;
+          esac
           if [ -n "$LIEN" ]; then      # lien direct donné au lancement : téléchargé, rien n'est touché sur Drive
             NOM=$(basename "${LIEN%%\?*}"); case "$NOM" in *.*) ;; *) NOM="video-commentee.mp4";; esac
             curl -fsSL --retry 3 -o "$RUNNER_TEMP/commentee/$NOM" "$LIEN" || { echo "::error::vidéo introuvable au lien donné"; exit 1; }
