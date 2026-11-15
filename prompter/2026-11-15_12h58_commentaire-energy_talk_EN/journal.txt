@@ -1,0 +1,15 @@
+[  0.0 min] [1/4] Vidéo commentée : energy_talk_EN.mp4
+[  0.0 min]    transcription Groq : 276 mots
+[  0.0 min]    35 phrases, 1:58, vidéo en « en » → ton script en français
+[  0.0 min] [2/4] Choix de l'ouverture et de 4 passages…
+[  0.0 min]   relais Groq : openai/gpt-oss-120b, openai/gpt-oss-20b, qwen/qwen3.8-27b
+[  0.0 min]    ouverture 0:27 (15 s) — 2 passage(s) vérifié(s)
+[  0.0 min] [3/4] Écriture de tes annonces et réactions…
+[  0.1 min]    ! réponse incomplète ou annonces numérotées (0/2 bons blocs) : nouvel essai
+[  0.2 min]    ! réponse incomplète ou annonces numérotées (0/2 bons blocs) : nouvel essai
+[  0.3 min]    ! 2 bloc(s) à revoir : à improviser (marqués dans le script)
+[  0.3 min] [4/4] Commentaire de « energy_talk_EN.mp4 »
+[  0.3 min] 
+[  0.3 min] Script : 120 mots ≈ 0.8 min de parole + 0.6 min de passages · 2 « écoutez ça » · ouverture choc à 0:27 · 17 s
+[  0.3 min] 
+[  0.3 min] IA utilisées : Groq gpt-oss-120b ×4
