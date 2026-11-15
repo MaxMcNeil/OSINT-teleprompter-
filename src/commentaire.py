@@ -26,6 +26,7 @@ DECLENCHEUR = {"fr": "écoutez ça", "en": "listen to this", "it": "ascoltate", 
                "pt": "ouçam isto", "ar": "استمعوا"}
 P_MIN, P_MAX = 8.0, 25.0
 ENDS = re.compile(r"[.!?؟…][\"»”]?$")
+CONNECT = r"(?i)^(et|mais|donc|alors|du coup|parce que|and|but|so|e|ma|quindi|y|pero|و|ثم|لكن)\b"
 
 
 # ------------------------------------------------------------------ transcription
@@ -157,6 +158,9 @@ TRANSCRIPTION :
             a, b = b, a
         if not (0 <= a < len(S) and 0 <= b < len(S)):
             return None
+        # jamais un passage qui commence par « Et / Mais / Donc… » (il dépend de la phrase d'avant) : on saute ce début
+        while a < b and re.match(CONNECT, S[a]["text"]) and S[b]["t1"] - S[a + 1]["t0"] >= P_MIN:
+            a += 1
         while b > a and S[b]["t1"] - S[a]["t0"] > P_MAX:          # trop long : on finit plus tôt
             b -= 1
         while S[b]["t1"] - S[a]["t0"] < P_MIN and b + 1 < len(S) and S[b + 1]["t1"] - S[a]["t0"] <= P_MAX:   # trop court
@@ -192,7 +196,9 @@ def ecrire(lang: dict, style: str, these: str, ouv: dict, ps: list, mots_cible: 
 Écris :
 - "intro" : 60 à 120 mots, réagit à chaud à l'ouverture, pose l'enjeu, donne envie de rester (question, promesse) ;
 - pour CHAQUE passage numéroté ci-dessous, dans l'ordre :
-  - "annonce" : 20 à 50 mots qui préparent le passage (contexte, ce qu'il faut écouter) ; NE cite PAS le passage ;
+  - "annonce" : 20 à 50 mots, à l'oral, naturels, qui préparent le passage (qui parle, de quoi, ce qu'il faut guetter) et
+    donnent envie de l'entendre ; NE cite PAS le passage ; n'écris JAMAIS « le premier passage / segment / extrait » ni
+    aucun numéro ;
   - "reaction" : environ {per} mots de réaction juste après l'avoir entendu (analyse, contradiction, ironie, chiffres,
     question au public) ; ne commence jamais par répéter la citation ;
 - "conclusion" : 60 à 120 mots, verdict + question au public + appel à s'abonner.
