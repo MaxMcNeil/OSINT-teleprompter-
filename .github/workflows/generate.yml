@@ -42,7 +42,7 @@ on:
         required: false
         default: ""
       langue:
-        description: "Langue (auto, fr, en, es, de, it, pt, ar)"
+        description: "Langue de TON script (auto, fr, en, es, de, it, pt, ar). Commentaire d'une vidéo : auto = français, quelle que soit la langue de la vidéo commentée (passages en VO, traduits pour toi dans le script)"
         required: false
         default: "auto"
       reprendre:
@@ -178,7 +178,8 @@ jobs:
       #    articles, vidéos et photos au montage.
       # le Montage (mode commentaire) lit ce fichier : la liste exacte des passages, dans l'ordre de tes « écoutez ça »
       - name: Commentaire — déposer la liste des passages pour le Montage (Drive montage-joints)
-        if: success() && startsWith(inputs.mode, 'commentaire') && env.DRIVE_DEST != ''
+        # un essai lancé sur une BRANCHE ne dépose rien dans ton Drive (ton vrai montage-joints reste intact)
+        if: success() && startsWith(inputs.mode, 'commentaire') && env.DRIVE_DEST != '' && github.ref_name == 'main'
         run: |
           P=$(find prompter -mindepth 2 -maxdepth 2 -name passages.json -newer "$RUNNER_TEMP/debut" | head -1)
           [ -n "$P" ] || { echo "::error::passages.json introuvable"; exit 1; }

@@ -38,6 +38,9 @@ Pour une vidéo où tu **commentes la vidéo de quelqu'un d'autre** (guide compl
 3. Le prompteur transcrit la vidéo, choisit l'**ouverture choc** et les **passages** (8 à 25 s, phrases entières, jamais
    un début en « Et / Mais… »), puis écrit : intro → pour chaque passage une annonce naturelle, **🎬 ÉCOUTEZ ÇA !**, ta
    réaction → conclusion. Contrôle : exactement un « écoutez ça » par passage, sinon le script est refusé.
+   **Vidéo en anglais, arabe… :** ta langue est gardée (`langue` auto = français ; `ar` pour Gulf think-tank) ; les
+   passages restent en VO et le script te donne leur traduction (« en clair : … ») ; le Montage les sous-titre dans ta
+   langue.
 4. Il dépose **`commentaire-passages.json`** dans `montage-joints` pour le Montage. La vidéo commentée **n'est jamais
    déplacée ni supprimée** (le fond vert et le Montage s'en servent ensuite).
 
