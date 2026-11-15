@@ -23,8 +23,10 @@ import time
 from . import config, llm
 
 # mot déclencheur à dire (et que le Montage écoute), par langue
-DECLENCHEUR = {"fr": "écoutez ça", "en": "listen to this", "it": "ascoltate", "es": "escuchen esto", "de": "hört zu",
-               "pt": "ouçam isto", "ar": "استمعوا"}
+# ⚠ EXACTEMENT les annonces que le Montage reconnaît (Montage-LV-final, montage/keywords.py, testé là-bas) :
+# une autre formule = la vidéo commentée ne repartirait jamais
+DECLENCHEUR = {"fr": "écoutez ça", "en": "listen to this", "it": "ascoltate questo", "es": "escuchen esto",
+               "de": "hört euch das an", "pt": "ouçam isto", "ar": "اسمعوا هذا"}
 P_MIN, P_MAX = 8.0, 25.0
 ENDS = re.compile(r"[.!?؟…][\"»”]?$")
 CONNECT = r"(?i)^(et|mais|donc|alors|du coup|parce que|and|but|so|e|ma|quindi|y|pero|و|ثم|لكن)\b"
