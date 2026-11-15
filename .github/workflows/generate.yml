@@ -3,6 +3,17 @@ name: Générer le script du live
 on:
   workflow_dispatch:
     inputs:
+      mode:
+        description: "Type de script : live (sujet, titres, capture) ou commentaire d'une vidéo (la plus longue vidéo de ton dossier Drive montage-joints, hors « moi… » — jamais supprimée ni déplacée)"
+        type: choice
+        options:
+          - live
+          - commentaire d'une vidéo
+        default: live
+      video_commentee:
+        description: "Mode commentaire : VIDE = la vidéo est prise toute seule dans Drive montage-joints. Sinon lien direct vers la vidéo (.mp4, release GitHub…)"
+        required: false
+        default: ""
       sujet:
         description: "Sujet du live (facultatif si tu donnes des titres ou une capture)"
         required: false
@@ -85,6 +96,45 @@ jobs:
           python-version: "3.12"
           cache: pip
       - run: pip install -r requirements.txt
+      # ---------------- mode « commentaire d'une vidéo » : la vidéo est LUE dans Drive montage-joints (copie locale) ----
+      - name: Commentaire — trouver et lire la vidéo à commenter (Drive montage-joints, lecture seule)
+        if: startsWith(inputs.mode, 'commentaire')
+        env:
+          RCLONE_CONF: ${{ secrets.RCLONE_CONF }}
+          DOSSIER: montage-joints
+          LIEN: ${{ inputs.video_commentee }}
+        run: |
+          command -v ffmpeg >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg; }
+          pip install -q "faster-whisper>=1.1,<2" || echo "::notice::transcription locale indisponible : Groq seulement"
+          # accès Drive : pour lire la vidéo, et pour y déposer la liste des passages que le Montage lira
+          R=""
+          if [ -n "$RCLONE_CONF" ]; then
+            for i in 1 2 3; do command -v rclone >/dev/null && break; curl -sSf --retry 3 https://rclone.org/install.sh | sudo bash >/dev/null 2>&1 || sleep 5; done
+            mkdir -p ~/.config/rclone && printf '%s\n' "$RCLONE_CONF" > ~/.config/rclone/rclone.conf
+            R=$(grep -m1 -oE '^\[[^]]+\]' ~/.config/rclone/rclone.conf | tr -d '[]')
+            echo "DRIVE_DEST=$R:$DOSSIER" >> "$GITHUB_ENV"
+          fi
+          mkdir -p "$RUNNER_TEMP/commentee"
+          if [ -n "$LIEN" ]; then      # lien direct donné au lancement : téléchargé, rien n'est touché sur Drive
+            NOM=$(basename "${LIEN%%\?*}"); case "$NOM" in *.*) ;; *) NOM="video-commentee.mp4";; esac
+            curl -fsSL --retry 3 -o "$RUNNER_TEMP/commentee/$NOM" "$LIEN" || { echo "::error::vidéo introuvable au lien donné"; exit 1; }
+            { echo "VIDEO_COMMENTEE=$RUNNER_TEMP/commentee/$NOM"; echo "VIDEO_COMMENTEE_NOM=$NOM"; } >> "$GITHUB_ENV"
+            echo "### 🎬 Vidéo commentée : $NOM (lien donné au lancement)" >> "$GITHUB_STEP_SUMMARY"
+            [ -n "$R" ] || echo "::warning title=Accès Drive manquant::la liste des passages ne sera pas déposée dans Drive pour le Montage (secret RCLONE_CONF absent)."
+            exit 0
+          fi
+          [ -n "$R" ] || { echo "::error title=Accès Drive manquant::Ajoute le secret RCLONE_CONF à ce dépôt (commande Termux dans le README, section « Mode commentaire »), ou donne un lien dans « video_commentee »."; exit 1; }
+          # la vidéo à commenter = la PLUS LOURDE vidéo du dossier, hors ta vidéo « moi… » (aucun nom à respecter)
+          NOM=$(rclone lsjson "$R:$DOSSIER" --files-only 2>/dev/null | python3 -c '
+          import json, re, sys
+          v = [f for f in json.load(sys.stdin) if re.search(r"\.(mp4|mov|mkv|webm|m4v|avi)$", f["Name"], re.I)
+               and not f["Name"].lower().startswith("moi")]
+          print(max(v, key=lambda f: f["Size"])["Name"] if v else "")')
+          [ -n "$NOM" ] || { echo "::error title=Aucune vidéo à commenter::Dépose la vidéo à commenter dans ton dossier Drive « $DOSSIER » (n'importe quel nom, sauf « moi… »)."; exit 1; }
+          rclone copyto "$R:$DOSSIER/$NOM" "$RUNNER_TEMP/commentee/$NOM" --retries 5 -q
+          { echo "VIDEO_COMMENTEE=$RUNNER_TEMP/commentee/$NOM"; echo "VIDEO_COMMENTEE_NOM=$NOM"; } >> "$GITHUB_ENV"
+          echo "### 🎬 Vidéo commentée : $NOM (lue dans Drive « $DOSSIER », laissée en place)" >> "$GITHUB_STEP_SUMMARY"
+
       - name: Capture(s) d'écran des titres (Release)
         if: inputs.capture != ''
         continue-on-error: true      # capture introuvable : le run continue avec les titres/sujet tapés (et le dit)
@@ -122,9 +172,19 @@ jobs:
           MINIATURE_SEULE: ${{ inputs.miniature_seule }}
           JOURNAL: ${{ runner.temp }}/journal.txt
           OUT_DIR: prompter
+          MODE: ${{ inputs.mode }}
         run: python -m src.main --sujet "$SUJET" --titres "$TITRES" --captures "$CAPTURES" --style "$STYLE" --duree "$DUREE" --these "$THESE" --langue "$LANGUE"
       # 🔒 Vid-o-presse-finder n'est plus lancé automatiquement (Gemini réservé au script) : tu fournis toi-même
       #    articles, vidéos et photos au montage.
+      # le Montage (mode commentaire) lit ce fichier : la liste exacte des passages, dans l'ordre de tes « écoutez ça »
+      - name: Commentaire — déposer la liste des passages pour le Montage (Drive montage-joints)
+        if: success() && startsWith(inputs.mode, 'commentaire') && env.DRIVE_DEST != ''
+        run: |
+          P=$(find prompter -mindepth 2 -maxdepth 2 -name passages.json -newer "$RUNNER_TEMP/debut" | head -1)
+          [ -n "$P" ] || { echo "::error::passages.json introuvable"; exit 1; }
+          rclone copyto "$P" "$DRIVE_DEST/commentaire-passages.json" -q
+          echo "✅ Liste des passages déposée dans Drive : commentaire-passages.json (le Montage la lit tout seul)." >> "$GITHUB_STEP_SUMMARY"
+
       - name: Enregistrer les fichiers dans prompter/ (branche main)
         if: always()
         env:
