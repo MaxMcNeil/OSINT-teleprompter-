@@ -186,6 +186,10 @@ TRANSCRIPTION :
 
 
 # ------------------------------------------------------------------ écriture
+# « le premier passage », « le 3e extrait », « ce deuxième segment », « le dernier extrait »… : jamais à l'oral
+NUMEROTE = re.compile(r"\b(premi[eè]re?|deuxi[eè]me|second[e]?|troisi[eè]me|quatri[eè]me|cinqui[eè]me|sixi[eè]me|"
+                      r"septi[eè]me|huiti[eè]me|neuvi[eè]me|dixi[eè]me|\d+\s*(?:e|è|ème|eme|er|re)|dernier|derni[eè]re)"
+                      r"\s+(passage|segment|extrait|clip|moment|partie)s?\b", re.I)
 def ecrire(lang: dict, style: str, these: str, ouv: dict, ps: list, mots_cible: int) -> dict:
     dec = DECLENCHEUR.get(lang["code"], DECLENCHEUR["fr"])
     per = max(40, int(mots_cible * 0.8 / max(1, len(ps))))
@@ -209,15 +213,19 @@ Réponds UNIQUEMENT en JSON : {{"intro": "...", "blocs": [{{"n": 1, "annonce": "
 PASSAGES :
 {liste}"""
     j = {}
-    for essai in range(2):      # réponse incomplète (blocs manquants) : 2e essai, puis on garde la plus complète
+
+    def bons(r):     # blocs complets ET annonce naturelle (jamais « le premier passage », « le 3e extrait »…)
+        return sum(1 for b in (r.get("blocs") or []) if isinstance(b, dict) and b.get("reaction")
+                   and b.get("annonce") and not NUMEROTE.search(str(b["annonce"])))
+    for essai in range(3):      # réponse incomplète ou annonces numérotées : nouvel essai, on garde la meilleure
         r = llm.ask_json(prompt, temperature=0.6 if essai == 0 else 0.4) or {}
-        nb = sum(1 for b in (r.get("blocs") or []) if isinstance(b, dict) and b.get("reaction"))
-        if nb > sum(1 for b in (j.get("blocs") or []) if isinstance(b, dict) and b.get("reaction")):
+        nb = bons(r)
+        if nb > bons(j):
             j = r
         if nb >= len(ps) and r.get("intro"):
             break
-        print(f"   ! réponse incomplète ({nb}/{len(ps)} réactions) : nouvel essai" if essai == 0 else
-              f"   ! {len(ps) - nb} réaction(s) manquante(s) : à improviser (marquées dans le script)")
+        print(f"   ! réponse incomplète ou annonces numérotées ({nb}/{len(ps)} bons blocs) : nouvel essai" if essai < 2
+              else f"   ! {len(ps) - nb} bloc(s) à revoir : à improviser (marqués dans le script)")
     def _n(b):
         try:
             return int(b.get("n") or 0)
@@ -226,6 +234,9 @@ PASSAGES :
     blocs = {_n(b): b for b in (j.get("blocs") or []) if isinstance(b, dict)}
     pat = re.compile(re.escape(dec), re.I)
     clean = lambda t: pat.sub("", " ".join(str(t or "").split())).strip()     # noqa: E731
+    for b in blocs.values():    # dernier filet : une annonce encore numérotée est remplacée par le titre du passage
+        if NUMEROTE.search(str(b.get("annonce") or "")):
+            b["annonce"] = ""
     return {"intro": clean(j.get("intro")), "conclusion": clean(j.get("conclusion")),
             "blocs": [{"annonce": clean((blocs.get(k + 1) or {}).get("annonce")),
                        "reaction": clean((blocs.get(k + 1) or {}).get("reaction"))} for k in range(len(ps))]}
