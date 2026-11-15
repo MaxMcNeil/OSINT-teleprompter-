@@ -466,8 +466,16 @@ def main():
             print(f"   liens des sources citées : {sum(1 for x in todo if 'news.google.com' not in x.url)}/{len(todo)} décodés")
     except Exception as e:
         print(f"   ! décodage final des liens ignoré ({str(e)[:80]})")
-    open(os.path.join(d, "commentaire_epingle.txt"), "w", encoding="utf-8").write(
-        report.pinned_comment(titre, secs, facts, sources))
+    commentaire = report.pinned_comment(titre, secs, facts, sources)
+    open(os.path.join(d, "commentaire_epingle.txt"), "w", encoding="utf-8").write(commentaire)
+    try:        # les sources citées (avec liens) aussi à la FIN du script prompteur et du script annoté
+        bloc = "\n\n————————————\n" + commentaire
+        for nom in ("script_teleprompter.txt", "script_annote.md"):
+            with open(os.path.join(d, nom), "a", encoding="utf-8") as f:
+                f.write(bloc)
+        print("   liens des sources ajoutés à la fin du script")
+    except Exception as e:
+        print(f"   ! ajout des sources en fin de script ignoré ({str(e)[:80]})")
     open(os.path.join(d, "sources.md"), "w", encoding="utf-8").write(
         report.build(titre, secs, facts, sources, ctx, stats))
     json.dump({"sources": [asdict(s) for s in sources], "faits": facts},
