@@ -145,21 +145,38 @@ Voici la transcription de la vidéo commentée, en phrases numérotées : [numé
    la fin d'une phrase. Les passages ne se chevauchent pas. Aucun passage ne reprend l'ouverture (déjà entendue).
 3. Pour chaque passage : un titre court (3 à 7 mots) qui annonce ce qui va suivre, fidèle à ce qui est dit.
 {('Angle du commentateur : ' + these) if these else ''}
+start / end = NUMÉROS des phrases entre crochets (pas des horaires).
 Réponds UNIQUEMENT en JSON : {{"ouverture": {{"start": n, "end": n, "titre": "..."}},
 "passages": [{{"start": n, "end": n, "titre": "..."}}]}}
 
 TRANSCRIPTION :
 {lignes}"""
     j = llm.ask_json(prompt, temperature=0.3) or {}
+    rejets: list = []
+
+    def idx(v, fin=False):
+        """Numéro de phrase. Tolère une réponse en horaire (« 1:27 », 87.5) : la phrase qui contient cet instant."""
+        if isinstance(v, str) and ":" in v:
+            mm, _, ss = v.strip().rpartition(":")
+            t = float(mm or 0) * 60 + float(ss)
+        elif isinstance(v, float) and not v.is_integer():
+            t = v
+        else:
+            return int(str(v).strip().strip("[]"))
+        k = min(range(len(S)), key=lambda i: 0 if S[i]["t0"] <= t <= S[i]["t1"] else
+                min(abs(S[i]["t0"] - t), abs(S[i]["t1"] - t)))
+        return k
 
     def ok(x):
         try:
-            a, b = int(x["start"]), int(x["end"])
+            a, b = idx(x["start"]), idx(x["end"], True)
         except (KeyError, TypeError, ValueError):
+            rejets.append(f"illisible {str(x)[:60]}")
             return None
         if a > b:
             a, b = b, a
         if not (0 <= a < len(S) and 0 <= b < len(S)):
+            rejets.append(f"hors transcription [{a}-{b}]")
             return None
         # jamais un passage qui commence par « Et / Mais / Donc… » (il dépend de la phrase d'avant) : on saute ce début
         while a < b and re.match(CONNECT, S[a]["text"]) and S[b]["t1"] - S[a + 1]["t0"] >= P_MIN:
@@ -170,6 +187,7 @@ TRANSCRIPTION :
                 break
             a -= 1
         if re.match(CONNECT, S[a]["text"]):
+            rejets.append(f"[{a}] commence par « {S[a]['text'][:12]}… »")
             return None
         while b > a and S[b]["t1"] - S[a]["t0"] > P_MAX:          # trop long : on finit plus tôt
             b -= 1
@@ -177,6 +195,7 @@ TRANSCRIPTION :
             b += 1
         d = S[b]["t1"] - S[a]["t0"]
         if d < P_MIN - 1.5 or d > P_MAX + 0.5:
+            rejets.append(f"[{a}-{b}] {d:.0f} s")
             return None
         return {"a": a, "b": b, "start": round(S[a]["t0"], 3), "end": round(S[b]["t1"], 3),
                 "titre": " ".join(str(x.get("titre") or "").split())[:70],
@@ -197,7 +216,8 @@ TRANSCRIPTION :
         if len(ps) >= max(2, n_voulu - 1):
             break
         pris = ", ".join(f"[{q['a']}-{q['b']}]" for q in sorted(ps + ([ouv] if ouv else []), key=lambda q: q["a"]))
-        print(f"   {len(ps)}/{n_voulu} passage(s) valable(s) : l'IA en propose d'autres")
+        print(f"   {len(ps)}/{n_voulu} passage(s) valable(s) (refusés : {'; '.join(rejets[-6:]) or 'chevauchement'}) :"
+              " l'IA en propose d'autres")
         j2 = llm.ask_json(prompt + f"""
 
 DÉJÀ PRIS (n'en reprends AUCUNE phrase) : {pris or 'rien'}.
