@@ -27,6 +27,24 @@ En local : `pip install -r requirements.txt`, puis
 
 Options : `--wpm 145` (mots par minute), `--langue fr|en|…`, `--no-defense`, `--no-interactions`.
 
+## 🎙 Mode « commentaire d'une vidéo »
+
+Pour une vidéo où tu **commentes la vidéo de quelqu'un d'autre** (guide complet : README du dépôt *Montage-LV-final*).
+
+1. Dépose la vidéo à commenter dans ton Google Drive, dossier **`montage-joints`** (ou colle son lien direct dans
+   `video_commentee`).
+2. **Actions → Générer le script du live → Run workflow** → `mode` = **commentaire d'une vidéo** (durée = durée de
+   ton commentaire).
+3. Le prompteur transcrit la vidéo, choisit l'**ouverture choc** et les **passages** (8 à 25 s, phrases entières, jamais
+   un début en « Et / Mais… »), puis écrit : intro → pour chaque passage une annonce naturelle, **🎬 ÉCOUTEZ ÇA !**, ta
+   réaction → conclusion. Contrôle : exactement un « écoutez ça » par passage, sinon le script est refusé.
+4. Il dépose **`commentaire-passages.json`** dans `montage-joints` pour le Montage. La vidéo commentée **n'est jamais
+   déplacée ni supprimée** (le fond vert et le Montage s'en servent ensuite).
+
+Fichiers : `script_teleprompter.txt` (à lire), `script_annote.md` (avec les citations et les minutages),
+`passages.json`. Une seule fois avant (Termux) :
+`gh secret set RCLONE_CONF --repo MaxMcNeil/OSINT-teleprompter- < "$(rclone config file | tail -1)"`
+
 ## Fichiers produits
 
 | Fichier | Contenu |
