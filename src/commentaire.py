@@ -183,11 +183,27 @@ TRANSCRIPTION :
                 "citation": " ".join(s["text"] for s in S[a:b + 1])}
     ouv = ok(j.get("ouverture") or {})
     ps = []
-    for x in j.get("passages") or []:
-        p = ok(x)
-        # jamais deux fois la même chose : un passage ne reprend pas l'ouverture choc (déjà entendue au début)
-        if p and not any(min(p["end"], q["end"]) - max(p["start"], q["start"]) > 0 for q in ps + ([ouv] if ouv else [])):
-            ps.append(p)
+
+    def prendre(lst):
+        for x in lst or []:
+            p = ok(x)
+            # jamais deux fois la même chose : un passage ne reprend pas l'ouverture choc (déjà entendue au début)
+            if p and not any(min(p["end"], q["end"]) - max(p["start"], q["start"]) > 0
+                             for q in ps + ([ouv] if ouv else [])):
+                ps.append(p)
+    prendre(j.get("passages"))
+    # trop de passages refusés par la vérification (trop longs, coupés, chevauchement…) : on en redemande d'AUTRES
+    for _ in range(2):
+        if len(ps) >= max(2, n_voulu - 1):
+            break
+        pris = ", ".join(f"[{q['a']}-{q['b']}]" for q in sorted(ps + ([ouv] if ouv else []), key=lambda q: q["a"]))
+        print(f"   {len(ps)}/{n_voulu} passage(s) valable(s) : l'IA en propose d'autres")
+        j2 = llm.ask_json(prompt + f"""
+
+DÉJÀ PRIS (n'en reprends AUCUNE phrase) : {pris or 'rien'}.
+Donne {n_voulu - len(ps)} AUTRES passages (même règles : {P_MIN:.0f} à {P_MAX:.0f} s, phrases entières), même format JSON.""",
+                          temperature=0.4) or {}
+        prendre(j2.get("passages"))
     ps.sort(key=lambda p: p["start"])
     if not ps and ouv:   # vidéo très courte : tout tient dans l'ouverture → l'ouverture est jouée seule, sans reprise
         raise SystemExit("Vidéo commentée trop courte : aucun passage en plus de l'ouverture choc.")
