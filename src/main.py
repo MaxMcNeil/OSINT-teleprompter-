@@ -396,6 +396,13 @@ def main():
         except OSError:
             pass
     hard = _installer_securite()
+    if os.getenv("MODE", "").strip().lower().startswith("comment"):     # mode « commentaire d'une vidéo »
+        from . import commentaire
+        v = os.getenv("VIDEO_COMMENTEE", "")
+        if not v or not os.path.exists(v):
+            raise SystemExit("Mode commentaire : aucune vidéo à commenter trouvée (dépose-la dans Drive montage-joints).")
+        commentaire.run(a, v, os.getenv("VIDEO_COMMENTEE_NOM") or os.path.basename(v), a.out)
+        return
     titres = []
     if (a.titres.strip() or a.captures.strip()) and not os.getenv("MINIATURE_SEULE", "").strip():
         print("[0/5] Revue de presse : lecture des titres…")
