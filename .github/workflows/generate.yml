@@ -42,7 +42,7 @@ on:
         required: false
         default: ""
       langue:
-        description: "Langue (auto, fr, en, es, de, it, pt, ar)"
+        description: "Langue de TON script (auto, fr, en, es, de, it, pt, ar). Commentaire d'une vidéo : auto = français, quelle que soit la langue de la vidéo commentée (passages en VO, traduits pour toi dans le script)"
         required: false
         default: "auto"
       reprendre:

@@ -132,7 +132,9 @@ def _fmt(s):
 def choisir(S: list, lang: dict, n_voulu: int, these: str = "") -> tuple[dict | None, list]:
     """(ouverture, passages dans l'ordre de la vidéo) — tous vérifiés."""
     lignes = "\n".join(f"[{s['i']}] {_fmt(s['t0'])} ({max(1, round(s['t1'] - s['t0']))}s) {s['text'][:300]}" for s in S)
-    prompt = f"""Tu prépares une vidéo YouTube où un commentateur RÉAGIT à une vidéo (langue : {lang['nom']}).
+    prompt = f"""Tu prépares une vidéo YouTube où un commentateur RÉAGIT à une vidéo. Le commentateur parle {lang['nom']} ;
+la vidéo commentée peut être dans une autre langue (code détecté : {lang.get('video', '?')}) : les TITRES sont écrits en
+{lang['nom']}, quelle que soit la langue de la vidéo.
 Voici la transcription de la vidéo commentée, en phrases numérotées : [numéro] horaire (durée) texte.
 
 1. OUVERTURE : le passage LE PLUS CHOQUANT / controversé / fort de toute la vidéo (il ouvrira la vidéo, avant tout).
@@ -210,12 +212,13 @@ def ecrire(lang: dict, style: str, these: str, ouv: dict, ps: list, mots_cible: 
   - "annonce" : 20 à 50 mots, à l'oral, naturels, qui préparent le passage (qui parle, de quoi, ce qu'il faut guetter) et
     donnent envie de l'entendre ; NE cite PAS le passage ; n'écris JAMAIS « le premier passage / segment / extrait » ni
     aucun numéro ;
+  - "traduction" : {('la traduction fidèle du passage en ' + lang['nom'] + ' (la vidéo est dans une autre langue)') if lang.get('video') not in (None, '?', lang['code']) else 'chaîne vide'} ;
   - "reaction" : environ {per} mots de réaction juste après l'avoir entendu (analyse, contradiction, ironie, chiffres,
     question au public) ; ne commence jamais par répéter la citation ;
 - "conclusion" : 60 à 120 mots, verdict + question au public + appel à s'abonner.
 N'invente aucun fait ; une accusation est présentée comme une opinion ou une question. N'écris JAMAIS les mots
 « {dec} » toi-même (ils sont ajoutés automatiquement).
-Réponds UNIQUEMENT en JSON : {{"intro": "...", "blocs": [{{"n": 1, "annonce": "...", "reaction": "..."}}], "conclusion": "..."}}
+Réponds UNIQUEMENT en JSON : {{"intro": "...", "blocs": [{{"n": 1, "annonce": "...", "traduction": "...", "reaction": "..."}}], "conclusion": "..."}}
 
 PASSAGES :
 {liste}"""
@@ -246,6 +249,7 @@ PASSAGES :
             b["annonce"] = ""
     return {"intro": clean(j.get("intro")), "conclusion": clean(j.get("conclusion")),
             "blocs": [{"annonce": clean((blocs.get(k + 1) or {}).get("annonce")),
+                       "traduction": clean((blocs.get(k + 1) or {}).get("traduction")),
                        "reaction": clean((blocs.get(k + 1) or {}).get("reaction"))} for k in range(len(ps))]}
 
 
@@ -253,15 +257,18 @@ def run(a, video: str, video_nom: str, out_root: str) -> str:
     """Point d'entrée : écrit les fichiers dans prompter/<date>_commentaire-<vidéo>/ et renvoie ce dossier."""
     t0 = time.time()
     print(f"[1/4] Vidéo commentée : {video_nom}")
-    words, code = transcrire(video, a.langue)
+    # la vidéo commentée peut être en anglais, en arabe… : sa langue est DÉTECTÉE (jamais forcée) ; ton script, lui,
+    # est dans TA langue (choix « langue », auto = français) — passages écoutés en VO, sous-titrés par le Montage
+    words, code = transcrire(video, "auto")
     if len(words) < 30:
         raise SystemExit("Transcription de la vidéo commentée vide ou presque : vidéo sans parole ?")
     if (a.langue or "auto").lower() == "auto":
-        a.langue = code
-    lang = config.lang_cfg(a.langue, "")
+        a.langue = "fr"
+    lang = dict(config.lang_cfg(a.langue, ""))
+    lang["video"] = (code or "?")[:2].lower()
     S = phrases(words)
     dur_v = words[-1]["t1"]
-    print(f"   {len(S)} phrases, {_fmt(dur_v)}, langue {lang['nom']}")
+    print(f"   {len(S)} phrases, {_fmt(dur_v)}, vidéo en « {lang['video']} » → ton script en {lang['nom']}")
     mots = round(a.duree * a.wpm)
     n = max(4, min(14, round(a.duree / 2)))           # ≈ un passage toutes les 2 min de ton commentaire
     print(f"[2/4] Choix de l'ouverture et de {n} passages…")
@@ -276,10 +283,11 @@ def run(a, video: str, video_nom: str, out_root: str) -> str:
     ann = [f"# Commentaire : {video_nom}", "", f"**OUVERTURE CHOC** ({_fmt(ouv['start'])}) : « {ouv['citation']} »", "",
            "## Intro", "", tx["intro"], ""]
     for k, (p, b) in enumerate(zip(ps, tx["blocs"])):
-        L += [b["annonce"] or f"{p['titre']}.", "", f"🎬 {DEC} !", "", f"[ ne pas lire — on entend : « {p['citation'][:220]} » ]", "",
+        L += [b["annonce"] or f"{p['titre']}.", "", f"🎬 {DEC} !", "", (f"[ ne pas lire — on entend (VO) : « {p['citation'][:220]} » — en clair : « {b['traduction'][:260]} » ]"
+                 if b.get("traduction") else f"[ ne pas lire — on entend : « {p['citation'][:220]} » ]"), "",
               b["reaction"] or "[ ta réaction, librement ]", ""]
         ann += [f"## {k + 1}. {p['titre']}  ({_fmt(p['start'])} → {_fmt(p['end'])}, {p['end'] - p['start']:.0f} s)", "",
-                b["annonce"], "", f"> 🎬 **{DEC} !** — « {p['citation']} »", "", b["reaction"], ""]
+                b["annonce"], "", f"> 🎬 **{DEC} !** — « {p['citation']} »" + (f"\n>\n> *{b['traduction']}*" if b.get("traduction") else ""), "", b["reaction"], ""]
     L += [tx["conclusion"] or ""]
     ann += ["## Conclusion", "", tx["conclusion"]]
     txt = "\n".join(L).strip() + "\n"
