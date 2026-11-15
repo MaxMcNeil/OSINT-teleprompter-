@@ -161,6 +161,13 @@ TRANSCRIPTION :
         # jamais un passage qui commence par « Et / Mais / Donc… » (il dépend de la phrase d'avant) : on saute ce début
         while a < b and re.match(CONNECT, S[a]["text"]) and S[b]["t1"] - S[a + 1]["t0"] >= P_MIN:
             a += 1
+        # trop court pour sauter ce début : on prend la phrase d'avant (le contexte), sinon le passage est refusé
+        for _ in range(2):
+            if not re.match(CONNECT, S[a]["text"]) or a == 0 or S[b]["t1"] - S[a - 1]["t0"] > P_MAX:
+                break
+            a -= 1
+        if re.match(CONNECT, S[a]["text"]):
+            return None
         while b > a and S[b]["t1"] - S[a]["t0"] > P_MAX:          # trop long : on finit plus tôt
             b -= 1
         while S[b]["t1"] - S[a]["t0"] < P_MIN and b + 1 < len(S) and S[b + 1]["t1"] - S[a]["t0"] <= P_MAX:   # trop court
