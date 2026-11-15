@@ -1,0 +1,12 @@
+[  0.0 min] [1/4] Vidéo commentée : energy_talk_EN.mp4
+[  0.0 min]    transcription Groq : 276 mots
+[  0.0 min]    35 phrases, 1:58, vidéo en « en » → ton script en français
+[  0.0 min] [2/4] Choix de l'ouverture et de 4 passages…
+[  0.0 min]   relais Groq : openai/gpt-oss-120b, openai/gpt-oss-20b, qwen/qwen3.8-27b
+[  0.1 min]    ouverture 0:00 (22 s) — 2 passage(s) vérifié(s)
+[  0.1 min] [3/4] Écriture de tes annonces et réactions…
+[  0.1 min] [4/4] Commentaire de « energy_talk_EN.mp4 »
+[  0.1 min] 
+[  0.1 min] Script : 1441 mots ≈ 9.9 min de parole + 0.8 min de passages · 2 « écoutez ça » · ouverture choc à 0:00 · 8 s
+[  0.1 min] 
+[  0.1 min] IA utilisées : Groq gpt-oss-120b ×2
