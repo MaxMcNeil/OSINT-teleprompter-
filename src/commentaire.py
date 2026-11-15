@@ -142,7 +142,7 @@ Voici la transcription de la vidéo commentée, en phrases numérotées : [numé
 2. PASSAGES : {n_voulu} passages à faire écouter, DANS L'ORDRE DE LA VIDÉO, qui portent les idées clés, les déclarations
    fortes, les contradictions, les chiffres, ce qui fait réagir. Chaque passage : phrases CONSÉCUTIVES, de {P_MIN:.0f} à
    {P_MAX:.0f} secondes au total (additionne les durées), compréhensible seul, qui commence au début d'une phrase et finit à
-   la fin d'une phrase. Les passages ne se chevauchent pas. L'ouverture peut être reprise comme passage plus loin.
+   la fin d'une phrase. Les passages ne se chevauchent pas. Aucun passage ne reprend l'ouverture (déjà entendue).
 3. Pour chaque passage : un titre court (3 à 7 mots) qui annonce ce qui va suivre, fidèle à ce qui est dit.
 {('Angle du commentateur : ' + these) if these else ''}
 Réponds UNIQUEMENT en JSON : {{"ouverture": {{"start": n, "end": n, "titre": "..."}},
@@ -185,9 +185,12 @@ TRANSCRIPTION :
     ps = []
     for x in j.get("passages") or []:
         p = ok(x)
-        if p and not any(min(p["end"], q["end"]) - max(p["start"], q["start"]) > 0 for q in ps):
+        # jamais deux fois la même chose : un passage ne reprend pas l'ouverture choc (déjà entendue au début)
+        if p and not any(min(p["end"], q["end"]) - max(p["start"], q["start"]) > 0 for q in ps + ([ouv] if ouv else [])):
             ps.append(p)
     ps.sort(key=lambda p: p["start"])
+    if not ps and ouv:   # vidéo très courte : tout tient dans l'ouverture → l'ouverture est jouée seule, sans reprise
+        raise SystemExit("Vidéo commentée trop courte : aucun passage en plus de l'ouverture choc.")
     if not ps:
         raise SystemExit("Aucun passage exploitable dans la vidéo commentée (transcription vide ou IA indisponible).")
     if not ouv:
@@ -207,7 +210,7 @@ NUMEROTE = re.compile(r"\b(premi[eè]re?|deuxi[eè]me|second[e]?|troisi[eè]me|q
                       r"\s+(passage|segment|extrait|clip|moment|partie)s?\b", re.I)
 def ecrire(lang: dict, style: str, these: str, ouv: dict, ps: list, mots_cible: int) -> dict:
     dec = DECLENCHEUR.get(lang["code"], DECLENCHEUR["fr"])
-    per = max(40, int(mots_cible * 0.8 / max(1, len(ps))))
+    per = min(220, max(40, int(mots_cible * 0.8 / max(1, len(ps)))))   # une réaction n'est jamais un monologue
     liste = "\n".join(f"[{k + 1}] « {p['citation'][:500]} »" for k, p in enumerate(ps))
     prompt = f"""Tu écris le texte de prompteur d'un commentateur YouTube {('satirique, mordant' if style == 'satirique' else 'expert, percutant')}
 (langue : {lang['nom']}) qui RÉAGIT à une vidéo. Le spectateur vient de voir l'ouverture choc : « {ouv['citation'][:500]} ».
