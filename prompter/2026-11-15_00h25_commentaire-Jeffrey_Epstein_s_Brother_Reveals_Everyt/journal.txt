@@ -1,0 +1,16 @@
+[  0.0 min] [1/4] Vidéo commentée : Jeffrey_Epstein_s_Brother_Reveals_Everything_He_Knows_1080p__FR.mp4
+[  0.3 min]    transcription Groq : 4536 mots
+[  0.3 min]    301 phrases, 25:47, langue français
+[  0.3 min] [2/4] Choix de l'ouverture et de 8 passages…
+[  0.3 min]   relais Groq : openai/gpt-oss-120b, openai/gpt-oss-20b, qwen/qwen3.8-27b
+[  0.3 min]   ! Groq openai/gpt-oss-120b : requête trop grosse pour ce modèle : modèle suivant
+[  0.3 min]   ! Groq openai/gpt-oss-20b : requête trop grosse pour ce modèle : modèle suivant
+[  0.3 min]   ! Groq qwen/qwen3.8-27b : requête trop grosse pour ce modèle : modèle suivant
+[  0.3 min]   relais OpenRouter : nvidia/nemotron-3-ultra-550b-a55b:free, google/gemma-4-31b-it:free, nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free, google/gemma-4-26b-a4b-it:free, liquid/lfm-3-1.7b:free
+[  2.7 min]    ouverture 1:14 (13 s) — 8 passage(s) vérifié(s)
+[  2.7 min] [3/4] Écriture de tes annonces et réactions…
+[  2.7 min] [4/4] Commentaire de « Jeffrey_Epstein_s_Brother_Reveals_Everything_He_Knows_1080p__FR.mp4 »
+[  2.7 min] 
+[  2.7 min] Script : 1467 mots ≈ 10.1 min de parole + 2.8 min de passages · 8 « écoutez ça » · ouverture choc à 1:14 · 164 s
+[  2.7 min] 
+[  2.7 min] IA utilisées : OpenRouter nemotron-3-ultra-550b-a55b:free ×1, Groq gpt-oss-120b ×1
