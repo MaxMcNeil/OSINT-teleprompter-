@@ -15,6 +15,7 @@ from __future__ import annotations
 import json
 import os
 import re
+import unicodedata
 import subprocess
 import tempfile
 import time
@@ -195,6 +196,11 @@ TRANSCRIPTION :
 
 
 # ------------------------------------------------------------------ écriture
+def _cle(k) -> str:
+    """« Réaction » → reaction, « Annonce » → annonce."""
+    return unicodedata.normalize("NFKD", str(k)).encode("ascii", "ignore").decode().strip().lower()
+
+
 # « le premier passage », « le 3e extrait », « ce deuxième segment », « le dernier extrait »… : jamais à l'oral
 NUMEROTE = re.compile(r"\b(premi[eè]re?|deuxi[eè]me|second[e]?|troisi[eè]me|quatri[eè]me|cinqui[eè]me|sixi[eè]me|"
                       r"septi[eè]me|huiti[eè]me|neuvi[eè]me|dixi[eè]me|\d+\s*(?:e|è|ème|eme|er|re)|dernier|derni[eè]re)"
@@ -212,26 +218,43 @@ def ecrire(lang: dict, style: str, these: str, ouv: dict, ps: list, mots_cible: 
   - "annonce" : 20 à 50 mots, à l'oral, naturels, qui préparent le passage (qui parle, de quoi, ce qu'il faut guetter) et
     donnent envie de l'entendre ; NE cite PAS le passage ; n'écris JAMAIS « le premier passage / segment / extrait » ni
     aucun numéro ;
+  - "titre" : 3 à 7 mots, le titre affiché à l'écran pendant que la vidéo attend ce passage : il dit EXACTEMENT ce que
+    dit CE passage (rien d'autre), en {lang['nom']} ;
   - "traduction" : {('la traduction fidèle du passage en ' + lang['nom'] + ' (la vidéo est dans une autre langue)') if lang.get('video') not in (None, '?', lang['code']) else 'chaîne vide'} ;
   - "reaction" : environ {per} mots de réaction juste après l'avoir entendu (analyse, contradiction, ironie, chiffres,
     question au public) ; ne commence jamais par répéter la citation ;
 - "conclusion" : 60 à 120 mots, verdict + question au public + appel à s'abonner.
 N'invente aucun fait ; une accusation est présentée comme une opinion ou une question. N'écris JAMAIS les mots
 « {dec} » toi-même (ils sont ajoutés automatiquement).
-Réponds UNIQUEMENT en JSON : {{"intro": "...", "blocs": [{{"n": 1, "annonce": "...", "traduction": "...", "reaction": "..."}}], "conclusion": "..."}}
+Réponds UNIQUEMENT en JSON : {{"intro": "...", "blocs": [{{"n": 1, "titre": "...", "annonce": "...", "traduction": "...", "reaction": "..."}}], "conclusion": "..."}}
 
 PASSAGES :
 {liste}"""
     j = {}
 
+    def normal(r):   # réponses tolérées : blocs en dict {"1": {...}}, clés accentuées (« réaction »), liste seule
+        if isinstance(r, list):
+            r = {"blocs": r}
+        if not isinstance(r, dict):
+            return {}
+        r = {_cle(k): v for k, v in r.items()}
+        bl = r.get("blocs") or r.get("passages") or r.get("blocks") or []
+        if isinstance(bl, dict):
+            bl = [dict(v, n=v.get("n") or k) if isinstance(v, dict) else v for k, v in bl.items()]
+        r["blocs"] = [{_cle(k): v for k, v in b.items()} for b in bl if isinstance(b, dict)]
+        return r
+
     def bons(r):     # blocs complets ET annonce naturelle (jamais « le premier passage », « le 3e extrait »…)
         return sum(1 for b in (r.get("blocs") or []) if isinstance(b, dict) and b.get("reaction")
                    and b.get("annonce") and not NUMEROTE.search(str(b["annonce"])))
     for essai in range(3):      # réponse incomplète ou annonces numérotées : nouvel essai, on garde la meilleure
-        r = llm.ask_json(prompt, temperature=0.6 if essai == 0 else 0.4) or {}
+        r = normal(llm.ask_json(prompt, temperature=0.6 if essai == 0 else 0.4))
         nb = bons(r)
-        if nb > bons(j):
+        if (nb, bool(r.get("intro"))) > (bons(j), bool(j.get("intro"))):
             j = r
+        if nb == 0:
+            print(f"   ? réponse reçue : clés {sorted(r)[:8]}, blocs {len(r.get('blocs') or [])}"
+                  + (f", 1er bloc {sorted(r['blocs'][0])[:6]}" if r.get("blocs") else ""))
         if nb >= len(ps) and r.get("intro"):
             break
         print(f"   ! réponse incomplète ou annonces numérotées ({nb}/{len(ps)} bons blocs) : nouvel essai" if essai < 2
@@ -250,6 +273,7 @@ PASSAGES :
     return {"intro": clean(j.get("intro")), "conclusion": clean(j.get("conclusion")),
             "blocs": [{"annonce": clean((blocs.get(k + 1) or {}).get("annonce")),
                        "traduction": clean((blocs.get(k + 1) or {}).get("traduction")),
+                       "titre": clean((blocs.get(k + 1) or {}).get("titre"))[:70],
                        "reaction": clean((blocs.get(k + 1) or {}).get("reaction"))} for k in range(len(ps))]}
 
 
@@ -276,6 +300,9 @@ def run(a, video: str, video_nom: str, out_root: str) -> str:
     print(f"   ouverture {_fmt(ouv['start'])} ({ouv['end'] - ouv['start']:.0f} s) — {len(ps)} passage(s) vérifié(s)")
     print("[3/4] Écriture de tes annonces et réactions…")
     tx = ecrire(lang, a.style, a.these, ouv, ps, mots)
+    for p, b in zip(ps, tx["blocs"]):   # titre réécrit d'après le passage FINAL (bornes vérifiées) : toujours fidèle
+        if b.get("titre"):
+            p["titre"] = b["titre"]
     dec = DECLENCHEUR.get(lang["code"], DECLENCHEUR["fr"])
     DEC = dec.upper()
     # --- texte du prompteur
