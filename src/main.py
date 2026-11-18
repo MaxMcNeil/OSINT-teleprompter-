@@ -12,7 +12,7 @@ import traceback
 import unicodedata
 from dataclasses import asdict
 
-from . import collect, config, facts as F, llm, report, revue, script, thumb, verify, youtube
+from . import collect, config, facts as F, hors_contexte, llm, report, revue, script, thumb, verify, youtube
 
 
 def slug(s):
@@ -444,6 +444,12 @@ def main():
     print("[4/5] Écriture du script…")
     titre, secs = script.generate(ctx, facts, words)
     titre = " ".join(str(titre).split()) or a.sujet
+    reste = 0                          # présentateur HORS DU CONTEXTE : jamais « nous / notre / nos »
+    for s in secs:
+        s["text"], r = hors_contexte.corriger(s["text"], lang["code"], llm.ask_json)
+        reste += r
+    if reste:
+        print(f"   ! {reste} « nous / notre / nos » restant(s) (réécriture IA refusée) — relis ces phrases")
 
     print("[5/5] Documents de sortie…")
     _STOP["protege"] = True        # le script est écrit : un arrêt de sécurité ne doit plus interrompre l'enregistrement
