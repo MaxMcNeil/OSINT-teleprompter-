@@ -68,6 +68,24 @@ def keys():
 _CALL_TIMEOUT = float(os.getenv("LLM_CALL_TIMEOUT_S", "240"))   # cause du blocage du 25/10 : un appel resté 36 min sans réponse
 
 
+_verif = {}          # n° de clé -> True/False : la clé elle-même est-elle valide ? (vérifiée une fois par run)
+
+
+def cle_valide(i) -> bool:
+    """Google refuse parfois UN modèle ou UNE fonction (préversion, région, recherche intégrée…) avec un 403 ou un
+    PERMISSION_DENIED alors que la clé est bonne : avant de condamner la clé pour tout le run, on demande à Google la
+    liste des modèles avec cette clé. Réponse 200 → clé valide (seul le modèle est écarté). Doute (réseau) → valide."""
+    if i not in _verif:
+        import requests
+        try:
+            r = requests.get("https://generativelanguage.googleapis.com/v1beta/models",
+                             params={"pageSize": 1}, headers={"x-goog-api-key": keys()[i]}, timeout=20)
+            _verif[i] = r.status_code not in (400, 401, 403)
+        except Exception:  # noqa: BLE001 - vérification impossible : on ne condamne pas la clé sur un doute
+            _verif[i] = True
+    return _verif[i]
+
+
 def client(i=0):
     if i not in _clients:
         # délai max par appel : un appel bloqué (réseau, surcharge Google) ne peut plus geler tout le run
@@ -268,7 +286,11 @@ def _ask_gemini(prompt, temperature: float = 0.7, json_mode: bool = False,
             head = msg[:80]
             if ("API key" in msg and ("not valid" in msg or "expired" in msg)) or "PERMISSION_DENIED" in head \
                     or head.startswith("403") or "API_KEY_INVALID" in msg:
-                print(f"  ! clé n°{i + 1} refusée par Google ({head[:50]}) : écartée pour ce run")
+                if cle_valide(i):           # la clé est bonne : c'est CE modèle (ou cette fonction) qui est refusé
+                    print(f"  ! {model} refusé à la clé n°{i + 1} ({head[:50]}) — la clé est valide : modèle suivant")
+                    _dead.add((i, model, bool(search)))
+                    continue
+                print(f"  ! clé n°{i + 1} refusée par Google ({head[:50]}), vérification faite : écartée pour ce run")
                 _badkeys.add(i)
                 for m_ in models():
                     _dead.add((i, m_, False))
