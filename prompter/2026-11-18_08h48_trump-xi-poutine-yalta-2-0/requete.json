@@ -1,0 +1,104 @@
+{
+ "sujet": "Sommet trilatéral Trump–Xi–Poutine en Chine (APEC, jeudi 19 novembre 2026) : un Yalta 2.0 ? Partage du monde en sphères d'influence, Ukraine, Taïwan, Europe absente — Revue de presse, relier ces affaires entre elles : 1) Moscou confirme un sommet inédit entre Xi Jinping, Donald Trump et Vladimir Poutine ce jeudi ; 2) La paix mondiale au menu des discussions entre Xi, Trump et Poutine ; 3) A new Yalta? Trump and Putin push for a meeting that Xi is wary of hosting ; 4) Un sommet Xi-Trump-Poutine au parfum de Yalta ; 5) Trump, Xi and Putin to hold first three-way summit in China",
+ "these": "Yalta 2.0 : trois puissances se partagent le monde pendant que l'Europe et la France regardent depuis le banc de touche",
+ "langue": "fr",
+ "court": "Trump Xi Poutine Yalta 2.0",
+ "demontrer": "Les trois grandes puissances – Trump, Xi et Poutine – réinventent un Yalta moderne en se partageant le monde pendant que l'Europe, et la France en particulier, restent spectatrices.",
+ "raisonnement": [
+  "Moscou annonce un sommet inédit entre Xi, Trump et Poutine (cause).",
+  "Le sommet se déroule à l'APEC en Chine, cadre symbolique de coopération économique et géopolitique (mécanisme).",
+  "Les discussions portent sur la paix mondiale, l'Ukraine, Taïwan et la répartition des sphères d'influence (conséquence).",
+  "L'Europe et la France sont exclues du processus décisionnel, ce qui renforce l'idée d'un nouveau Yalta (contradiction).",
+  "Cette exclusion montre que les trois dirigeants cherchent à redessiner l'ordre mondial sans l'Occident (implication)."
+ ],
+ "cibles": [
+  "Donald Trump",
+  "Xi Jinping",
+  "Vladimir Poutine",
+  "Gouvernement français",
+  "Union européenne",
+  "Institutions de l'APEC"
+ ],
+ "points": [
+  {
+   "id": "P1",
+   "intitule": "Annonce officielle du sommet trilatéral à l'APEC",
+   "requetes": [
+    "sommet trilatéral APEC 2026",
+    "annonce sommet Xi Trump Poutine",
+    "trilateral summit APEC 2026",
+    "مؤتمر القمة الثلاثية أبك 2026"
+   ]
+  },
+  {
+   "id": "P2",
+   "intitule": "Objectifs affichés : paix mondiale, Ukraine, Taïwan",
+   "requetes": [
+    "objectifs sommet Ukraine Taïwan",
+    "déclarations paix mondiale APEC",
+    "summit goals Ukraine Taiwan",
+    "أهداف القمة أوكرانيا تايوان"
+   ]
+  },
+  {
+   "id": "P3",
+   "intitule": "Comparaison avec le Yalta de 1945 et notion de Yalta 2.0",
+   "requetes": [
+    "comparaison Yalta 1945 Yalta 2026",
+    "analyse Yalta 2.0",
+    "Yalta 2.0 analysis",
+    "تحليل يالتا 2.0"
+   ]
+  },
+  {
+   "id": "P4",
+   "intitule": "Exclusion de l'Europe et de la France du processus décisionnel",
+   "requetes": [
+    "Europe exclue sommet Xi Trump Poutine",
+    "france marginalisée APEC 2026",
+    "Europe excluded summit",
+    "استبعاد أوروبا قمة 2026"
+   ]
+  },
+  {
+   "id": "P5",
+   "intitule": "Implications géopolitiques : redéfinition des sphères d'influence",
+   "requetes": [
+    "sphères d'influence post‑APEC",
+    "redéfinition influence mondiale 2026",
+    "global influence reshaping summit",
+    "إعادة تعريف مناطق النفوذ 2026"
+   ]
+  },
+  {
+   "id": "P6",
+   "intitule": "Réactions et critiques des gouvernements occidentaux",
+   "requetes": [
+    "réaction UE sommet trilatéral",
+    "critique américaine Yalta 2.0",
+    "Western response trilateral summit",
+    "ردود الفعل الغربية على القمة"
+   ]
+  },
+  {
+   "id": "P7",
+   "intitule": "Conséquences économiques et sécuritaires pour la Chine, les USA et la Russie",
+   "requetes": [
+    "impact économique sommet Xi Trump Poutine",
+    "conséquences sécuritaires APEC 2026",
+    "economic security impact summit",
+    "تأثير اقتصادي أمني القمة"
+   ]
+  },
+  {
+   "id": "P8",
+   "intitule": "Analyse des discours et déclarations officielles des trois dirigeants",
+   "requetes": [
+    "discours Trump APEC 2026 texte",
+    "déclarations officielles Xi Jinping 2026",
+    "official statements Putin 2026",
+    "خطابات ترامب شي جينبينغ بوتين 2026"
+   ]
+  }
+ ]
+}
