@@ -48,7 +48,9 @@ FOURNISSEURS = [
      "liste": "https://openrouter.ai/api/v1/models",
      "cles": ("OPENROUTER_API_KEYS", "OPENROUTER_API_KEY"),
      "pref": [r"deepseek/deepseek-chat", r"kimi-k2", r"qwen3-235b", r"deepseek/deepseek-r1", r"gpt-oss-120b",
-              r"llama-3\.3-70b", r"gemma-3-27b", r"mistral-small"],
+              r"llama-3\.3-70b", r"gemma-3-27b", r"mistral-small",
+              # catalogue gratuit de fin 2026 (l'ancien a disparu) : du plus fort au plus léger
+              r"nemotron-3-ultra", r"inkling-2", r"nemotron-3\.5-lightning", r"ling-3", r"particle-1", r"ernie-5"],
      "vision": [r"llama-4", r"gemma-3-27b", r"qwen.*vl", r"mistral-small"],
      "defaut": ["deepseek/deepseek-chat-v3-0324:free", "meta-llama/llama-3.3-70b-instruct:free"],
      "gratuit_seulement": True},
@@ -61,6 +63,7 @@ _cles_ko = set()         # (fournisseur, clé)
 _pause = {}              # (fournisseur, modèle) -> instant de fin de pause
 _taille_max = {}         # (fournisseur, modèle) -> taille de prompt (caractères) refusée : on n'envoie plus au-dessus
 USAGE = Counter()
+_vides = Counter()         # (fournisseur, modèle) -> réponses vides
 
 
 def actifs():
@@ -93,6 +96,9 @@ def modeles(f, vision=False):
                 mods = ((m.get("architecture") or {}).get("input_modalities") or [])
                 if "image" not in mods:
                     continue
+            ctxl = m.get("context_length") or 0
+            if f.get("gratuit_seulement") and not vision and ctxl and ctxl < 32000:
+                continue                # contexte trop court pour nos prompts (faits + consignes)
             ids.append(mid)
     except Exception as e:
         print(f"  ! {f['nom']} : liste des modèles indisponible ({str(e)[:60]}), liste par défaut")
@@ -100,7 +106,9 @@ def modeles(f, vision=False):
     choix = _classer(ids or f["defaut"], prefs) if prefs else []
     if not vision and ids:          # modèles de discussion non prévus (nouveautés du fournisseur) : en dernier recours
         reste = [i for i in ids if i not in choix and not _EXCLURE.search(i)
-                 and not re.search(r"vision|scout|maverick|ocr|image|audio|speech|rerank|moderation", i, re.I)]
+                 and not re.search(r"vision|scout|maverick|ocr|image|audio|speech|rerank|moderation|omni|nano|decider|code|-vl", i, re.I)
+                 and not (re.findall(r"(\d+(?:\.\d+)?)b\b", i.lower())
+                          and max(float(x) for x in re.findall(r"(\d+(?:\.\d+)?)b\b", i.lower())) < 20)]
         choix += sorted(reste, key=lambda i: -max([int(x) for x in re.findall(r"(\d+)b", i.lower())] or [0]))
     _modeles[k] = choix
     if choix:
@@ -195,10 +203,29 @@ def ask(prompt, temperature=0.7, json_mode=False, deadline=None):
     return None
 
 
+_verif = {}             # (fournisseur, clé) -> True/False : la clé elle-même est-elle valide ?
+
+
+def _cle_ok(f, cle):
+    """Un 401/403 peut viser UN modèle (préversion réservée, politique de données, région…) et pas la clé :
+    on demande au fournisseur si la clé est valide avant de l'écarter pour tout le run."""
+    k = (f["nom"], cle)
+    if k not in _verif:
+        url = "https://openrouter.ai/api/v1/key" if f["nom"] == "OpenRouter" else f["liste"]
+        try:
+            r = requests.get(url, headers={"Authorization": f"Bearer {cle}"}, timeout=20)
+            _verif[k] = r.status_code == 200
+        except Exception:
+            _verif[k] = True        # vérification impossible : on ne condamne pas la clé sur un doute
+    return _verif[k]
+
+
 def _appel(f, cle, m, msgs, temperature, json_mode):
     body = {"model": m, "messages": msgs, "temperature": max(0.0, min(1.0, temperature)), "max_tokens": 8000}
     if "gpt-oss" in m:
         body["reasoning_effort"] = "low"
+    if f["nom"] == "OpenRouter":        # modèles « qui réfléchissent » : réflexion courte, sinon réponse vide après 2 min
+        body["reasoning"] = {"effort": "low", "exclude": True}
     h = {"Authorization": f"Bearer {cle}", "Content-Type": "application/json"}
     if f["nom"] == "OpenRouter":
         h.update({"HTTP-Referer": "https://github.com/MaxMcNeil/OSINT-teleprompter-", "X-Title": "OSINT-teleprompter"})
@@ -211,17 +238,35 @@ def _appel(f, cle, m, msgs, temperature, json_mode):
     txt = r.text[:400]
     low = txt.lower()
     if r.status_code == 200:
+        fin = ""
         try:
             j = r.json()
+            fin = j["choices"][0].get("finish_reason") or ""
             out = _nettoyer(j["choices"][0]["message"].get("content") or "")
         except Exception:
             out = ""
         if out:
             return Reponse(out, f"{f['nom']} {m}")
-        print(f"  ! {f['nom']} {m} : réponse vide : modèle suivant")
+        # réponse vide : ce modèle ne sait pas faire ce travail (réflexion sans fin, sortie bloquée) → écarté pour le
+        # run, au lieu de lui redonner 2 minutes à chaque appel
+        _vides[(f["nom"], m)] += 1
+        if f["nom"] == "OpenRouter" or _vides[(f["nom"], m)] >= 2:
+            print(f"  ! {f['nom']} {m} : réponse vide{f' ({fin})' if fin else ''} : écarté pour ce run")
+            for k in _cles(*f["cles"]):
+                _morts.add((f["nom"], k, m))
+            return "modele_ko"
+        print(f"  ! {f['nom']} {m} : réponse vide{f' ({fin})' if fin else ''} : modèle suivant")
+        _pause[(f["nom"], m)] = time.monotonic() + 90
         return "pause"
-    if r.status_code in (401, 403) and "model" not in low:
-        print(f"  ! {f['nom']} : clé refusée ({r.status_code}) : écartée pour ce run")
+    if r.status_code in (401, 403):
+        detail = " ".join(txt.split())[:140]
+        if r.status_code == 403 and _cle_ok(f, cle):
+            print(f"  ! {f['nom']} {m} : accès refusé à CE modèle ({detail}) — la clé est valide : modèle suivant")
+            for k in _cles(*f["cles"]):
+                _morts.add((f["nom"], k, m))
+            return "modele_ko"
+        print(f"  ! {f['nom']} : clé refusée ({r.status_code} : {detail}) : écartée pour ce run — si ça se répète, "
+              f"recrée la clé chez {f['nom']} et remets-la dans le secret GitHub {f['cles'][-1]}")
         _cles_ko.add((f["nom"], cle))
         return "cle_ko"
     if r.status_code == 413 or any(x in low for x in ("too large", "context length", "context_length", "reduce the length",

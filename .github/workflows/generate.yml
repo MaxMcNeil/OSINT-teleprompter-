@@ -64,7 +64,7 @@ concurrency:
 jobs:
   generate:
     runs-on: ubuntu-24.04
-    timeout-minutes: 90
+    timeout-minutes: 135
     env:
       # clés communes à la génération et au ciblage du Finder
       GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
@@ -163,11 +163,13 @@ jobs:
           n=$(find "$RUNNER_TEMP/captures" -type f | wc -l)
           if [ "$n" -eq 0 ]; then echo "::warning::Aucune image trouvée dans la Release « $TAG » : le script se base sur les titres/sujet tapés"; fi
       - name: Générer
-        timeout-minutes: 63
+        timeout-minutes: 118
         env:
           PYTHONUTF8: "1"
           DEADLINE_MIN: "55"
-          # arrêt de sécurité à 60 min (l'étape est coupée à 63) : le script déjà écrit est enregistré, jamais perdu
+          # live long : délai allongé tout seul (20 min → 55 min de run, 30 → 75, plafond 110) ; arrêt de sécurité 5 min après
+          DEADLINE_AUTO: "1"
+          # arrêt de sécurité (60 min, ou délai auto + 5) avant la coupure de l'étape : le script déjà écrit est enregistré, jamais perdu
           HARD_STOP_MIN: "60"
           LLM_CALL_TIMEOUT_S: "240"
           PYTHONUNBUFFERED: "1"

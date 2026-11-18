@@ -20,7 +20,7 @@ import subprocess
 import tempfile
 import time
 
-from . import config, llm
+from . import config, hors_contexte, llm
 
 # mot déclencheur à dire (et que le Montage écoute), par langue
 # ⚠ EXACTEMENT les annonces que le Montage reconnaît (Montage-LV-final, montage/keywords.py, testé là-bas) :
@@ -267,6 +267,7 @@ def ecrire(lang: dict, style: str, these: str, ouv: dict, ps: list, mots_cible: 
 - "conclusion" : 60 à 120 mots, verdict + question au public + appel à s'abonner.
 N'invente aucun fait ; une accusation est présentée comme une opinion ou une question. N'écris JAMAIS les mots
 « {dec} » toi-même (ils sont ajoutés automatiquement).
+{hors_contexte.REGLE} (Ne s'applique pas à "traduction", qui reste fidèle.)
 Réponds UNIQUEMENT en JSON : {{"intro": "...", "blocs": [{{"n": 1, "titre": "...", "annonce": "...", "traduction": "...", "reaction": "..."}}], "conclusion": "..."}}
 
 PASSAGES :
@@ -341,6 +342,13 @@ def run(a, video: str, video_nom: str, out_root: str) -> str:
     print(f"   ouverture {_fmt(ouv['start'])} ({ouv['end'] - ouv['start']:.0f} s) — {len(ps)} passage(s) vérifié(s)")
     print("[3/4] Écriture de tes annonces et réactions…")
     tx = ecrire(lang, a.style, a.these, ouv, ps, mots)
+    reste = 0                           # tes phrases : jamais « nous / notre / nos » (la traduction, elle, reste fidèle)
+    for o, k in [(tx, "intro"), (tx, "conclusion")] + [(bl, x) for bl in tx["blocs"] for x in ("annonce", "reaction")]:
+        if o.get(k):
+            o[k], r = hors_contexte.corriger(o[k], lang["code"], llm.ask_json)
+            reste += r
+    if reste:
+        print(f"   ! {reste} « nous / notre / nos » restant(s) dans tes phrases (réécriture IA refusée) — relis-les")
     for p, b in zip(ps, tx["blocs"]):   # titre réécrit d'après le passage FINAL (bornes vérifiées) : toujours fidèle
         if b.get("titre"):
             p["titre"] = b["titre"]

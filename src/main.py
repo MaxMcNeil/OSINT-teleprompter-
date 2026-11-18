@@ -12,7 +12,7 @@ import traceback
 import unicodedata
 from dataclasses import asdict
 
-from . import collect, config, facts as F, llm, report, revue, script, thumb, verify, youtube
+from . import collect, config, facts as F, hors_contexte, llm, report, revue, script, thumb, verify, youtube
 
 
 def slug(s):
@@ -96,7 +96,7 @@ def _norm_sujet(s):
 
 
 def _trouver_reprise(a, mode="auto", jours=4):
-    """Run précédent à reprendre : recherche déjà faite (faits dans donnees.json) mais script absent.
+    """Run précédent à reprendre : recherche déjà faite (faits dans donnees.json) mais script absent ou coupé.
     mode « auto » : même sujet, moins de `jours` jours ; sinon nom (ou début de nom) d'un dossier de prompter/."""
     mode = (mode or "auto").strip()
     try:
@@ -115,8 +115,9 @@ def _trouver_reprise(a, mode="auto", jours=4):
                     continue
             except ValueError:
                 continue
-            if os.path.exists(os.path.join(d, "script_teleprompter.txt")):
-                continue
+            if os.path.exists(os.path.join(d, "script_teleprompter.txt")) and \
+                    not os.path.exists(os.path.join(d, "ECRITURE_INCOMPLETE.txt")):
+                continue            # script complet : rien à reprendre (un script coupé, lui, est repris)
             try:
                 with open(os.path.join(d, "requete.json"), encoding="utf-8") as fh:
                     if _norm_sujet(json.load(fh).get("sujet")) != _norm_sujet(a.sujet):
@@ -395,6 +396,13 @@ def main():
             sys.stderr = _Journal(sys.stderr, os.environ["JOURNAL"])
         except OSError:
             pass
+    # Délai adapté à la longueur du live (dépôt public : minutes GitHub gratuites) : 20 min de live → 55 min de run,
+    # 30 → 75, 45 → 105, plafonné à 110 (l'étape du workflow est coupée à 118). Sans DEADLINE_AUTO : DEADLINE_MIN tel quel.
+    if os.getenv("DEADLINE_AUTO", "").strip().lower() in ("1", "oui", "true") and not os.getenv("MINIATURE_SEULE", "").strip():
+        dl = min(110.0, max(float(os.getenv("DEADLINE_MIN", "55") or 55), 55.0 + 2.0 * max(0.0, a.duree - 20)))
+        llm.DEADLINE = dl * 60
+        os.environ["HARD_STOP_MIN"] = f"{dl + 5:.0f}"
+        print(f"   délai du run : {dl:.0f} min (arrêt de sécurité à {dl + 5:.0f} min)")
     hard = _installer_securite()
     if os.getenv("MODE", "").strip().lower().startswith("comment"):     # mode « commentaire d'une vidéo »
         from . import commentaire
@@ -444,6 +452,26 @@ def main():
     print("[4/5] Écriture du script…")
     titre, secs = script.generate(ctx, facts, words)
     titre = " ".join(str(titre).split()) or a.sujet
+    reste = 0                          # présentateur HORS DU CONTEXTE : jamais « nous / notre / nos »
+    for s in secs:
+        s["text"], r = hors_contexte.corriger(s["text"], lang["code"], llm.ask_json)
+        reste += r
+    if reste:
+        print(f"   ! {reste} « nous / notre / nos » restant(s) (réécriture IA refusée) — relis ces phrases")
+    # écriture coupée (quota / délai) : repère pour la reprise auto — relancer avec les MÊMES champs réécrit le script
+    # complet à partir des faits déjà vérifiés, sans refaire la recherche ; repère effacé dès qu'un script est complet
+    marque = os.path.join(d, "ECRITURE_INCOMPLETE.txt")
+    manquent = [s["titre"] for s in secs if not (s.get("text") or "").strip()]
+    try:
+        if manquent:
+            open(marque, "w", encoding="utf-8").write(
+                "Écriture coupée avant la fin. Sections non écrites :\n- " + "\n- ".join(manquent) +
+                "\n\nRelance le workflow avec les MÊMES champs (reprendre = auto) : la recherche est reprise telle quelle,"
+                " seul le script est réécrit en entier.\n")
+        elif os.path.exists(marque):
+            os.remove(marque)
+    except OSError:
+        pass
 
     print("[5/5] Documents de sortie…")
     _STOP["protege"] = True        # le script est écrit : un arrêt de sécurité ne doit plus interrompre l'enregistrement
@@ -520,7 +548,9 @@ def main():
                         f"{lang['nom']}.")
     if final_words < words * 0.85:
         problems.append(f"Script plus court que la cible : {final_words} mots au lieu de {words} "
-                        "(quota ou délai atteint pendant l'écriture, ou matière insuffisante).")
+                        "(quota ou délai atteint pendant l'écriture, ou matière insuffisante)."
+                        + (f" {len(manquent)} section(s) non écrite(s) : relance avec les MÊMES champs, la recherche est"
+                           " reprise et seul le script est réécrit." if manquent else ""))
     if final_words > words * 1.15:
         problems.append(f"Script plus long que la cible : {final_words} mots au lieu de {words}.")
     if problems:
