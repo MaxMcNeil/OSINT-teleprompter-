@@ -5,132 +5,53 @@
 [  0.0 min]      4. Un sommet Xi-Trump-Poutine au parfum de Yalta
 [  0.0 min]      5. Trump, Xi and Putin to hold first three-way summit in China
 [  0.0 min] [1/5] Cible : 30.0 min = 4350 mots (145 mots/min), langue français, style expert, revue de presse (5 titres)
-[  0.0 min] [2/5] Collecte multi-sources…
+[  0.0 min] [2/5] REPRISE de prompter/2026-11-18_08h48_trump-xi-poutine-yalta-2-0 : 292 sources et 142 faits déjà vérifiés, recherche sautée
+[  0.0 min] [3/5] Faits repris tels quels (déjà extraits et vérifiés)
+[  0.0 min] [4/5] Écriture du script…
+[  0.0 min]    114 faits retenus pour 4350 mots (28 en réserve) — style expert
 [  0.0 min]   relais Groq : openai/gpt-oss-120b, openai/gpt-oss-20b, qwen/qwen3.8-27b
-[  0.0 min]    raisonnement : Moscou annonce un sommet inédit entre Xi, Trump et Poutine (cause). -> Le sommet se déroule à l'APEC en Chine, cadre symbolique de coopération économique et géopolitique (mécanisme). -> Les discussions portent sur la paix mondiale, l'Ukraine, Taïwan et la répartition des sphères d'influence (conséquence). -> L'Europe et la France sont exclues du processus décisionnel, ce qui renforce l'idée d'un nouveau Yalta (contradiction). -> Cette exclusion montre que les trois dirigeants cherchent à redessiner l'ordre mondial sans l'Occident (implication).
-[  0.0 min]    requête décomposée en 8 point(s) ; recherche courte : « Trump Xi Poutine Yalta 2.0 »
-[  0.0 min]      P1 : Annonce officielle du sommet trilatéral à l'APEC
-[  0.0 min]      P2 : Objectifs affichés : paix mondiale, Ukraine, Taïwan
-[  0.0 min]      P3 : Comparaison avec le Yalta de 1945 et notion de Yalta 2.0
-[  0.0 min]      P4 : Exclusion de l'Europe et de la France du processus décisionnel
-[  0.0 min]      P5 : Implications géopolitiques : redéfinition des sphères d'influence
-[  0.0 min]      P6 : Réactions et critiques des gouvernements occidentaux
-[  0.0 min]      P7 : Conséquences économiques et sécuritaires pour la Chine, les USA et la Russie
-[  0.0 min]      P8 : Analyse des discours et déclarations officielles des trois dirigeants
-[  0.0 min]    requêtes : sommet trilatéral APEC 2026 | objectifs sommet Ukraine Taïwan | comparaison Yalta 1945 Yalta 2026 | Europe exclue sommet Xi Trump Poutine | sphères d'influence post‑APEC | réaction UE sommet trilatéral | impact économique sommet Xi Trump Poutine | discours Trump APEC 2026 texte | annonce sommet Xi Trump Poutine | trilateral summit APEC 2026 | مؤتمر القمة الثلاثية أبك 2026 | déclarations paix mondiale APEC | summit goals Ukraine Taiwan | أهداف القمة أوكرانيا تايوان | analyse Yalta 2.0 | Yalta 2.0 analysis | تحليل يالتا 2.0 | france marginalisée APEC 2026 | Europe excluded summit | استبعاد أوروبا قمة 2026 | redéfinition influence mondiale 2026 | global influence reshaping summit | إعادة تعريف مناطق النفوذ 2026 | critique américaine Yalta 2.0 | Western response trilateral summit | ردود الفعل الغربية على القمة | conséquences sécuritaires APEC 2026 | economic security impact summit | تأثير اقتصادي أمني القمة | déclarations officielles Xi Jinping 2026 | official statements Putin 2026 | خطابات ترامب شي جينبينغ بوتين 2026 | date officielle sommet APEC 2026 | déclarations officielles Trump Xi Poutine | rapport analyse Yalta 2.0 | X réactions sommet trilatéral | China summit Trump Xi Putin date | 习近平 与 特朗普 普京 会晤 时间
+[  0.1 min]   ! Groq openai/gpt-oss-120b : requête trop grosse pour ce modèle : modèle suivant
 [  0.1 min]   1 clé(s) Gemini chargée(s)
 [  0.1 min]   modèles, du plus performant au moins performant : gemini-3.8-flash, gemini-3.7-flash, gemini-3.6-flash, gemini-3.5-flash, gemini-3.5-flash-lite, gemini-3.1-flash-lite, gemini-2.5-flash, gemini-2.5-flash-lite
 [  0.1 min]   > clé n°1 / gemini-3.8-flash
-[  0.1 min]   modèles, du plus performant au moins performant : gemini-3.8-flash, gemini-3.7-flash, gemini-3.6-flash, gemini-3.5-flash, gemini-3.5-flash-lite, gemini-3.1-flash-lite, gemini-2.5-flash, gemini-2.5-flash-lite
 [  0.1 min]   ! recherche Google intégrée sans quota sur cette clé : désactivée pour ce run (la collecte presse continue)
-[  0.1 min]   ! collecte: Recherche Google intégrée indisponible (pas de quota de recherche sur la clé Gemini) : collecte pres
-[  0.3 min]   ! recherche Google intégrée sans quota sur cette clé : désactivée pour ce run (la collecte presse continue)
-[  0.6 min]   ! recherche Google intégrée sans quota sur cette clé : désactivée pour ce run (la collecte presse continue)
-[  0.6 min]   ! collecte: Recherche Google intégrée indisponible (pas de quota de recherche sur la clé Gemini) : collecte pres
-[  0.6 min]   ! collecte: Recherche Google intégrée indisponible (pas de quota de recherche sur la clé Gemini) : collecte pres
-[  0.6 min]   ! collecte: Recherche Google intégrée indisponible (pas de quota de recherche sur la clé Gemini) : collecte pres
-[  0.6 min]   ! collecte: [SSL: DECRYPTION_FAILED_OR_BAD_RECORD_MAC] decryption failed or bad record mac (_ssl.c:2581)
-[  2.8 min]    collecte brute : presse 180, bing 100, youtube 25
-[  2.8 min]    222 sources uniques ; récupération des textes…
-[  2.9 min]    textes complets récupérés : 97/222 sources
-[  2.9 min] [3/5] Extraction et vérification des faits…
-[  2.9 min]   ! Groq openai/gpt-oss-120b : requête trop grosse pour ce modèle : modèle suivant
-[  3.0 min]   ! JSON invalide (Extra data: line 1 column 361 (char 360)), nouvel essai
-[  3.0 min]   ! Groq openai/gpt-oss-20b : requête trop grosse pour ce modèle : modèle suivant
-[  3.0 min]   ! Groq openai/gpt-oss-120b : requête trop grosse pour ce modèle : modèle suivant
-[  3.0 min]   ! JSON invalide (Extra data: line 1 column 260 (char 259)), nouvel essai
-[  3.0 min]   ! Groq openai/gpt-oss-20b : requête trop grosse pour ce modèle : modèle suivant
-[  3.1 min]   ! Groq qwen/qwen3.8-27b : requête trop grosse pour ce modèle : modèle suivant
-[  3.1 min]   relais OpenRouter : nvidia/nemotron-3-ultra-550b-a55b:free, google/gemma-4-31b-it:free, nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free, google/gemma-4-26b-a4b-it:free, liquid/lfm-3-1.7b:free
-[  3.5 min]   ! Groq qwen/qwen3.8-27b : requête trop grosse pour ce modèle : modèle suivant
-[  5.0 min]   ! JSON invalide (Unterminated string starting at: line 135 column 13 (char 5326)), nouvel essai
-[  6.2 min]   ! JSON invalide (Extra data: line 1 column 405 (char 404)), nouvel essai
-[  6.6 min]   ! JSON invalide (Unterminated string starting at: line 13 column 12 (char 4225)), nouvel essai
-[  8.8 min]   ! JSON invalide (Extra data: line 12 column 4 (char 512)), nouvel essai
-[ 10.1 min]   ! JSON invalide (Extra data: line 1 column 360 (char 359)), nouvel essai
-[ 11.8 min]   ! JSON invalide (Extra data: line 1 column 392 (char 391)), nouvel essai
-[ 13.3 min]   ! JSON invalide (Extra data: line 1 column 347 (char 346)), nouvel essai
-[ 13.8 min]   ! OpenRouter nvidia/nemotron-3-ultra-550b-a55b:free : réponse vide : modèle suivant
-[ 16.0 min]   ! OpenRouter nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free : réponse vide : modèle suivant
-[ 18.4 min]   ! OpenRouter liquid/lfm-3-1.7b:free : réponse vide : modèle suivant
-[ 22.5 min]   ! JSON invalide (Extra data: line 1 column 365 (char 364)), nouvel essai
-[ 25.1 min]   ! JSON invalide (Extra data: line 1 column 373 (char 372)), nouvel essai
-[ 25.9 min]   ! Groq openai/gpt-oss-120b : requête trop grosse pour ce modèle : modèle suivant
-[ 26.8 min]    142 faits retenus (7 chiffres corrigés d'après la source, 22 écartés car introuvables)
-[ 26.8 min]    Vérification croisée des faits fragiles (source faible, allégation)…
-[ 27.7 min]    liens Google News décodés : 40 réussis, 3 échecs (Failed to fetch data attributes from Google News.)
-[ 27.7 min]    textes complets récupérés : 33/70 sources
-[ 28.8 min]    14 faits fragiles vérifiés : 2 confirmés par une autre source, 0 contredits, 12 non corroborés, 0 non vérifiés
-[ 28.8 min]    faits et sources sauvegardés dans prompter/2026-11-18_08h48_trump-xi-poutine-yalta-2-0/donnees.json (récupérables même si la suite échoue)
-[ 28.8 min] [4/5] Écriture du script…
-[ 28.8 min]    114 faits retenus pour 4350 mots (28 en réserve) — style expert
-[ 30.0 min]   ! JSON invalide (Expecting value: line 51 column 39 (char 4224)), nouvel essai
-[ 32.5 min]   ! OpenRouter nvidia/nemotron-3-ultra-550b-a55b:free : réponse vide : modèle suivant
-[ 34.2 min]   ! OpenRouter nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free : réponse vide : modèle suivant
-[ 35.8 min]   ! OpenRouter liquid/lfm-3-1.7b:free : réponse vide : modèle suivant
-[ 40.4 min]   ! OpenRouter inclusionai/ling-3.2-flash:free : réponse vide : modèle suivant
-[ 40.9 min]   ! OpenRouter baidu/ernie-5.5-flash-preview:free : réponse vide : modèle suivant
-[ 40.9 min]   ! OpenRouter : clé refusée (403) : écartée pour ce run
-[ 42.9 min]   ! gemini-3.8-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
-[ 42.9 min]   > clé n°1 / gemini-3.7-flash
-[ 43.0 min]   ! gemini-3.7-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
-[ 43.1 min]   > clé n°1 / gemini-3.6-flash
-[ 43.7 min]   ! gemini-3.6-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
-[ 43.7 min]   > clé n°1 / gemini-3.5-flash
-[ 44.1 min]   ! gemini-3.5-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
-[ 44.1 min]   > clé n°1 / gemini-3.5-flash-lite
-[ 44.1 min]   ! gemini-3.5-flash-lite surchargé (clé n°1) : on passe au modèle suivant pendant 90s
-[ 44.4 min]   > clé n°1 / gemini-3.1-flash-lite
-[ 44.6 min]   ! JSON invalide (Extra data: line 6 column 4 (char 305)), nouvel essai
-[ 44.6 min]   ! JSON invalide (Extra data: line 6 column 4 (char 356)), nouvel essai
-[ 44.6 min]    citation (liste sûre) : « La guerre n'est que la simple continuation de la politique par d'autres moyens. » — Carl von Clausewitz
-[ 44.6 min]    écriture : Hook (152 mots)
-[ 45.2 min]    écriture : Citation (45 mots)
-[ 45.2 min]   ! gemini-3.8-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
-[ 45.6 min]   ! gemini-3.7-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
-[ 45.7 min]   ! gemini-3.6-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
-[ 45.9 min]   ! gemini-3.5-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
-[ 46.2 min]    écriture : Accueil et programme (196 mots)
-[ 46.4 min]    écriture : L'acte de naissance d'un nouvel ordre mondial (467 mots)
-[ 46.7 min]    écriture : Le mirage de la paix mondiale : l'agenda caché (335 mots)
-[ 50.9 min]   ! LLM: 504 DEADLINE_EXCEEDED. {'error': {'code': 504, 'message': 'Deadline expired before operation could complete.', 'status': -> nouvel essai dans 3s
-[ 51.0 min]   ! gemini-3.8-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
-[ 51.7 min]   ! gemini-3.7-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
-[ 53.6 min]    écriture : Yalta 2.0 : Le spectre de 1945 plane sur Shenzhen (436 mots)
-[ 53.8 min]   ! gemini-3.8-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
-[ 53.9 min]   ! gemini-3.7-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
-[ 55.1 min]    écriture : L'Europe au banc de touche : le grand déclassement (337 mots)
-[ 55.1 min]    ! écriture interrompue (délai global de 55 min atteint : on garde ce qui est déjà produit) : 7 section(s) non écrite(s)
-[ 55.1 min]    anti-répétition : 3 formule(s) déjà dite(s) supprimée(s)
-[ 55.1 min]    calage 1: 1430/4350 mots
-[ 55.1 min]    ! calage final interrompu (délai global de 55 min atteint : on garde ce qui est déjà produit) : on garde le texte déjà écrit
-[ 55.1 min] [5/5] Documents de sortie…
-[ 55.1 min]    script enregistré : 1430 mots
-[ 55.1 min]    liens des sources citées : 2/2 décodés
-[ 55.1 min]    liens des sources ajoutés à la fin du script
-[ 55.1 min]    Titre + miniature (analyse du top 3 YouTube)…
-[ 55.1 min]   ! youtube_top: EOF occurred in violation of protocol (_ssl.c:2428)
-[ 56.1 min]   ! gemini-3.8-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
-[ 56.1 min]   ! gemini-3.7-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
-[ 57.6 min]    titre : Yalta 2.0 : Monde Partagé | ok
-[ 57.6 min]    Titres + description YouTube…
-[ 57.6 min]    description.txt écrit
-[ 57.6 min] 
-[ 57.6 min] YALTA 2.0 : Trump, Xi et Poutine se partagent le monde, l'Europe est rayée de la carte
-[ 57.6 min] 
-[ 57.6 min] Script : 1430 mots ≈ 9.9 min (cible 30.0) · 292 sources · 142 faits vérifiés · 3458 s
-[ 57.6 min] 
-[ 57.6 min] IA utilisées : OpenRouter nemotron-3-ultra-550b-a55b:free ×32, Groq gpt-oss-120b ×20, Groq gpt-oss-20b ×15, Groq qwen3.8-27b ×1, OpenRouter ling-3.2-flash:free ×1, Gemini ×9
-[ 57.6 min] 
-[ 57.6 min] ⚠ Point P4 de ta requête (« Exclusion de l'Europe et de la France du processus décisionnel ») : AUCUN fait cité dans le script (12 fait(s) trouvé(s)). Source introuvable ou trop faible : précise-le dans le champ thèse ou relance.
-[ 57.6 min] 
-[ 57.6 min] ⚠ Point P5 (« Implications géopolitiques : redéfinition des sphères d'influence ») : peu documenté (2 fait(s) cité(s)).
-[ 57.6 min] 
-[ 57.6 min] ⚠ Point P6 de ta requête (« Réactions et critiques des gouvernements occidentaux ») : AUCUN fait cité dans le script (5 fait(s) trouvé(s)). Source introuvable ou trop faible : précise-le dans le champ thèse ou relance.
-[ 57.6 min] 
-[ 57.6 min] ⚠ Point P7 de ta requête (« Conséquences économiques et sécuritaires pour la Chine, les USA et la Russie ») : AUCUN fait cité dans le script (17 fait(s) trouvé(s)). Source introuvable ou trop faible : précise-le dans le champ thèse ou relance.
-[ 57.6 min] 
-[ 57.6 min] ⚠ Point P8 (« Analyse des discours et déclarations officielles des trois dirigeants ») : peu documenté (1 fait(s) cité(s)).
-[ 57.6 min] 
-[ 57.6 min] ⚠ Script plus court que la cible : 1430 mots au lieu de 4350 (quota ou délai atteint pendant l'écriture, ou matière insuffisante).
-[ 57.6 min] Fichiers : prompter/2026-11-18_08h48_trump-xi-poutine-yalta-2-0
+[  0.1 min]    ! vérification de la citation impossible (Recherche Google intégrée indisponible (pas de quota de rech)
+[  0.1 min]    citation (liste sûre) : « La guerre n'est que la simple continuation de la politique par d'autres moyens. » — Carl von Clausewitz
+[  0.1 min]    écriture : Hook (152 mots)
+[  0.1 min]    écriture : Citation (45 mots)
+[  0.1 min]    écriture : Accueil et programme (196 mots)
+[  0.1 min]   ! Groq openai/gpt-oss-20b : requête trop grosse pour ce modèle : modèle suivant
+[  0.1 min]   ! Groq qwen/qwen3.8-27b : requête trop grosse pour ce modèle : modèle suivant
+[  0.1 min]   relais OpenRouter : nvidia/nemotron-3-ultra-550b-a55b:free, google/gemma-4-31b-it:free, nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free, google/gemma-4-26b-a4b-it:free, liquid/lfm-3-1.7b:free
+[  1.2 min]    écriture : Annonce choc : le premier sommet inédit Trump‑Xi‑Poutine confirmé (697 mots)
+[  2.3 min]    écriture : APEC comme scène : le cadre symbolique de la coopération économique et géopolitique (402 mots)
+[  2.8 min]    écriture : Agenda officiel : paix mondiale, Ukraine, Taïwan et désarmement nucléaire (1195 mots)
+[  4.3 min]    écriture : Le Yalta revisité : le parallèle historique et le risque d’un nouveau partage du monde (393 mots)
+[  4.9 min]    écriture : Exclusion flagrante de l’Europe et de la France du processus décisionnel (214 mots)
+[  5.6 min]    écriture : Réactions occidentales : critiques, menaces et tentatives de contre‑poids (163 mots)
+[  6.3 min]    écriture : Impacts économiques et sécuritaires : sanctions, investissements et nouvelles lignes rouges (138 mots)
+[  6.8 min]    écriture : Ce que cela signifie pour vous : votre argent, votre sécurité et l’avenir de la France (112 mots)
+[  8.2 min]    écriture : Je relie les points (348 mots)
+[  9.1 min]    écriture : Conclusion (261 mots)
+[  9.7 min]    anti-répétition : 26 formule(s) déjà dite(s) supprimée(s)
+[  9.7 min]    calage 1: 3481/4350 mots
+[  9.7 min]   ! OpenRouter nvidia/nemotron-3-ultra-550b-a55b:free : quota du jour épuisé : écarté pour ce run
+[  9.7 min]   ! OpenRouter google/gemma-4-31b-it:free : quota du jour épuisé : écarté pour ce run
+[  9.7 min]   ! OpenRouter nvidia/nemotron-3-nano-omni-30b-a3b-reasoning:free : quota du jour épuisé : écarté pour ce run
+[  9.7 min]   ! OpenRouter google/gemma-4-26b-a4b-it:free : quota du jour épuisé : écarté pour ce run
+[  9.7 min]   ! OpenRouter liquid/lfm-3-1.7b:free : quota du jour épuisé : écarté pour ce run
+[  9.7 min]   ! OpenRouter inclusionai/ling-3.2-flash:free : quota du jour épuisé : écarté pour ce run
+[  9.7 min]   ! OpenRouter baidu/ernie-5.5-flash-preview:free : quota du jour épuisé : écarté pour ce run
+[  9.7 min]   ! OpenRouter : clé refusée (403) : écartée pour ce run
+[ 13.6 min]   ! LLM: 504 DEADLINE_EXCEEDED. {'error': {'code': 504, 'message': 'Deadline expired before operation could complete.', 'status': -> nouvel essai dans 3s
+[ 13.7 min]   ! gemini-3.8-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 13.9 min]   > clé n°1 / gemini-3.7-flash
+[ 17.9 min]   ! LLM: 504 DEADLINE_EXCEEDED. {'error': {'code': 504, 'message': 'Deadline expired before operation could complete.', 'status': -> nouvel essai dans 6s
+[ 18.8 min]   ! gemini-3.8-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 18.8 min]   ! gemini-3.7-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 19.0 min]   > clé n°1 / gemini-3.6-flash
+[ 24.8 min]   ! gemini-3.8-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 25.6 min]   ! gemini-3.7-flash surchargé (clé n°1) : on passe au modèle suivant pendant 90s
+[ 27.7 min]    réécriture écartée (elle s'éloignait de la cible)
+[ 27.7 min]   ! quota journalier épuisé : clé n°1 / gemini-3.8-flash
+[ 31.5 min]   ! quota journalier épuisé : clé n°1 / gemini-3.7-flash
