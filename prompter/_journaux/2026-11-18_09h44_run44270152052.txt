@@ -1,0 +1,31 @@
+[  0.0 min] [0/5] Revue de presse : lecture des titres…
+[  0.0 min]      1. Moscou confirme un sommet inédit entre Xi Jinping, Donald Trump et Vladimir Poutine ce jeudi
+[  0.0 min]      2. La paix mondiale au menu des discussions entre Xi, Trump et Poutine
+[  0.0 min]      3. A new Yalta? Trump and Putin push for a meeting that Xi is wary of hosting
+[  0.0 min]      4. Un sommet Xi-Trump-Poutine au parfum de Yalta
+[  0.0 min]      5. Trump, Xi and Putin to hold first three-way summit in China
+[  0.0 min] [1/5] Cible : 30.0 min = 4350 mots (145 mots/min), langue français, style expert, revue de presse (5 titres)
+[  0.0 min] [2/5] Collecte multi-sources…
+[  0.0 min]   relais Groq : openai/gpt-oss-120b, openai/gpt-oss-20b, qwen/qwen3.8-27b
+[  0.0 min]    raisonnement : Moscou annonce un sommet inédit entre Xi, Trump et Poutine (cause). -> Le sommet est présenté comme une discussion sur la paix mondiale, mais les enjeux géopolitiques (Ukraine, Taïwan) sont sous‑jacents (mécanisme). -> Les médias évoquent un « nouveau Yalta », insinuant un partage de sphères d’influence entre les trois dirigeants (conséquence). -> L’Europe et la France sont absentes du processus, ce qui renforce l’idée d’une marginalisation du continent occidental (contradiction). -> Cette marginalisation alimente la thèse d’un rééquilibrage mondial où les États‑unis, la Chine et la Russie dictent les règles.
+[  0.0 min]    requête décomposée en 8 point(s) ; recherche courte : « Trump Xi Poutine Yalta 2.0 »
+[  0.0 min]      P1 : Annonce officielle du sommet trilatéral à Shanghai
+[  0.0 min]      P2 : Objectifs affichés : paix mondiale vs réalités géopolitiques
+[  0.0 min]      P3 : Comparaison avec la Conférence de Yalta de 1945
+[  0.0 min]      P4 : Réaction et absence de l’Europe et de la France
+[  0.0 min]      P5 : Implications pour l’Ukraine et la guerre en cours
+[  0.0 min]      P6 : Implications pour Taïwan et la tension sino‑américaine
+[  0.0 min]      P7 : Stratégie de communication des médias occidentaux face au nouveau bloc
+[  0.0 min]      P8 : Conséquences économiques : sanctions, accords commerciaux et influence financière
+[  0.0 min]    requêtes : sommet trilatéral Shanghai 2026 | déclarations paix mondiale Xi Trump Poutine | Yalta 1945 comparaison 2026 | réaction France sommet Xi Trump Poutine | impact Ukraine sommet Shanghai | Taiwan tension suite sommet 2026 | couverture médiatique sommet trilatéral | sanctions économiques suite sommet 2026 | annonce sommet Xi Trump Poutine | trilateral summit Shanghai 2026 | مؤتمر ثلاثي شنغهاي 2026 | objectifs géopolitiques sommet 2026 | peace agenda trilateral summit | هدف السلام في قمة شنغهاي | nouveau Yalta analyse | Yalta 2.0 summit analysis | مقارنة يالتا 1945 2026 | Europe absent summit Shanghai | EU response trilateral summit | رد الاتحاد الأوروبي على القمة | consequences guerre Ukraine 2026 | Ukraine summit implications | تأثير القمة على أوكرانيا | effets sommet Xi Trump sur Taïwan | Taiwan summit repercussions | تأثير القمة على تايوان | analyse médias occidentaux Yalta 2.0 | Western media summit analysis | تحليل الإعلام الغربي للقمة | accords commerciaux Xi Trump Poutine | economic impact trilateral summit | العقوبات الاقتصادية بعد القمة | date sommet APEC 2026 Trump Xi Poutine | chiffres militaires Ukraine 2026 sanctions Russie | déclarations officielles Xi Trump APEC 19 novembre | X réactions sommet Yalta 2.0 | China summit Trump Putin official statement | 特朗普 与 普京 会面 细节
+[  0.1 min]   1 clé(s) Gemini chargée(s)
+[  0.1 min]   modèles, du plus performant au moins performant : gemini-3.8-flash, gemini-3.7-flash, gemini-3.6-flash, gemini-3.5-flash, gemini-3.5-flash-lite, gemini-3.1-flash-lite, gemini-2.5-flash, gemini-2.5-flash-lite
+[  0.1 min]   > clé n°1 / gemini-3.8-flash
+[  0.1 min]   modèles, du plus performant au moins performant : gemini-3.8-flash, gemini-3.7-flash, gemini-3.6-flash, gemini-3.5-flash, gemini-3.5-flash-lite, gemini-3.1-flash-lite, gemini-2.5-flash, gemini-2.5-flash-lite
+[  0.1 min]   ! recherche Google intégrée sans quota sur cette clé : désactivée pour ce run (la collecte presse continue)
+[  0.1 min]   ! collecte: Recherche Google intégrée indisponible (pas de quota de recherche sur la clé Gemini) : collecte pres
+[  0.3 min]   ! recherche Google intégrée sans quota sur cette clé : désactivée pour ce run (la collecte presse continue)
+[  0.3 min]   ! collecte: Recherche Google intégrée indisponible (pas de quota de recherche sur la clé Gemini) : collecte pres
+[  0.3 min]   ! collecte: Recherche Google intégrée indisponible (pas de quota de recherche sur la clé Gemini) : collecte pres
+[  0.3 min]   ! collecte: Recherche Google intégrée indisponible (pas de quota de recherche sur la clé Gemini) : collecte pres
+[  0.3 min]   ! collecte: [SSL: DECRYPTION_FAILED_OR_BAD_RECORD_MAC] decryption failed or bad record mac (_ssl.c:2581)
