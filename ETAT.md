@@ -5,10 +5,10 @@ Ce qui bloque, pourquoi, quand ça se débloque et quoi faire.
 <!-- workflows:start -->
 ## Workflows
 
-_Vérifié le 15/11/2026 à 01:26 (heure italienne), automatiquement à la fin de chacun de tes lancements (aucune exécution planifiée)._
+_Vérifié le 18/11/2026 à 10:44 (heure italienne), automatiquement à la fin de chacun de tes lancements (aucune exécution planifiée)._
 
 ✅ **Tout fonctionne** : aucun workflow en échec.
 
-- ✅ **Générer le script du live** : dernier lancement réussi (15/11 à 01:26) · [voir](https://github.com/MaxMcNeil/OSINT-teleprompter-/actions/runs/43657825870)
+- ℹ️ **Générer le script du live** : dernier lancement annulé (18/11 à 10:44) — à la main ou remplacé par un plus récent ; dernier succès le 18/11 à 10:43 · [voir](https://github.com/MaxMcNeil/OSINT-teleprompter-/actions/runs/44270152052)
 
 <!-- workflows:end -->
