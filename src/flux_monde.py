@@ -8,6 +8,7 @@ import re
 import threading
 import unicodedata
 from concurrent.futures import ThreadPoolExecutor
+from datetime import date, timedelta
 from email.utils import parsedate_to_datetime
 
 FLUX = [
@@ -117,12 +118,12 @@ def _lire(nom, url, get):
         lien = _txt(_tag(it, "link")) or (re.search(r'<link[^>]*href="([^"]+)"', it) or [None, ""])[1]
         d = _tag(it, "pubDate") or _tag(it, "dc:date") or _tag(it, "updated") or _tag(it, "published")
         try:
-            date = parsedate_to_datetime(d).date().isoformat() if "," in d else d[:10]
+            dt = parsedate_to_datetime(d).date().isoformat() if "," in d else d[:10]
         except Exception:
-            date = ""
+            dt = ""
         desc = _txt(_tag(it, "description") or _tag(it, "summary"))[:600]
         if titre and lien:
-            out.append({"nom": nom, "titre": titre[:300], "url": lien, "date": date, "desc": desc})
+            out.append({"nom": nom, "titre": titre[:300], "url": lien, "date": dt if re.match(r"\d{4}-\d\d-\d\d$", dt or "") else "", "desc": desc})
     return out
 
 
@@ -144,7 +145,13 @@ def cherche(textes, get, limite=25):
     """Articles des flux qui parlent du sujet. Un mot du sujet et ses traductions = UN concept ; il faut au moins 2 concepts
     distincts, dont au moins un NOM PROPRE du sujet (pays, personne, lieu), dans le titre ou le résumé."""
     brut = " ".join(textes)
-    propres = {_plat(m).strip() for m in re.findall(r"(?<![\w])[A-ZÀ-Ý][\w'’-]{2,}", brut)}
+    # noms propres = mots à majuscule HORS début de texte (« Programme », « Guerre » en tête ne comptent pas) + les pays connus
+    GENERIQUES = {"guerre", "frappe", "missile", "sanctions", "petrole", "nucleaire", "europeenne", "etats"}
+    propres = set()
+    for t in textes:
+        for m in re.findall(r"(?<=[\w,;:] )[A-ZÀ-Ý][\w'’-]{2,}", str(t)):
+            propres.update(_plat(m).split())
+        propres.update(w for w in _plat(t).split() if w in ALIAS and w not in GENERIQUES)
     concepts = {}
     for w in _plat(brut).split():
         if len(w) > 3 and w not in VIDES and w not in concepts:
@@ -153,6 +160,8 @@ def cherche(textes, get, limite=25):
         return []
     notes = []
     for a in tout(get):
+        if a["date"] and a["date"] < (date.today() - timedelta(days=45)).isoformat():
+            continue                                     # trop ancien pour une enquête d'actualité
         mots = set(_plat(a["titre"] + " " + a["desc"]).split())
         vus = [c for c, var in concepts.items() if var & mots]
         if len(vus) >= 2 and any(c in propres for c in vus):
