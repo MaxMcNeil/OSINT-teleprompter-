@@ -141,23 +141,26 @@ def tout(get):
 
 
 def cherche(textes, get, limite=25):
-    """Articles des flux qui parlent du sujet : au moins 2 mots-clés du sujet (ou de ses traductions) dans le titre/résumé."""
-    cles = set()
-    for w in _plat(" ".join(textes)).split():
-        if len(w) > 3 and w not in VIDES:
-            cles.add(w)
-            cles.update(ALIAS.get(w, "").split())
-    if not cles:
+    """Articles des flux qui parlent du sujet. Un mot du sujet et ses traductions = UN concept ; il faut au moins 2 concepts
+    distincts, dont au moins un NOM PROPRE du sujet (pays, personne, lieu), dans le titre ou le résumé."""
+    brut = " ".join(textes)
+    propres = {_plat(m).strip() for m in re.findall(r"(?<![\w])[A-ZÀ-Ý][\w'’-]{2,}", brut)}
+    concepts = {}
+    for w in _plat(brut).split():
+        if len(w) > 3 and w not in VIDES and w not in concepts:
+            concepts[w] = {w, *ALIAS.get(w, "").split()}
+    if not concepts:
         return []
     notes = []
     for a in tout(get):
         mots = set(_plat(a["titre"] + " " + a["desc"]).split())
-        sc = len(cles & mots)
-        if sc >= 2:
-            notes.append((sc, a))
-    notes.sort(key=lambda x: -x[0])
+        vus = [c for c, var in concepts.items() if var & mots]
+        if len(vus) >= 2 and any(c in propres for c in vus):
+            notes.append((len(vus), a["date"] or "", a))
+    notes.sort(key=lambda x: (-x[0], x[1]), reverse=False)
+    notes.sort(key=lambda x: (x[0], x[1]), reverse=True)            # plus pertinent, puis plus récent
     out, par = [], {}
-    for sc, a in notes:
+    for sc, _d, a in notes:
         if par.get(a["nom"], 0) >= 3:
             continue
         par[a["nom"]] = par.get(a["nom"], 0) + 1
