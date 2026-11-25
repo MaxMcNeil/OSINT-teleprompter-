@@ -165,7 +165,22 @@ def refus(texte):
 
 
 def ask(prompt, temperature=0.7, json_mode=False, deadline=None):
-    """Essaie tous les relais gratuits. Retourne une Reponse, ou None si aucun n'a pu répondre."""
+    """Essaie tous les relais gratuits. Retourne une Reponse, ou None si aucun n'a pu répondre.
+    Tous les modèles en COURTE pause (limite par minute) : on attend le premier libéré (≤ 60 s) et on réessaie."""
+    for _tour in range(4):
+        r = _ask1(prompt, temperature, json_mode, deadline)
+        if r is not None:
+            return r
+        prochaines = [t for t in _pause.values() if t > time.monotonic()]
+        attente = min(prochaines) - time.monotonic() if prochaines else None
+        if attente is None or attente > 60 or (deadline is not None and deadline()):
+            return None
+        print(f"  relais : tous les modèles saturés pour l'instant, pause {attente:.0f}s")
+        time.sleep(max(1.0, attente))
+    return None
+
+
+def _ask1(prompt, temperature=0.7, json_mode=False, deadline=None):
     vision = not isinstance(prompt, str)
     taille = _taille(prompt)
     msgs = _messages(prompt, json_mode)
@@ -220,6 +235,19 @@ def _cle_ok(f, cle):
     return _verif[k]
 
 
+SUITE = ("Ta réponse précédente a été coupée par la limite de longueur. Écris UNIQUEMENT la suite, en reprenant exactement "
+         "au caractère où elle s'arrête : ne répète rien, n'ajoute ni introduction, ni explication, ni balise.")
+
+
+def _jonction(a, b):
+    """Recolle la suite sans doublon au point de jonction."""
+    b = re.sub(r"^\s*```\w*\s*", "", b or "")
+    for k in range(min(400, len(a), len(b)), 5, -1):
+        if a.endswith(b[:k]):
+            return a + b[k:]
+    return a + b
+
+
 def _appel(f, cle, m, msgs, temperature, json_mode):
     body = {"model": m, "messages": msgs, "temperature": max(0.0, min(1.0, temperature)), "max_tokens": 8000}
     if "gpt-oss" in m:
@@ -245,6 +273,23 @@ def _appel(f, cle, m, msgs, temperature, json_mode):
             out = _nettoyer(j["choices"][0]["message"].get("content") or "")
         except Exception:
             out = ""
+        n = 0
+        while out and fin == "length" and n < 4:
+            # réponse COUPÉE : on rend au modèle ce qu'il a écrit et on demande SEULEMENT LA SUITE (jamais tout le texte)
+            n += 1
+            print(f"  ! {f['nom']} {m} : réponse coupée → demande de la suite seulement ({n}/4)")
+            b2 = dict(body, messages=list(msgs) + [{"role": "assistant", "content": out}, {"role": "user", "content": SUITE}])
+            b2.pop("response_format", None)
+            try:
+                r2 = requests.post(f["url"], json=b2, headers=h, timeout=_TIMEOUT)
+                j2 = r2.json() if r2.status_code == 200 else {}
+                suite = _nettoyer(j2["choices"][0]["message"].get("content") or "") if j2 else ""
+                fin = j2["choices"][0].get("finish_reason") or "" if j2 else ""
+            except Exception:
+                suite = ""
+            if not suite:
+                break
+            out = _jonction(out, suite)
         if out:
             return Reponse(out, f"{f['nom']} {m}")
         # réponse vide : ce modèle ne sait pas faire ce travail (réflexion sans fin, sortie bloquée) → écarté pour le
@@ -273,7 +318,8 @@ def _appel(f, cle, m, msgs, temperature, json_mode):
                                                        "maximum context", "request too big", "tokens per minute (tpm): limit")):
         print(f"  ! {f['nom']} {m} : requête trop grosse pour ce modèle : modèle suivant")
         return "trop_gros"
-    if r.status_code == 404 or "model_not_found" in low or "decommissioned" in low or "does not exist" in low:
+    if r.status_code == 404 or "model_not_found" in low or "decommissioned" in low or "does not exist" in low \
+            or "terms acceptance" in low or "does not support" in low:
         print(f"  ! {f['nom']} {m} : modèle indisponible : écarté")
         for k in _cles(*f["cles"]):
             _morts.add((f["nom"], k, m))
@@ -291,10 +337,7 @@ def _appel(f, cle, m, msgs, temperature, json_mode):
         if m2:
             wait = max(wait, int(m2.group(1) or 0) * 60 + float(m2.group(2)))
         wait = wait or 10
-        if wait <= 30:
-            time.sleep(wait + 0.5)
-            return "attendre"
-        _pause[(f["nom"], m)] = time.monotonic() + wait
+        _pause[(f["nom"], m)] = time.monotonic() + wait + 0.5     # ce modèle seulement : on passe AUSSITÔT à un autre
         print(f"  ! {f['nom']} {m} : limite par minute ({wait:.0f}s) : modèle suivant")
         return "pause"
     print(f"  ! {f['nom']} {m} : erreur {r.status_code} ({' '.join(txt.split())[:120]}) : modèle suivant")
