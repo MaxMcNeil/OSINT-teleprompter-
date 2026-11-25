@@ -1,0 +1,23 @@
+name: essai flux monde (temporaire)
+on:
+  push:
+    branches: [flux-monde]
+jobs:
+  t:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - run: |
+          pip install -q requests
+          python - <<'PY'
+          from src import collect
+          for sujet, qs in [("Programme nucléaire de l'Iran", ["Iran nuclear program IAEA", "Iran enrichment uranium"]),
+                            ("Guerre au Soudan", ["Sudan war RSF El Fasher", "Sudan humanitarian crisis"]),
+                            ("Trump et le FBI", ["Trump FBI", "FBI director Trump"])]:
+              r = collect.flux_monde(sujet, qs)
+              print(f"== {sujet} : {len(r)} articles")
+              for s in r[:8]:
+                  print(f"   [{s.publisher}] {s.date} {s.title[:110]}")
+          PY

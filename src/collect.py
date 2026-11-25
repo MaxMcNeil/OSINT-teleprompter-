@@ -89,6 +89,16 @@ def press_sweep(sujet):
     return _run(jobs, workers=8)
 
 
+# ---------------------------------------------------------------- Flux hors grands médias (catalogue World Monitor)
+def flux_monde(sujet, queries, limit=25):
+    from . import flux_monde as FM
+    out = []
+    for a in FM.cherche([sujet] + list(queries or []), _get, limit):
+        out.append(Source(kind="presse", title=a["titre"], url=a["url"], publisher=a["nom"], date=a["date"],
+                          meta={"via": "flux-monde", "resume": a["desc"]}))
+    return out
+
+
 # ---------------------------------------------------------------- Bing Actualités (liens directs)
 def bing_news(query, mkt="fr-FR", limit=12):
     """Flux RSS de Bing Actualités : le lien réel de l'article est dans le paramètre url=, pas de redirection à décoder."""
@@ -416,6 +426,7 @@ def collect_all(sujet, queries, lang, deep=False):
         jobs += [(google_news, sujet, h, g, 10) for h, g in editions]
         jobs.append((press_sweep, sujet))
         jobs += [(youtube, sujet, hl), (x_posts, sujet), (reddit, sujet), (hackernews, sujet)]
+        jobs.append((flux_monde, sujet, queries))
     mkts = [f"{hl}-{gl}"] + [m for m in ("en-US", "en-GB") if m != f"{hl}-{gl}"]
     if not deep:
         jobs += [(bing_news, sujet, m, 12) for m in mkts]
@@ -433,7 +444,7 @@ def collect_all(sujet, queries, lang, deep=False):
     # liens directs avant liens Google News encodés : à titre égal, on garde l'adresse réelle
     out.sort(key=lambda x: "news.google.com" in x.url)
     from collections import Counter
-    cnt = Counter(("bing" if x.meta.get("via") == "bing" else x.kind) for x in out)
+    cnt = Counter((x.meta.get("via") if x.meta.get("via") in ("bing", "flux-monde") else x.kind) for x in out)
     print("   collecte brute :", ", ".join(f"{k} {v}" for k, v in cnt.most_common()))
     return out
 
