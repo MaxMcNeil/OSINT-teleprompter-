@@ -10,7 +10,7 @@ jobs:
       - uses: actions/setup-python@v5
         with: { python-version: "3.12" }
       - run: |
-          pip install -q requests
+          pip install -q -r requirements.txt
           python - <<'PY'
           from src import collect
           for sujet, qs in [("Programme nucléaire de l'Iran", ["Iran nuclear program IAEA", "Iran enrichment uranium"]),
