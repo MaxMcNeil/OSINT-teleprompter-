@@ -4,14 +4,14 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "Type de script : live (sujet, titres, capture) ou commentaire d'une vidéo (la plus longue vidéo de ton dossier Drive montage-joints, hors « moi… » — jamais supprimée ni déplacée)"
+        description: "Type de script : live (sujet, titres, capture) · commentaire d'une vidéo = ⚠ la vidéo à commenter va dans GOOGLE DRIVE → dossier « montage-joints » (PAS dans Releases) : la plus lourde du dossier est prise, hors ta vidéo « moi… », jamais supprimée ni déplacée"
         type: choice
         options:
           - live
           - commentaire d'une vidéo
         default: live
       video_commentee:
-        description: "Mode commentaire : VIDE = la vidéo est prise toute seule dans Drive montage-joints. Sinon lien direct vers la vidéo (.mp4, release GitHub…), ou nom d'un fichier de montage-joints (rempli tout seul par le partage Termux)"
+        description: "Mode commentaire : VIDE = la vidéo est prise toute seule dans GOOGLE DRIVE → montage-joints (PAS dans Releases). Sinon : nom d'un fichier de montage-joints (rempli tout seul par le partage Termux), ou lien direct (.mp4…) — ⚠ avec un lien, dépose AUSSI la vidéo dans montage-joints : le Montage la lit là"
         required: false
         default: ""
       sujet:

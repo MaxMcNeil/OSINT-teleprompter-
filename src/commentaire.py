@@ -20,7 +20,7 @@ import subprocess
 import tempfile
 import time
 
-from . import config, hors_contexte, llm
+from . import config, hors_contexte, llm, structure
 
 # mot déclencheur à dire (et que le Montage écoute), par langue
 # ⚠ EXACTEMENT les annonces que le Montage reconnaît (Montage-LV-final, montage/keywords.py, testé là-bas) :
@@ -250,11 +250,19 @@ def ecrire(lang: dict, style: str, these: str, ouv: dict, ps: list, mots_cible: 
     dec = DECLENCHEUR.get(lang["code"], DECLENCHEUR["fr"])
     per = min(220, max(40, int(mots_cible * 0.8 / max(1, len(ps)))))   # une réaction n'est jamais un monologue
     liste = "\n".join(f"[{k + 1}] « {p['citation'][:500]} »" for k, p in enumerate(ps))
-    prompt = f"""Tu écris le texte de prompteur d'un commentateur YouTube {('satirique, mordant' if style == 'satirique' else 'expert, percutant')}
-(langue : {lang['nom']}) qui RÉAGIT à une vidéo. Le spectateur vient de voir l'ouverture choc : « {ouv['citation'][:500]} ».
+    prompt = f"""Tu écris le texte de prompteur d'un commentateur YouTube qui RÉAGIT à une vidéo (langue : {lang['nom']}), dans le
+style de sa chaîne : DU FEU — indignation, alerte, humour noir, ironie glaciale{(', satire mordante' if style == 'satirique' else ', regard d’expert qui démonte')} ;
+jamais un texte tiède qui répète la version officielle. Le spectateur vient de voir l'ouverture choc : « {ouv['citation'][:500]} ».
+Le script commence déjà par une citation célèbre (ajoutée automatiquement) : n'en écris pas d'autre.
 {('Angle du commentateur : ' + these) if these else ''}
+REGISTRE : chaque réaction suit FAIT ou PHRASE ENTENDUE -> ANALYSE (pourquoi c'est grave, à qui ça profite, quel précédent, quelle
+contradiction) -> PUNCHLINE qui claque (humour noir ou alarme). Contre-lectures : ce que la version officielle oublie, les précédents
+historiques avérés (ex. les « armes de destruction massive » en Irak) quand ils éclairent vraiment le sujet. Zéro phrase neutre.
 Écris :
-- "intro" : 60 à 120 mots, réagit à chaud à l'ouverture, pose l'enjeu, donne envie de rester (question, promesse) ;
+- "hook" : 3 à 6 phrases COURTES, ultra-choc, juste après la citation : ta réaction à chaud à l'ouverture, ce qui est révoltant ou
+  inquiétant, et une boucle ouverte (« et ce n'est pas le pire… », « gardez ça en tête, ça revient à la fin ») ; aucune salutation ;
+- "intro" : 80 à 150 mots, le DÉCOR : qui parle dans cette vidéo, dans quel contexte, l'histoire qui mène à ce moment, et pourquoi le
+  spectateur doit s'en soucier ; termine par une question ouverte au public ;
 - pour CHAQUE passage numéroté ci-dessous, dans l'ordre :
   - "annonce" : 20 à 50 mots, à l'oral, naturels, qui préparent le passage (qui parle, de quoi, ce qu'il faut guetter) et
     donnent envie de l'entendre ; NE cite PAS le passage ; n'écris JAMAIS « le premier passage / segment / extrait » ni
@@ -264,11 +272,12 @@ def ecrire(lang: dict, style: str, these: str, ouv: dict, ps: list, mots_cible: 
   - "traduction" : {('la traduction fidèle du passage en ' + lang['nom'] + ' (la vidéo est dans une autre langue)') if lang.get('video') not in (None, '?', lang['code']) else 'chaîne vide'} ;
   - "reaction" : environ {per} mots de réaction juste après l'avoir entendu (analyse, contradiction, ironie, chiffres,
     question au public) ; ne commence jamais par répéter la citation ;
-- "conclusion" : 60 à 120 mots, verdict + question au public + appel à s'abonner.
+- "conclusion" : 80 à 140 mots, le verdict qui découle de tout ce qui précède, une dernière punchline, puis une question OUVERTE au
+  public (jamais « écrivez X si… », jamais « likez / partagez / abonnez-vous / dans les commentaires »).
 N'invente aucun fait ; une accusation est présentée comme une opinion ou une question. N'écris JAMAIS les mots
 « {dec} » toi-même (ils sont ajoutés automatiquement).
 {hors_contexte.REGLE} (Ne s'applique pas à "traduction", qui reste fidèle.)
-Réponds UNIQUEMENT en JSON : {{"intro": "...", "blocs": [{{"n": 1, "titre": "...", "annonce": "...", "traduction": "...", "reaction": "..."}}], "conclusion": "..."}}
+Réponds UNIQUEMENT en JSON : {{"hook": "...", "intro": "...", "blocs": [{{"n": 1, "titre": "...", "annonce": "...", "traduction": "...", "reaction": "..."}}], "conclusion": "..."}}
 
 PASSAGES :
 {liste}"""
@@ -312,11 +321,20 @@ PASSAGES :
     for b in blocs.values():    # dernier filet : une annonce encore numérotée est remplacée par le titre du passage
         if NUMEROTE.search(str(b.get("annonce") or "")):
             b["annonce"] = ""
-    return {"intro": clean(j.get("intro")), "conclusion": clean(j.get("conclusion")),
+    return {"hook": sansQuemande(clean(j.get("hook"))), "intro": sansQuemande(clean(j.get("intro"))),
+            "conclusion": sansQuemande(clean(j.get("conclusion"))),
             "blocs": [{"annonce": clean((blocs.get(k + 1) or {}).get("annonce")),
                        "traduction": clean((blocs.get(k + 1) or {}).get("traduction")),
                        "titre": clean((blocs.get(k + 1) or {}).get("titre"))[:70],
                        "reaction": clean((blocs.get(k + 1) or {}).get("reaction"))} for k in range(len(ps))]}
+
+
+# jamais d'appel « likez / partagez / abonnez-vous », « écrivez X si… », « dans les commentaires » (règle de la chaîne) :
+# la phrase qui le porte est retirée
+QUEMANDE = re.compile(r"(?i)\b(lik(ez|e)|partag(ez|e)|abonn(ez|e)|abonnement|cloche|commentaires?|écrivez|ecrivez|subscribe|"
+                      r"like and|share th|comment below|iscriv|condivid|اشترك|تعليق)")
+def sansQuemande(t: str) -> str:
+    return " ".join(p for p in re.split(r"(?<=[.!?…؟])\s+", str(t or "")) if p and not QUEMANDE.search(p)).strip()
 
 
 def run(a, video: str, video_nom: str, out_root: str) -> str:
@@ -343,7 +361,7 @@ def run(a, video: str, video_nom: str, out_root: str) -> str:
     print("[3/4] Écriture de tes annonces et réactions…")
     tx = ecrire(lang, a.style, a.these, ouv, ps, mots)
     reste = 0                           # tes phrases : jamais « nous / notre / nos » (la traduction, elle, reste fidèle)
-    for o, k in [(tx, "intro"), (tx, "conclusion")] + [(bl, x) for bl in tx["blocs"] for x in ("annonce", "reaction")]:
+    for o, k in [(tx, "hook"), (tx, "intro"), (tx, "conclusion")] + [(bl, x) for bl in tx["blocs"] for x in ("annonce", "reaction")]:
         if o.get(k):
             o[k], r = hors_contexte.corriger(o[k], lang["code"], llm.ask_json)
             reste += r
@@ -354,18 +372,29 @@ def run(a, video: str, video_nom: str, out_root: str) -> str:
             p["titre"] = b["titre"]
     dec = DECLENCHEUR.get(lang["code"], DECLENCHEUR["fr"])
     DEC = dec.upper()
+    # --- citation célèbre d'ouverture (réelle, vérifiée, sinon liste sûre), comme les lives ; puis hook de feu, accueil de
+    # la chaîne, décor, passages, verdict et signature
+    ctx = {"sujet": f"{os.path.splitext(video_nom)[0]} — {ouv.get('titre', '')}", "these": a.these or "", "lang": lang,
+           "points": [{"intitule": p["titre"]} for p in ps]}
+    try:
+        cit = structure.citation(ctx)
+    except Exception as e:
+        print(f"   ! citation d'ouverture impossible ({str(e)[:60]})")
+        cit = None
+    ch = structure.chaine(lang["code"])
+    tete = [structure.citation_text(cit, lang["code"]) if cit else "", tx.get("hook") or "", ch.get("accueil", "")]
     # --- texte du prompteur
-    L = [tx["intro"] or "", ""]
+    L = [x for t in tete if t for x in (t, "")] + [tx["intro"] or "", ""]
     ann = [f"# Commentaire : {video_nom}", "", f"**OUVERTURE CHOC** ({_fmt(ouv['start'])}) : « {ouv['citation']} »", "",
-           "## Intro", "", tx["intro"], ""]
+           "## Citation, hook, accueil", "", *[t for t in tete if t], "", "## Décor", "", tx["intro"], ""]
     for k, (p, b) in enumerate(zip(ps, tx["blocs"])):
         L += [b["annonce"] or f"{p['titre']}.", "", f"🎬 {DEC} !", "", (f"[ ne pas lire — on entend (VO) : « {p['citation'][:220]} » — en clair : « {b['traduction'][:260]} » ]"
                  if b.get("traduction") else f"[ ne pas lire — on entend : « {p['citation'][:220]} » ]"), "",
               b["reaction"] or "[ ta réaction, librement ]", ""]
         ann += [f"## {k + 1}. {p['titre']}  ({_fmt(p['start'])} → {_fmt(p['end'])}, {p['end'] - p['start']:.0f} s)", "",
                 b["annonce"], "", f"> 🎬 **{DEC} !** — « {p['citation']} »" + (f"\n>\n> *{b['traduction']}*" if b.get("traduction") else ""), "", b["reaction"], ""]
-    L += [tx["conclusion"] or ""]
-    ann += ["## Conclusion", "", tx["conclusion"]]
+    L += [tx["conclusion"] or ""] + (["", ch["signature"]] if ch.get("signature") else [])
+    ann += ["## Conclusion", "", tx["conclusion"]] + ([ "", ch["signature"]] if ch.get("signature") else [])
     txt = "\n".join(L).strip() + "\n"
     # --- contrôle : exactement un « écoutez ça » par passage (le Montage s'y fie)
     n_dec = len(re.findall(re.escape(DEC), txt))

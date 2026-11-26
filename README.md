@@ -31,13 +31,18 @@ Options : `--wpm 145` (mots par minute), `--langue fr|en|…`, `--no-defense`, `
 
 Pour une vidéo où tu **commentes la vidéo de quelqu'un d'autre** (guide complet : README du dépôt *Montage-LV-final*).
 
-1. Dépose la vidéo à commenter dans ton Google Drive, dossier **`montage-joints`** (ou colle son lien direct dans
-   `video_commentee`).
+> ⚠ **La vidéo à commenter va dans GOOGLE DRIVE → dossier `montage-joints`, PAS dans Releases.** Le prompteur ET le
+> Montage la cherchent là (dans Releases, elle ne serait jamais trouvée).
+
+1. Dépose la vidéo à commenter dans ton Google Drive, dossier **`montage-joints`** (avec un lien direct dans
+   `video_commentee`, dépose-la quand même aussi dans `montage-joints` : le Montage la lit là).
 2. **Actions → Générer le script du live → Run workflow** → `mode` = **commentaire d'une vidéo** (durée = durée de
    ton commentaire).
 3. Le prompteur transcrit la vidéo, choisit l'**ouverture choc** et les **passages** (8 à 25 s, phrases entières, jamais
-   un début en « Et / Mais… »), puis écrit : intro → pour chaque passage une annonce naturelle, **🎬 ÉCOUTEZ ÇA !**, ta
-   réaction → conclusion. Contrôle : exactement un « écoutez ça » par passage, sinon le script est refusé.
+   un début en « Et / Mais… »), puis écrit, dans le style de la chaîne (du feu : indignation, alerte, humour noir,
+   contre-lectures) : **citation célèbre** réelle et vérifiée → **hook de feu** → accueil de la chaîne → **décor** (qui
+   parle, contexte, histoire) → pour chaque passage une annonce naturelle, **🎬 ÉCOUTEZ ÇA !**, ta réaction (fait →
+   analyse → punchline) → verdict, question ouverte, signature. Jamais « likez / partagez / abonnez-vous ». Contrôle : exactement un « écoutez ça » par passage, sinon le script est refusé.
    **Vidéo en anglais, arabe… :** ta langue est gardée (`langue` auto = français ; `ar` pour Gulf think-tank) ; les
    passages restent en VO et le script te donne leur traduction (« en clair : … ») ; le Montage les sous-titre dans ta
    langue.
