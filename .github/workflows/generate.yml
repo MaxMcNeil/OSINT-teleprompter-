@@ -136,12 +136,30 @@ jobs:
           fi
           [ -n "$R" ] || { echo "::error title=Accès Drive manquant::Ajoute le secret RCLONE_CONF à ce dépôt (commande Termux dans le README, section « Mode commentaire »), ou donne un lien dans « video_commentee »."; exit 1; }
           # la vidéo à commenter = la PLUS LOURDE vidéo du dossier, hors ta vidéo « moi… » (aucun nom à respecter)
-          NOM=$(rclone lsjson "$R:$DOSSIER" --files-only 2>/dev/null | python3 -c '
+          LISTE="$RUNNER_TEMP/drive-liste.json"
+          rclone lsjson "$R:$DOSSIER" --files-only --retries 5 > "$LISTE" 2> "$RUNNER_TEMP/drive-erreur.txt" || {
+            echo "::error title=Drive illisible::impossible de lire le dossier Drive « $DOSSIER » : $(tail -c 300 "$RUNNER_TEMP/drive-erreur.txt" | tr '\n' ' ')"; exit 1; }
+          NOM=$(python3 -c '
           import json, re, sys
-          v = [f for f in json.load(sys.stdin) if re.search(r"\.(mp4|mov|mkv|webm|m4v|avi)$", f["Name"], re.I)
+          v = [f for f in json.load(open(sys.argv[1])) if (re.search(r"\.(mp4|mov|mkv|webm|m4v|avi|3gp)$", f["Name"], re.I) or str(f.get("MimeType","")).startswith("video/"))
                and not f["Name"].lower().startswith("moi")]
-          print(max(v, key=lambda f: f["Size"])["Name"] if v else "")')
-          [ -n "$NOM" ] || { echo "::error title=Aucune vidéo à commenter::Dépose la vidéo à commenter dans ton dossier Drive « $DOSSIER » (n'importe quel nom, sauf « moi… »)."; exit 1; }
+          print(max(v, key=lambda f: f["Size"])["Name"] if v else "")' "$LISTE")
+          if [ -z "$NOM" ]; then
+            # rien à commenter : dire exactement ce qui est dans le dossier (un son au lieu d'une vidéo, une vidéo « moi… », dossier vide)
+            python3 - "$LISTE" "$DOSSIER" <<'PY'
+          import json, re, sys
+          f = json.load(open(sys.argv[1])); d = sys.argv[2]
+          son = [x["Name"] for x in f if re.search(r"\.(mp3|m4a|wav|ogg|opus|aac|flac)$", x["Name"], re.I) or str(x.get("MimeType","")).startswith("audio/")]
+          moi = [x["Name"] for x in f if x["Name"].lower().startswith("moi")]
+          if not f: msg = f"le dossier Drive « {d} » est vide. Dépose la vidéo à commenter (n'importe quel nom, sauf « moi… »)."
+          elif son: msg = f"dans « {d} » il n'y a qu'un SON, pas de vidéo : {', '.join(son[:3])}. Si tu l'as pris sur ssstik / un site de téléchargement, choisis « MP4 » (pas « MP3 »), dépose la vidéo et relance."
+          elif moi: msg = f"dans « {d} » il n'y a que ta vidéo « moi… » ({', '.join(moi[:2])}) : la vidéo à commenter doit avoir un autre nom."
+          else: msg = f"aucune vidéo dans « {d} ». Fichiers vus : {', '.join(x['Name'] for x in f[:6])}."
+          print(f"::error title=Aucune vidéo à commenter::{msg}")
+          with open(__import__("os").environ["GITHUB_STEP_SUMMARY"], "a") as o: o.write(f"### ❌ Aucune vidéo à commenter\n\n{msg}\n")
+          PY
+            exit 1
+          fi
           rclone copyto "$R:$DOSSIER/$NOM" "$RUNNER_TEMP/commentee/$NOM" --retries 5 -q
           { echo "VIDEO_COMMENTEE=$RUNNER_TEMP/commentee/$NOM"; echo "VIDEO_COMMENTEE_NOM=$NOM"; } >> "$GITHUB_ENV"
           echo "### 🎬 Vidéo commentée : $NOM (lue dans Drive « $DOSSIER », laissée en place)" >> "$GITHUB_STEP_SUMMARY"
