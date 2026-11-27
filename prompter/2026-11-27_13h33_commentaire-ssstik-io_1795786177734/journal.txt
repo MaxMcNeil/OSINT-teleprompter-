@@ -1,0 +1,25 @@
+[  0.0 min]    délai du run : 55 min (arrêt de sécurité à 60 min)
+[  0.0 min] [1/4] Vidéo commentée : ssstik.io_1795786177734.mp4
+[  0.0 min]    transcription Groq : 312 mots
+[  0.0 min]    22 phrases, 3:02, vidéo en « it » → ton script en français
+[  0.0 min] [2/4] Choix de l'ouverture et de 10 passages…
+[  0.0 min]   relais Groq : openai/gpt-oss-120b, openai/gpt-oss-20b, qwen/qwen3.8-27b
+[  0.1 min]    7/10 passage(s) valable(s) (refusés : chevauchement) : l'IA en propose d'autres
+[  0.1 min]    8/10 passage(s) valable(s) (refusés : chevauchement) : l'IA en propose d'autres
+[  0.2 min]    ouverture 0:46 (10 s) — 8 passage(s) vérifié(s)
+[  0.2 min] [3/4] Écriture de tes annonces et réactions…
+[  0.2 min]   ! Groq openai/gpt-oss-120b : requête trop grosse pour ce modèle : modèle suivant
+[  0.2 min]   ! Groq openai/gpt-oss-120b : requête trop grosse pour ce modèle : modèle suivant
+[  0.3 min]   ! Groq openai/gpt-oss-120b : requête trop grosse pour ce modèle : modèle suivant
+[  0.3 min]    ! 1 « nous / notre / nos » restant(s) dans tes phrases (réécriture IA refusée) — relis-les
+[  0.3 min]   1 clé(s) Gemini chargée(s)
+[  0.3 min]   modèles, du plus performant au moins performant : gemini-3.8-flash, gemini-3.7-flash, gemini-3.6-flash, gemini-3.5-flash, gemini-3.5-flash-lite, gemini-3.1-flash-lite, gemini-2.5-flash, gemini-2.5-flash-lite
+[  0.3 min]   > clé n°1 / gemini-3.8-flash
+[  0.3 min]   ! recherche Google intégrée sans quota sur cette clé : désactivée pour ce run (la collecte presse continue)
+[  0.3 min]    ! vérification de la citation impossible (Recherche Google intégrée indisponible (pas de quota de rech)
+[  0.3 min]    citation (liste sûre) : « Les forts font ce qu'ils peuvent, et les faibles subissent ce qu'ils doivent. » — Thucydide
+[  0.3 min] [4/4] Commentaire de « ssstik.io_1795786177734.mp4 »
+[  0.3 min] 
+[  0.3 min] Script : 1716 mots ≈ 11.8 min de parole + 2.2 min de passages · 8 « écoutez ça » · ouverture choc à 0:46 · 17 s
+[  0.3 min] 
+[  0.3 min] IA utilisées : Groq gpt-oss-20b ×6, Groq gpt-oss-120b ×4
