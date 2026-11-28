@@ -104,7 +104,7 @@ jobs:
           DOSSIER: montage-joints
           LIEN: ${{ inputs.video_commentee }}
         run: |
-          command -v ffmpeg >/dev/null || { sudo apt-get update -qq && sudo apt-get install -y -qq --no-install-recommends ffmpeg; }
+          command -v ffmpeg >/dev/null || { { timeout 180 sudo apt-get update -qq || true; } && timeout 600 sudo apt-get install -y -qq --no-install-recommends ffmpeg; }
           pip install -q "faster-whisper>=1.1,<2" || echo "::notice::transcription locale indisponible : Groq seulement"
           # accès Drive : pour lire la vidéo, et pour y déposer la liste des passages que le Montage lira
           R=""
